@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Proyectos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 100%;
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            border: 1px solid #cbd5e0;
+        }
+        
+        th {
+            background: #4a5568;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border: 1px solid #2d3748;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .proyecto-row {
+            background: #e2e8f0;
+            font-weight: bold;
+            border-top: 3px solid #4a5568;
+        }
+        
+        .proyecto-row td {
+            border: 1px solid #cbd5e0;
+        }
+        
+        .proyecto-nombre {
+            font-size: 14px;
+            color: #2d3748;
+        }
+        
+        .recuento-row {
+            background: #f7fafc;
+            font-size: 12px;
+            color: #718096;
+        }
+        
+        .recuento-row td {
+            border: 1px solid #e2e8f0;
+        }
+        
+        .descripcion-proyecto {
+            font-style: italic;
+            color: #4a5568;
+            font-weight: normal;
+        }
+        
+        .tarea-row {
+            background: white;
+        }
+        
+        .tarea-row td {
+            border: 1px solid #e2e8f0;
+        }
+        
+        .tarea-row:hover {
+            background: #f7fafc;
+        }
+        
+        .tarea-row:last-child td {
+            border-bottom: 2px solid #cbd5e0;
+        }
+        
+        .estado {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 90px;
+        }
+        
+        .estado-completado {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .estado-pendiente {
+            background: #cbd5e0;
+            color: #2d3748;
+        }
+        
+        .estado-progreso {
+            background: #ecc94b;
+            color: #744210;
+        }
+        
+        .prioridad {
+            text-align: center;
+            font-weight: 600;
+            color: #e53e3e;
+        }
+        
+        .avance {
+            text-align: center;
+        }
+        
+        .esfuerzo {
+            text-align: center;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <table id="projectTable">
+            <thead>
+                <tr>
+                    <th>Proyecto</th>
+                    <th>Tarea</th>
+                    <th>Descripción breve</th>
+                    <th>Prioridad</th>
+                    <th>Avance</th>
+                    <th>Esfuerzo (días/semanas)</th>
+                    <th>DeadLine</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Cargar los datos de proyectos desde archivo externo -->
+    <script src="proyectosData.js"></script>
+    <script>
+        // Función para renderizar la tabla
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            window.proyectosData.forEach(proyecto => {
+                // Fila del proyecto
+                const proyectoRow = document.createElement('tr');
+                proyectoRow.className = 'proyecto-row';
+                proyectoRow.innerHTML = `
+                    <td class="proyecto-nombre">${proyecto.nombre}</td>
+                    <td colspan="2" class="descripcion-proyecto">${proyecto.descripcion}</td>
+                    <td colspan="5"></td>
+                `;
+                tbody.appendChild(proyectoRow);
+
+                // Calcular avance general como promedio de porcentajes de avance
+                const totalTareas = proyecto.tareas.length;
+                let sumaAvance = 0;
+                proyecto.tareas.forEach(tarea => {
+                    let avance = tarea.avance;
+                    // Si está completado y el campo está vacío, considerar 100%
+                    if (tarea.estado === 'Completado' && (!avance || avance.trim() === '')) {
+                        avance = '100%';
+                    }
+                    // Extraer número del porcentaje
+                    let porcentaje = 0;
+                    if (typeof avance === 'string' && avance.includes('%')) {
+                        porcentaje = parseInt(avance.replace('%', '').trim()) || 0;
+                    } else if (!isNaN(avance)) {
+                        porcentaje = Number(avance);
+                    }
+                    sumaAvance += porcentaje;
+                });
+                let avanceGeneral = totalTareas > 0 ? Math.round(sumaAvance / totalTareas) : 0;
+
+                // Fila del recuento con avance general
+                const recuentoRow = document.createElement('tr');
+                recuentoRow.className = 'recuento-row';
+                recuentoRow.innerHTML = `
+                    <td>Recuento: ${proyecto.recuento}</td>
+                    <td colspan="2">Avance general: <strong>${avanceGeneral}%</strong></td>
+                    <td colspan="5"></td>
+                `;
+                tbody.appendChild(recuentoRow);
+
+                // Filas de tareas
+                proyecto.tareas.forEach(tarea => {
+                    const tareaRow = document.createElement('tr');
+                    tareaRow.className = 'tarea-row';
+
+                    let estadoClass = 'estado-pendiente';
+                    if (tarea.estado === 'Completado') estadoClass = 'estado-completado';
+                    if (tarea.estado === 'En progreso') estadoClass = 'estado-progreso';
+
+                    // Mostrar avance 100% si está completado y el campo está vacío
+                    let avanceMostrar = tarea.avance;
+                    if (tarea.estado === 'Completado' && (!tarea.avance || tarea.avance.trim() === '')) {
+                        avanceMostrar = '100%';
+                    }
+
+                    tareaRow.innerHTML = `
+                        <td></td>
+                        <td>${tarea.nombre}</td>
+                        <td>${tarea.descripcion}</td>
+                        <td class="prioridad">${tarea.prioridad}</td>
+                        <td class="avance">${avanceMostrar}</td>
+                        <td class="esfuerzo">${tarea.esfuerzo}</td>
+                        <td>${tarea.deadline}</td>
+                        <td><span class="estado ${estadoClass}">${tarea.estado}</span></td>
+                    `;
+                    tbody.appendChild(tareaRow);
+                });
+            });
+        }
+
+        // Renderizar la tabla al cargar la página
+        renderTable();
+    </script>
+</body>
+</html>

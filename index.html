@@ -4,9 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Proyectos</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Botón para abrir modal de creación -->
+    <div class="mb-3">
+        <button type="button" class="btn btn-primary btn-lg" onclick="openCreateModal()">
+            <i class="bi bi-plus-circle me-2"></i>Crear Nuevo
+        </button>
+    </div>
+
+    <!-- Incluir Modal de Creación -->
+    <div id="modalContainer"></div>
+
     <div class="container">
         <table id="projectTable">
             <thead>
@@ -26,10 +38,14 @@
         </table>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Cargar los datos de proyectos y reglas de negocio desde archivo externo -->
     <script src="proyectosData.js"></script>
     <script src="reglasNegocio.js"></script>
     <script src="storageController.js"></script>
+    <script src="formController.js"></script>
     <script>
         // Función para renderizar la tabla
         function renderTable() {
@@ -226,6 +242,32 @@
         function showMoveConfirmation(projectName, direction) {
             const message = `Proyecto "${projectName}" movido hacia ${direction === 'up' ? 'arriba' : 'abajo'}`;
             StorageController.notify(message, 'success');
+        }
+
+        // Función para abrir modal de creación
+        async function openCreateModal() {
+            try {
+                // Cargar el HTML del modal si no está cargado
+                const modalContainer = document.getElementById('modalContainer');
+                if (!modalContainer.innerHTML.trim()) {
+                    const response = await fetch('create-forms.html');
+                    const html = await response.text();
+                    modalContainer.innerHTML = html;
+                    
+                    // Inicializar el FormController después de cargar el HTML
+                    if (window.FormController) {
+                        window.FormController.init();
+                    }
+                }
+                
+                // Abrir el modal
+                if (window.FormController) {
+                    window.FormController.openModal('project');
+                }
+            } catch (error) {
+                console.error('Error al cargar el modal:', error);
+                StorageController.notify('Error al cargar el formulario de creación', 'error');
+            }
         }
 
         // Inicializar la aplicación al cargar la página

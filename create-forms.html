@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Elementos - Gestión de Proyectos</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Modal para Crear Elementos -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="createModalLabel">
+                        <span class="me-2">🏗️</span>Crear Nuevos Elementos
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <!-- Tabs para diferentes tipos de creación -->
+                    <ul class="nav nav-tabs" id="createTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="project-tab" data-bs-toggle="tab" data-bs-target="#project-pane" type="button" role="tab" aria-controls="project-pane" aria-selected="true">
+                                📋 Proyecto
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="task-tab" data-bs-toggle="tab" data-bs-target="#task-pane" type="button" role="tab" aria-controls="task-pane" aria-selected="false">
+                                📝 Tarea
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="subtask-tab" data-bs-toggle="tab" data-bs-target="#subtask-pane" type="button" role="tab" aria-controls="subtask-pane" aria-selected="false">
+                                📄 Subtarea
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <!-- Contenido de los tabs -->
+                    <div class="tab-content mt-3" id="createTabsContent">
+                        <!-- Tab Proyecto -->
+                        <div class="tab-pane fade show active" id="project-pane" role="tabpanel" aria-labelledby="project-tab">
+                            <form id="projectForm">
+                                <div class="mb-3">
+                                    <label for="projectName" class="form-label">
+                                        <strong>Nombre del Proyecto</strong> <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="projectName" placeholder="Ingresa el nombre del proyecto" maxlength="50" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="projectDescription" class="form-label">Descripción (Opcional)</label>
+                                    <textarea class="form-control" id="projectDescription" rows="3" placeholder="Describe brevemente el proyecto..." maxlength="200"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Tab Tarea -->
+                        <div class="tab-pane fade" id="task-pane" role="tabpanel" aria-labelledby="task-tab">
+                            <form id="taskForm">
+                                <div class="mb-3">
+                                    <label for="taskProjectSelect" class="form-label">
+                                        <strong>Proyecto</strong> <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="taskProjectSelect" required>
+                                        <option value="">Seleccionar proyecto...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="taskName" class="form-label">
+                                        <strong>Nombre de la Tarea</strong> <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="taskName" placeholder="Ingresa el nombre de la tarea" maxlength="50" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="taskDescription" class="form-label">Descripción (Opcional)</label>
+                                    <textarea class="form-control" id="taskDescription" rows="2" placeholder="Describe la tarea..." maxlength="200"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="taskPriority" class="form-label">Prioridad</label>
+                                        <select class="form-select" id="taskPriority">
+                                            <option value="">Seleccionar...</option>
+                                            <option value="1">1 - Alta</option>
+                                            <option value="2">2 - Media</option>
+                                            <option value="3">3 - Baja</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="taskEffort" class="form-label">Esfuerzo</label>
+                                        <input type="text" class="form-control" id="taskEffort" placeholder="ej: 2d, 1s" maxlength="10">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="taskDeadline" class="form-label">Deadline</label>
+                                        <input type="date" class="form-control" id="taskDeadline">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Tab Subtarea -->
+                        <div class="tab-pane fade" id="subtask-pane" role="tabpanel" aria-labelledby="subtask-tab">
+                            <form id="subtaskForm">
+                                <div class="mb-3">
+                                    <label for="subtaskProjectSelect" class="form-label">
+                                        <strong>Proyecto</strong> <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="subtaskProjectSelect" required>
+                                        <option value="">Seleccionar proyecto...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subtaskTaskSelect" class="form-label">
+                                        <strong>Tarea</strong> <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="subtaskTaskSelect" disabled required>
+                                        <option value="">Seleccionar tarea...</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subtaskName" class="form-label">
+                                        <strong>Nombre de la Subtarea</strong> <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="subtaskName" placeholder="Ingresa el nombre de la subtarea" maxlength="50" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="subtaskDescription" class="form-label">Descripción (Opcional)</label>
+                                    <textarea class="form-control" id="subtaskDescription" rows="2" placeholder="Describe la subtarea..." maxlength="200"></textarea>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="subtaskPriority" class="form-label">Prioridad</label>
+                                        <select class="form-select" id="subtaskPriority">
+                                            <option value="">Seleccionar...</option>
+                                            <option value="1">1 - Alta</option>
+                                            <option value="2">2 - Media</option>
+                                            <option value="3">3 - Baja</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="subtaskEffort" class="form-label">Esfuerzo</label>
+                                        <input type="text" class="form-control" id="subtaskEffort" placeholder="ej: 2d, 1s" maxlength="10">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="subtaskDeadline" class="form-label">Deadline</label>
+                                        <input type="date" class="form-control" id="subtaskDeadline">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success" id="createSubmitBtn">
+                        <i class="bi bi-plus-circle me-1"></i>Crear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

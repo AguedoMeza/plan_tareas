@@ -27,6 +27,78 @@ const StorageController = {
         return false;
     },
     
+    // Funciones para crear nuevos elementos
+    createProject: function(nombre, descripcion = '') {
+        if (!nombre || nombre.trim() === '') {
+            StorageController.notify('El nombre del proyecto es requerido', 'error');
+            return false;
+        }
+        
+        const nuevoProyecto = {
+            nombre: nombre.trim(),
+            descripcion: descripcion.trim(),
+            recuento: 0,
+            tareas: []
+        };
+        
+        window.proyectosData.push(nuevoProyecto);
+        StorageController.save();
+        StorageController.notify(`Proyecto "${nombre}" creado exitosamente`, 'success');
+        return true;
+    },
+    
+    createTask: function(projectIndex, nombre, descripcion = '', prioridad = '', esfuerzo = '', deadline = '', estado = 'Pendiente') {
+        if (!nombre || nombre.trim() === '' || projectIndex < 0 || projectIndex >= window.proyectosData.length) {
+            StorageController.notify('Datos de tarea inválidos', 'error');
+            return false;
+        }
+        
+        const nuevaTarea = {
+            nombre: nombre.trim(),
+            descripcion: descripcion.trim(),
+            prioridad: prioridad,
+            avance: '',
+            esfuerzo: esfuerzo.trim(),
+            deadline: deadline.trim(),
+            estado: estado
+        };
+        
+        window.proyectosData[projectIndex].tareas.push(nuevaTarea);
+        window.proyectosData[projectIndex].recuento = window.proyectosData[projectIndex].tareas.length;
+        StorageController.save();
+        StorageController.notify(`Tarea "${nombre}" añadida al proyecto`, 'success');
+        return true;
+    },
+    
+    createSubtask: function(projectIndex, taskIndex, nombre, descripcion = '', prioridad = '', esfuerzo = '', deadline = '', estado = 'Pendiente') {
+        if (!nombre || nombre.trim() === '' || projectIndex < 0 || taskIndex < 0 || 
+            projectIndex >= window.proyectosData.length || 
+            taskIndex >= window.proyectosData[projectIndex].tareas.length) {
+            StorageController.notify('Datos de subtarea inválidos', 'error');
+            return false;
+        }
+        
+        const nuevaSubtarea = {
+            nombre: nombre.trim(),
+            descripcion: descripcion.trim(),
+            prioridad: prioridad,
+            avance: '',
+            esfuerzo: esfuerzo.trim(),
+            deadline: deadline.trim(),
+            estado: estado
+        };
+        
+        // Si la tarea no tiene subtareas, inicializar el array
+        if (!Array.isArray(window.proyectosData[projectIndex].tareas[taskIndex].subtareas)) {
+            window.proyectosData[projectIndex].tareas[taskIndex].subtareas = [];
+        }
+        
+        window.proyectosData[projectIndex].tareas[taskIndex].subtareas.push(nuevaSubtarea);
+        StorageController.save();
+        StorageController.notify(`Subtarea "${nombre}" añadida`, 'success');
+        return true;
+    },
+    
     notify: function(message, type = 'success') {
         const colors = {
             success: { bg: '#48bb78', icon: '✅' },

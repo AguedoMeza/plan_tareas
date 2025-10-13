@@ -276,6 +276,7 @@
     <!-- Cargar los datos de proyectos y reglas de negocio desde archivo externo -->
     <script src="proyectosData.js"></script>
     <script src="reglasNegocio.js"></script>
+    <script src="storageController.js"></script>
     <script>
         // Función para renderizar la tabla
         function renderTable() {
@@ -460,37 +461,10 @@
             }
             
             // Guardar cambios en el storage
-            saveProjectsToStorage();
+            StorageController.save();
             
             // Mostrar feedback visual
             showMoveConfirmation(currentProject.nombre, direction);
-        }
-
-        // Función para guardar el estado en localStorage (simulando persistencia)
-        function saveProjectsToStorage() {
-            try {
-                localStorage.setItem('proyectosData', JSON.stringify(window.proyectosData));
-                showStorageConfirmation('Proyectos guardados correctamente', 'success');
-            } catch (error) {
-                console.error('Error al guardar proyectos:', error);
-                showStorageConfirmation('Error al guardar proyectos', 'error');
-            }
-        }
-
-        // Función para cargar el estado desde localStorage
-        function loadProjectsFromStorage() {
-            try {
-                const savedProjects = localStorage.getItem('proyectosData');
-                if (savedProjects) {
-                    window.proyectosData = JSON.parse(savedProjects);
-                    showStorageConfirmation('Proyectos cargados desde el almacenamiento local', 'info');
-                    return true;
-                }
-            } catch (error) {
-                console.error('Error al cargar proyectos:', error);
-                showStorageConfirmation('Error al cargar proyectos guardados', 'error');
-            }
-            return false;
         }
 
 
@@ -498,65 +472,13 @@
         // Función para mostrar confirmación de movimiento
         function showMoveConfirmation(projectName, direction) {
             const message = `Proyecto "${projectName}" movido hacia ${direction === 'up' ? 'arriba' : 'abajo'}`;
-            showStorageConfirmation(message, 'success');
-        }
-
-        // Función mejorada para mostrar notificaciones con tipos
-        function showStorageConfirmation(message, type = 'success') {
-            const colors = {
-                success: { bg: '#48bb78', icon: '✅' },
-                error: { bg: '#f56565', icon: '❌' },
-                info: { bg: '#4299e1', icon: 'ℹ️' },
-                warning: { bg: '#ed8936', icon: '⚠️' }
-            };
-            
-            const config = colors[type] || colors.success;
-            
-            // Crear elemento de notificación temporal
-            const notification = document.createElement('div');
-            notification.innerHTML = `${config.icon} ${message}`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: ${config.bg};
-                color: white;
-                padding: 12px 16px;
-                border-radius: 6px;
-                font-size: 14px;
-                z-index: 1000;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                opacity: 0;
-                transform: translateX(100%);
-                transition: all 0.3s ease;
-                max-width: 400px;
-                word-wrap: break-word;
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Animar entrada
-            setTimeout(() => {
-                notification.style.opacity = '1';
-                notification.style.transform = 'translateX(0)';
-            }, 10);
-            
-            // Animar salida y remover
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    if (document.body.contains(notification)) {
-                        document.body.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
+            StorageController.notify(message, 'success');
         }
 
         // Inicializar la aplicación al cargar la página
         function initializeApp() {
             // Intentar cargar datos guardados, si no existen usar los originales
-            loadProjectsFromStorage();
+            StorageController.load();
             renderTable();
         }
 

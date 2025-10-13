@@ -83,17 +83,40 @@
         .tarea-row {
             background: white;
         }
-        
+
+        .tarea-row.tarea-con-subtareas {
+            background: #edf2f7;
+            border-left: 4px solid #4a5568;
+        }
+
+        .tarea-row.tarea-con-subtareas td {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
         .tarea-row td {
             border: 1px solid #e2e8f0;
         }
-        
+
         .tarea-row:hover {
             background: #f7fafc;
         }
-        
+
         .tarea-row:last-child td {
             border-bottom: 2px solid #cbd5e0;
+        }
+
+        .subtarea-row {
+            background: #f7fafc;
+        }
+        .subtarea-row td {
+            color: #718096;
+            font-weight: 400;
+            border-left: 4px solid #cbd5e0;
+        }
+        .subtarea-row .subtarea-nombre {
+            padding-left: 40px;
+            font-style: italic;
         }
         
         .estado {
@@ -157,8 +180,9 @@
         </table>
     </div>
 
-    <!-- Cargar los datos de proyectos desde archivo externo -->
+    <!-- Cargar los datos de proyectos y reglas de negocio desde archivo externo -->
     <script src="proyectosData.js"></script>
+    <script src="reglasNegocio.js"></script>
     <script>
         // Función para renderizar la tabla
         function renderTable() {
@@ -176,25 +200,8 @@
                 `;
                 tbody.appendChild(proyectoRow);
 
-                // Calcular avance general como promedio de porcentajes de avance
-                const totalTareas = proyecto.tareas.length;
-                let sumaAvance = 0;
-                proyecto.tareas.forEach(tarea => {
-                    let avance = tarea.avance;
-                    // Si está completado y el campo está vacío, considerar 100%
-                    if (tarea.estado === 'Completado' && (!avance || avance.trim() === '')) {
-                        avance = '100%';
-                    }
-                    // Extraer número del porcentaje
-                    let porcentaje = 0;
-                    if (typeof avance === 'string' && avance.includes('%')) {
-                        porcentaje = parseInt(avance.replace('%', '').trim()) || 0;
-                    } else if (!isNaN(avance)) {
-                        porcentaje = Number(avance);
-                    }
-                    sumaAvance += porcentaje;
-                });
-                let avanceGeneral = totalTareas > 0 ? Math.round(sumaAvance / totalTareas) : 0;
+                // Calcular avance general usando la capa de negocio
+                let avanceGeneral = window.reglasNegocio.calcularAvanceGeneral(proyecto);
 
                 // Fila del recuento con avance general
                 const recuentoRow = document.createElement('tr');
@@ -209,7 +216,8 @@
                 // Filas de tareas
                 proyecto.tareas.forEach(tarea => {
                     const tareaRow = document.createElement('tr');
-                    tareaRow.className = 'tarea-row';
+                    // Si tiene subtareas, aplicar clase especial
+                    tareaRow.className = Array.isArray(tarea.subtareas) ? 'tarea-row tarea-con-subtareas' : 'tarea-row';
 
                     let estadoClass = 'estado-pendiente';
                     if (tarea.estado === 'Completado') estadoClass = 'estado-completado';
@@ -223,7 +231,7 @@
 
                     tareaRow.innerHTML = `
                         <td></td>
-                        <td>${tarea.nombre}</td>
+                        <td><span style="display:inline-block;vertical-align:middle;">${Array.isArray(tarea.subtareas) ? '<span style=\'font-size:18px;color:#4a5568;margin-right:4px;\'>📂</span>' : ''}<strong>${tarea.nombre}</strong></span></td>
                         <td>${tarea.descripcion}</td>
                         <td class="prioridad">${tarea.prioridad}</td>
                         <td class="avance">${avanceMostrar}</td>
@@ -232,6 +240,35 @@
                         <td><span class="estado ${estadoClass}">${tarea.estado}</span></td>
                     `;
                     tbody.appendChild(tareaRow);
+
+                    // Si la tarea tiene subtareas, pintarlas con estilo especial
+                    if (Array.isArray(tarea.subtareas)) {
+                        tarea.subtareas.forEach(subtarea => {
+                            const subRow = document.createElement('tr');
+                            subRow.className = 'subtarea-row';
+
+                            let subEstadoClass = 'estado-pendiente';
+                            if (subtarea.estado === 'Completado') subEstadoClass = 'estado-completado';
+                            if (subtarea.estado === 'En progreso') subEstadoClass = 'estado-progreso';
+
+                            let subAvanceMostrar = subtarea.avance;
+                            if (subtarea.estado === 'Completado' && (!subtarea.avance || subtarea.avance.trim() === '')) {
+                                subAvanceMostrar = '100%';
+                            }
+
+                            subRow.innerHTML = `
+                                <td></td>
+                                <td class="subtarea-nombre">📄 ${subtarea.nombre}</td>
+                                <td>${subtarea.descripcion}</td>
+                                <td class="prioridad">${subtarea.prioridad}</td>
+                                <td class="avance">${subAvanceMostrar}</td>
+                                <td class="esfuerzo">${subtarea.esfuerzo}</td>
+                                <td>${subtarea.deadline}</td>
+                                <td><span class="estado ${subEstadoClass}">${subtarea.estado}</span></td>
+                            `;
+                            tbody.appendChild(subRow);
+                        });
+                    }
                 });
             });
         }

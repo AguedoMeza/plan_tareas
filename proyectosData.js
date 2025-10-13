@@ -1,52 +1,72 @@
 // Archivo separado para los datos de proyectos
 window.proyectosData = [
     {
-        nombre: "Nintex-MRI Connector",
-        descripcion: "Conector entre Nintex y MRI para sincronización de vendors y webhooks",
-        recuento: 5,
+        nombre: "Nintex",
+        descripcion: "Proyecto general de integración y servicios Nintex",
+        recuento: 1,
         tareas: [
             {
-                nombre: "MRI Connector Service",
-                descripcion: "",
+                nombre: "Nintex-MRI Connector",
+                descripcion: "Conector entre Nintex y MRI para sincronización de vendors y webhooks",
                 prioridad: 1,
-                avance: "100%",
-                esfuerzo: "4d",
+                avance: "",
+                esfuerzo: "",
                 deadline: "",
-                estado: "Completado"
+                estado: "En progreso",
+                subtareas: [
+                    {
+                        nombre: "MRI Connector Service",
+                        descripcion: "",
+                        prioridad: 1,
+                        avance: "100%",
+                        esfuerzo: "4d",
+                        deadline: "",
+                        estado: "Completado"
+                    },
+                    {
+                        nombre: "Modelos y BD Local",
+                        descripcion: "",
+                        prioridad: 2,
+                        avance: "80%",
+                        esfuerzo: "2d",
+                        deadline: "",
+                        estado: "En progreso"
+                    },
+                    {
+                        nombre: "Vendor Service + Endpoints",
+                        descripcion: "",
+                        prioridad: 2,
+                        avance: "70%",
+                        esfuerzo: "1d",
+                        deadline: "",
+                        estado: "En progreso"
+                    },
+                    {
+                        nombre: "Placeholder para Nintex",
+                        descripcion: "",
+                        prioridad: 2,
+                        avance: "0%",
+                        esfuerzo: "1d",
+                        deadline: "",
+                        estado: "Pendiente"
+                    },
+                    {
+                        nombre: "Infra",
+                        descripcion: "",
+                        prioridad: 2,
+                        avance: "0%",
+                        esfuerzo: "1d",
+                        deadline: "",
+                        estado: "Pendiente"
+                    }
+                ]
             },
             {
-                nombre: "Modelos y BD Local",
+                nombre: "Diseño de infraestructura para guardado de documentos en nintex",
                 descripcion: "",
                 prioridad: 2,
-                avance: "80%",
+                avance: "",
                 esfuerzo: "2d",
-                deadline: "",
-                estado: "En progreso"
-            },
-            {
-                nombre: "Vendor Service + Endpoints",
-                descripcion: "",
-                prioridad: 2,
-                avance: "70%",
-                esfuerzo: "1d",
-                deadline: "",
-                estado: "En progreso"
-            },
-            {
-                nombre: "Placeholder para Nintex",
-                descripcion: "",
-                prioridad: 2,
-                avance: "0%",
-                esfuerzo: "1d",
-                deadline: "",
-                estado: "Pendiente"
-            },
-            {
-                nombre: "Infra",
-                descripcion: "",
-                prioridad: 2,
-                avance: "0%",
-                esfuerzo: "1d",
                 deadline: "",
                 estado: "Pendiente"
             }

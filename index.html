@@ -59,7 +59,7 @@
                 proyectoRow.className = 'proyecto-row';
                 proyectoRow.dataset.projectIndex = index;
                 proyectoRow.innerHTML = `
-                    <td class="proyecto-nombre">
+                    <td class="proyecto-nombre" data-field="nombre">
                         <div class="project-controls">
                             <button class="reorder-btn" onclick="moveProject(${index}, 'up')" id="up-${index}" title="Mover proyecto hacia arriba" ${index === 0 ? 'disabled' : ''}>
                                 ⬆️
@@ -308,81 +308,8 @@
             }
         }
 
-        // Función para manejar teclas en modo edición
-        function handleEditKeydown(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                saveEdit();
-            } else if (e.key === 'Escape') {
-                e.preventDefault();
-                cancelEdit();
-            }
-        }
-
-        // Función para guardar edición
-        function saveEdit() {
-            if (!currentlyEditing) return;
-            
-            const { type, projectIndex, taskIndex, subtaskIndex, row } = currentlyEditing;
-            const inputs = row.querySelectorAll('.edit-input');
-            const newData = {};
-            
-            // Recopilar nuevos valores
-            inputs.forEach(input => {
-                const field = input.getAttribute('data-field');
-                let value = input.value.trim();
-                
-                // Para campos numéricos como prioridad, mantener como string o convertir apropiadamente
-                if (field === 'prioridad' && value === '') {
-                    value = ''; // Permitir prioridad vacía
-                }
-                
-                newData[field] = value;
-            });
-            
-            // Validar solo campos realmente requeridos
-            if (!newData.nombre || newData.nombre.trim() === '') {
-                StorageController.notify('El nombre es requerido', 'error');
-                // Enfocar el campo nombre
-                const nombreInput = row.querySelector('input[data-field="nombre"], textarea[data-field="nombre"]');
-                if (nombreInput) {
-                    nombreInput.focus();
-                    nombreInput.style.borderColor = '#dc3545';
-                }
-                return;
-            }
-            
-            // Limpiar estilos de error previos
-            const allInputs = row.querySelectorAll('.edit-input');
-            allInputs.forEach(input => {
-                input.style.borderColor = '';
-            });
-
-            // Actualizar datos
-            try {
-                if (type === 'project') {
-                    Object.assign(window.proyectosData[projectIndex], newData);
-                } else if (type === 'task') {
-                    Object.assign(window.proyectosData[projectIndex].tareas[taskIndex], newData);
-                } else if (type === 'subtask') {
-                    Object.assign(window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex], newData);
-                }
-                
-                // Guardar cambios
-                StorageController.save();
-                StorageController.notify(`${type === 'project' ? 'Proyecto' : type === 'task' ? 'Tarea' : 'Subtarea'} "${newData.nombre}" actualizado correctamente`, 'success');
-                
-                // Re-renderizar tabla
-                renderTable();
-                
-                // Limpiar estado de edición
-                currentlyEditing = null;
-                
-            } catch (error) {
-                console.error('Error al guardar:', error);
-                StorageController.notify('Error al guardar los cambios', 'error');
-            }
-        }
+        // Inicializar la aplicación al cargar la página
+        
 
         // Función para cancelar edición
         function cancelEdit() {

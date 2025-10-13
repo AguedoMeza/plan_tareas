@@ -133,23 +133,50 @@ const StorageController = {
             const field = cell.getAttribute('data-field');
             let currentValue = '';
             
-            // Obtener valor actual
+            // Obtener valor actual según el campo
             if (field === 'nombre') {
-                if (type === 'project') {
-                    currentValue = data.nombre;
-                } else if (type === 'task') {
-                    currentValue = data.nombre;
-                    cell.innerHTML = `<strong><input type="text" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre"></strong>`;
-                    return;
-                } else {
-                    currentValue = data.nombre;
-                    cell.innerHTML = `📄 <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 30px);" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">`;
-                    return;
-                }
+                currentValue = data.nombre || '';
             } else if (field === 'descripcion') {
                 currentValue = data.descripcion || '';
             } else if (field === 'prioridad') {
                 currentValue = data.prioridad || '';
+            } else if (field === 'avance') {
+                currentValue = data.avance || '';
+            } else if (field === 'esfuerzo') {
+                currentValue = data.esfuerzo || '';
+            } else if (field === 'deadline') {
+                currentValue = data.deadline || '';
+            } else if (field === 'estado') {
+                currentValue = data.estado || 'Pendiente';
+            }
+            
+            // Crear inputs específicos según el campo y tipo
+            if (field === 'nombre') {
+                if (type === 'project') {
+                    // Para proyectos, mantener los controles y agregar input para el nombre
+                    cell.innerHTML = `
+                        <div class="project-controls">
+                            <button class="reorder-btn" onclick="moveProject(${projectIndex}, 'up')" title="Mover hacia arriba" ${projectIndex === 0 ? 'disabled' : ''}>
+                                ⬆️
+                            </button>
+                            <button class="reorder-btn" onclick="moveProject(${projectIndex}, 'down')" title="Mover hacia abajo" ${projectIndex >= (window.proyectosData ? window.proyectosData.length - 1 : 0) ? 'disabled' : ''}>
+                                ⬇️
+                            </button>
+                            <button class="collapse-btn" onclick="toggleProject(${projectIndex})" title="Contraer/Expandir proyecto">
+                                <span class="collapse-icon">🔽</span>
+                            </button>
+                        </div>
+                        <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 120px); margin-left: 8px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">
+                    `;
+                } else if (type === 'task') {
+                    cell.innerHTML = `<strong><input type="text" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre"></strong>`;
+                } else if (type === 'subtask') {
+                    cell.innerHTML = `📄 <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 30px);" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">`;
+                }
+                return;
+            }
+            
+            if (field === 'prioridad') {
                 cell.innerHTML = `
                     <select class="form-select form-select-sm edit-input" data-field="prioridad">
                         <option value="">Sin prioridad</option>
@@ -159,17 +186,14 @@ const StorageController = {
                     </select>
                 `;
                 return;
-            } else if (field === 'avance') {
-                // Para avance, mostrar el valor real (no el calculado)
-                currentValue = data.avance || '';
-            } else if (field === 'esfuerzo') {
-                currentValue = data.esfuerzo || '';
-            } else if (field === 'deadline') {
-                currentValue = data.deadline || '';
+            }
+            
+            if (field === 'deadline') {
                 cell.innerHTML = `<input type="date" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="deadline">`;
                 return;
-            } else if (field === 'estado') {
-                currentValue = data.estado || 'Pendiente';
+            }
+            
+            if (field === 'estado') {
                 cell.innerHTML = `
                     <select class="form-select form-select-sm edit-input" data-field="estado">
                         <option value="Pendiente" ${currentValue === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
@@ -180,7 +204,7 @@ const StorageController = {
                 return;
             }
             
-            // Input de texto por defecto
+            // Input de texto por defecto para otros campos
             if (field === 'descripcion') {
                 cell.innerHTML = `<textarea class="form-control form-control-sm edit-input" rows="1" data-field="${field}">${StorageController.escapeHtml(currentValue)}</textarea>`;
             } else {

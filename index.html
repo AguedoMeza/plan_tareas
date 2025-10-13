@@ -62,13 +62,13 @@
                     <td class="proyecto-nombre" data-field="nombre">
                         <div class="project-controls">
                             <button class="reorder-btn" onclick="moveProject(${index}, 'up')" id="up-${index}" title="Mover proyecto hacia arriba" ${index === 0 ? 'disabled' : ''}>
-                                ⬆️
+                                ↑
                             </button>
                             <button class="reorder-btn" onclick="moveProject(${index}, 'down')" id="down-${index}" title="Mover proyecto hacia abajo" ${index === window.proyectosData.length - 1 ? 'disabled' : ''}>
-                                ⬇️
+                                ↓
                             </button>
-                            <button class="collapse-btn" onclick="toggleProject(${index})" id="btn-${index}" title="Contraer/Expandir proyecto">
-                                <span class="collapse-icon">🔽</span>
+                            <button class="collapse-btn" onclick="StorageController.toggleProjectPersistent(${index})" id="btn-${index}" title="Contraer/Expandir proyecto">
+                                <span class="collapse-icon">▼</span>
                             </button>
                         </div>
                         ${proyecto.nombre}
@@ -217,7 +217,7 @@
             if (projectRow.classList.contains('proyecto-collapsed')) {
                 // Expandir
                 projectRow.classList.remove('proyecto-collapsed');
-                icon.textContent = '🔽';
+                icon.textContent = '▼';
                 button.title = 'Contraer proyecto';
                 relatedRows.forEach(row => {
                     row.style.display = '';
@@ -225,7 +225,7 @@
             } else {
                 // Colapsar
                 projectRow.classList.add('proyecto-collapsed');
-                icon.textContent = '🔽';
+                icon.textContent = '▶';
                 button.title = 'Expandir proyecto';
                 relatedRows.forEach(row => {
                     row.style.display = 'none';
@@ -273,6 +273,11 @@
                     toggleProject(parseInt(i));
                 }
             });
+            
+            // Guardar los nuevos estados de colapso
+            setTimeout(() => {
+                StorageController.saveCollapsedStates();
+            }, 100);
             
             // Agregar efecto visual de movimiento
             const movedProjectRow = document.querySelector(`tr.proyecto-row[data-project-index="${newIndex}"]`);
@@ -414,6 +419,9 @@
             // Intentar cargar datos guardados, si no existen usar los originales
             StorageController.load();
             renderTable();
+            
+            // Cargar estados de colapso guardados
+            StorageController.loadCollapsedStates();
         }
 
         // Inicializar cuando se carga la página

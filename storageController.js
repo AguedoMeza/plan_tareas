@@ -460,6 +460,54 @@ const StorageController = {
         }
     },
 
+    // Funciones para manejar estados de colapso persistente
+    saveCollapsedStates: function() {
+        const collapsedStates = {};
+        window.proyectosData.forEach((_, index) => {
+            const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${index}"]`);
+            if (projectRow && projectRow.classList.contains('proyecto-collapsed')) {
+                collapsedStates[index] = true;
+            }
+        });
+        
+        try {
+            localStorage.setItem('collapsedProjects', JSON.stringify(collapsedStates));
+        } catch (error) {
+            console.error('Error al guardar estados de colapso:', error);
+        }
+    },
+    
+    loadCollapsedStates: function() {
+        try {
+            const savedStates = localStorage.getItem('collapsedProjects');
+            if (savedStates) {
+                const collapsedStates = JSON.parse(savedStates);
+                Object.keys(collapsedStates).forEach(index => {
+                    if (collapsedStates[index] && window.toggleProject) {
+                        // Usar setTimeout para asegurar que la tabla esté renderizada
+                        setTimeout(() => {
+                            window.toggleProject(parseInt(index));
+                        }, 10);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error al cargar estados de colapso:', error);
+        }
+    },
+    
+    toggleProjectPersistent: function(index) {
+        // Ejecutar el toggle
+        if (window.toggleProject) {
+            window.toggleProject(index);
+        }
+        
+        // Guardar el estado después de un pequeño delay
+        setTimeout(() => {
+            StorageController.saveCollapsedStates();
+        }, 100);
+    },
+
     // Variable para manejar edición
     currentlyEditing: null,
 

@@ -409,6 +409,97 @@ td {
     animation: editSaved 1s ease-out;
 }
 
+/* Estilos para select de estado directo */
+.estado-select {
+    font-size: 11px !important;
+    padding: 2px 6px !important;
+    min-height: 28px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 110px;
+}
+
+.estado-select:hover {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.125rem rgba(13, 110, 253, 0.1);
+}
+
+.estado-select:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    outline: none;
+}
+
+.estado-select option {
+    padding: 4px;
+    font-size: 11px;
+}
+
+/* Colores específicos para opciones del estado */
+.estado-select option[value="Pendiente"] {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.estado-select option[value="En progreso"] {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.estado-select option[value="Completado"] {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+/* Estilo visual según el estado seleccionado */
+.estado-select[data-current="Pendiente"] {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.estado-select[data-current="En progreso"] {
+    background-color: #fff3cd;
+    color: #856404;
+    border-color: #ffecb5;
+}
+
+.estado-select[data-current="Completado"] {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border-color: #badbcc;
+}
+
+/* Animación para cambios de estado */
+@keyframes estadoChanged {
+    0% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4);
+    }
+    50% { 
+        transform: scale(1.05);
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.2);
+    }
+    100% { 
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+    }
+}
+
+.estado-select.estado-changed {
+    animation: estadoChanged 0.5s ease-out;
+}
+
+/* Efecto hover más visible */
+.estado-select:hover {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.125rem rgba(13, 110, 253, 0.2);
+    transform: translateY(-1px);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .actions-cell {
@@ -423,5 +514,12 @@ td {
     .edit-input {
         font-size: 11px !important;
         padding: 2px 4px !important;
+    }
+    
+    .estado-select {
+        width: 95px;
+        font-size: 10px !important;
+        padding: 1px 4px !important;
+        min-height: 24px;
     }
 }

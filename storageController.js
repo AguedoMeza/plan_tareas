@@ -194,13 +194,8 @@ const StorageController = {
             }
             
             if (field === 'estado') {
-                cell.innerHTML = `
-                    <select class="form-select form-select-sm edit-input" data-field="estado">
-                        <option value="Pendiente" ${currentValue === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                        <option value="En progreso" ${currentValue === 'En progreso' ? 'selected' : ''}>En progreso</option>
-                        <option value="Completado" ${currentValue === 'Completado' ? 'selected' : ''}>Completado</option>
-                    </select>
-                `;
+                // Para estado, mantener el select directo (no crear uno nuevo en modo edición)
+                // El estado ya se puede cambiar directamente sin entrar en modo edición
                 return;
             }
             
@@ -252,6 +247,11 @@ const StorageController = {
         inputs.forEach(input => {
             const field = input.getAttribute('data-field');
             let value = input.value.trim();
+            
+            // Saltar el campo estado ya que se maneja por separado
+            if (field === 'estado') {
+                return;
+            }
             
             // Para campos numéricos como prioridad, mantener como string o convertir apropiadamente
             if (field === 'prioridad' && value === '') {
@@ -392,6 +392,72 @@ const StorageController = {
             "'": '&#039;'
         };
         return str.replace(/[&<>"']/g, function(m) { return map[m]; });
+    },
+
+    // Función para actualizar estado directamente
+    updateEstado: function(type, projectIndex, taskIndex = null, subtaskIndex = null, newEstado) {
+        try {
+            let item;
+            let itemName;
+            
+            // Obtener el elemento y su nombre
+            if (type === 'task') {
+                item = window.proyectosData[projectIndex].tareas[taskIndex];
+                itemName = item.nombre;
+            } else if (type === 'subtask') {
+                item = window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex];
+                itemName = item.nombre;
+            }
+            
+            if (!item) return;
+            
+            // Guardar estado anterior para feedback
+            const estadoAnterior = item.estado;
+            
+            // Actualizar el estado
+            item.estado = newEstado;
+            
+            // Si se marca como completado y no tiene avance, asignar 100%
+            if (newEstado === 'Completado' && (!item.avance || item.avance.trim() === '')) {
+                item.avance = '100%';
+            }
+            
+            // Guardar cambios
+            StorageController.save();
+            
+            // Mostrar notificación
+            const typeLabel = type === 'task' ? 'Tarea' : 'Subtarea';
+            StorageController.notify(
+                `${typeLabel} "${itemName}" cambió de "${estadoAnterior}" a "${newEstado}"`, 
+                'success'
+            );
+            
+            // Re-renderizar para actualizar avances generales y estilos
+            if (window.renderTable) {
+                window.renderTable();
+            }
+            
+            // Actualizar el atributo data-current del select y agregar animación
+            setTimeout(() => {
+                const selectElement = document.querySelector(`select[onchange*="'${type}', ${projectIndex}, ${taskIndex}, ${subtaskIndex}"]`);
+                if (selectElement) {
+                    selectElement.setAttribute('data-current', newEstado);
+                    selectElement.classList.add('estado-changed');
+                    setTimeout(() => {
+                        selectElement.classList.remove('estado-changed');
+                    }, 500);
+                }
+            }, 100);
+            
+        } catch (error) {
+            console.error('Error al actualizar estado:', error);
+            StorageController.notify('Error al actualizar el estado', 'error');
+            
+            // Revertir el cambio en la UI
+            if (window.renderTable) {
+                window.renderTable();
+            }
+        }
     },
 
     // Variable para manejar edición

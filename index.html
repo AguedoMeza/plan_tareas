@@ -130,7 +130,15 @@
                         <td class="avance" data-field="avance">${avanceMostrar}</td>
                         <td class="esfuerzo" data-field="esfuerzo">${tarea.esfuerzo}</td>
                         <td data-field="deadline">${tarea.deadline}</td>
-                        <td data-field="estado"><span class="estado ${estadoClass}">${tarea.estado}</span></td>
+                        <td data-field="estado">
+                            <select class="form-select form-select-sm estado-select" 
+                                    onchange="updateEstado('task', ${index}, ${tareaIndex}, null, this.value)"
+                                    data-current="${tarea.estado}">
+                                <option value="Pendiente" ${tarea.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                <option value="En progreso" ${tarea.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
+                                <option value="Completado" ${tarea.estado === 'Completado' ? 'selected' : ''}>Completado</option>
+                            </select>
+                        </td>
                         <td class="actions-cell">
                             <div class="dropdown">
                                 <button class="btn btn-sm action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -171,7 +179,15 @@
                                 <td class="avance" data-field="avance">${subAvanceMostrar}</td>
                                 <td class="esfuerzo" data-field="esfuerzo">${subtarea.esfuerzo}</td>
                                 <td data-field="deadline">${subtarea.deadline}</td>
-                                <td data-field="estado"><span class="estado ${subEstadoClass}">${subtarea.estado}</span></td>
+                                <td data-field="estado">
+                                    <select class="form-select form-select-sm estado-select" 
+                                            onchange="updateEstado('subtask', ${index}, ${tareaIndex}, ${subtareaIndex}, this.value)"
+                                            data-current="${subtarea.estado}">
+                                        <option value="Pendiente" ${subtarea.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                        <option value="En progreso" ${subtarea.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
+                                        <option value="Completado" ${subtarea.estado === 'Completado' ? 'selected' : ''}>Completado</option>
+                                    </select>
+                                </td>
                                 <td class="actions-cell">
                                     <div class="dropdown">
                                         <button class="btn btn-sm action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -280,6 +296,11 @@
         function showMoveConfirmation(projectName, direction) {
             const message = `Proyecto "${projectName}" movido hacia ${direction === 'up' ? 'arriba' : 'abajo'}`;
             StorageController.notify(message, 'success');
+        }
+
+        // Función para actualizar estado (wrapper global)
+        function updateEstado(type, projectIndex, taskIndex, subtaskIndex, newEstado) {
+            StorageController.updateEstado(type, projectIndex, taskIndex, subtaskIndex, newEstado);
         }
 
         // Función para abrir modal de creación

@@ -158,6 +158,47 @@
             text-align: center;
             white-space: nowrap;
         }
+        
+        .collapse-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 8px;
+            margin-right: 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+        }
+        
+        .collapse-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .collapse-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .collapse-icon {
+            transition: transform 0.2s ease;
+            font-size: 12px;
+        }
+        
+        .proyecto-collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .proyecto-collapsed .tarea-row,
+        .proyecto-collapsed .recuento-row,
+        .proyecto-collapsed .subtarea-row {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -189,12 +230,18 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            window.proyectosData.forEach(proyecto => {
+            window.proyectosData.forEach((proyecto, index) => {
                 // Fila del proyecto
                 const proyectoRow = document.createElement('tr');
                 proyectoRow.className = 'proyecto-row';
+                proyectoRow.dataset.projectIndex = index;
                 proyectoRow.innerHTML = `
-                    <td class="proyecto-nombre">${proyecto.nombre}</td>
+                    <td class="proyecto-nombre">
+                        <button class="collapse-btn" onclick="toggleProject(${index})" id="btn-${index}" title="Contraer/Expandir proyecto">
+                            <span class="collapse-icon">🔽</span>
+                        </button>
+                        ${proyecto.nombre}
+                    </td>
                     <td colspan="2" class="descripcion-proyecto">${proyecto.descripcion}</td>
                     <td colspan="5"></td>
                 `;
@@ -206,6 +253,7 @@
                 // Fila del recuento con avance general
                 const recuentoRow = document.createElement('tr');
                 recuentoRow.className = 'recuento-row';
+                recuentoRow.dataset.projectIndex = index;
                 recuentoRow.innerHTML = `
                     <td>Recuento: ${proyecto.recuento}</td>
                     <td colspan="2">Avance general: <strong>${avanceGeneral}%</strong></td>
@@ -218,6 +266,7 @@
                     const tareaRow = document.createElement('tr');
                     // Si tiene subtareas, aplicar clase especial
                     tareaRow.className = Array.isArray(tarea.subtareas) ? 'tarea-row tarea-con-subtareas' : 'tarea-row';
+                    tareaRow.dataset.projectIndex = index;
 
                     let estadoClass = 'estado-pendiente';
                     if (tarea.estado === 'Completado') estadoClass = 'estado-completado';
@@ -246,6 +295,7 @@
                         tarea.subtareas.forEach(subtarea => {
                             const subRow = document.createElement('tr');
                             subRow.className = 'subtarea-row';
+                            subRow.dataset.projectIndex = index;
 
                             let subEstadoClass = 'estado-pendiente';
                             if (subtarea.estado === 'Completado') subEstadoClass = 'estado-completado';
@@ -271,6 +321,32 @@
                     }
                 });
             });
+        }
+
+        // Función para colapsar/expandir proyectos
+        function toggleProject(index) {
+            const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${index}"]`);
+            const button = document.getElementById(`btn-${index}`);
+            const icon = button.querySelector('.collapse-icon');
+            const relatedRows = document.querySelectorAll(`tr[data-project-index="${index}"]:not(.proyecto-row)`);
+            
+            if (projectRow.classList.contains('proyecto-collapsed')) {
+                // Expandir
+                projectRow.classList.remove('proyecto-collapsed');
+                icon.textContent = '🔽';
+                button.title = 'Contraer proyecto';
+                relatedRows.forEach(row => {
+                    row.style.display = '';
+                });
+            } else {
+                // Colapsar
+                projectRow.classList.add('proyecto-collapsed');
+                icon.textContent = '🔽';
+                button.title = 'Expandir proyecto';
+                relatedRows.forEach(row => {
+                    row.style.display = 'none';
+                });
+            }
         }
 
         // Renderizar la tabla al cargar la página

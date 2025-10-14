@@ -281,26 +281,28 @@ const StorageController = {
 
         // Actualizar datos
         try {
+            let target;
             if (type === 'project') {
-                Object.assign(window.proyectosData[projectIndex], newData);
+                target = window.proyectosData[projectIndex];
             } else if (type === 'task') {
-                Object.assign(window.proyectosData[projectIndex].tareas[taskIndex], newData);
+                target = window.proyectosData[projectIndex].tareas[taskIndex];
             } else if (type === 'subtask') {
-                Object.assign(window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex], newData);
+                target = window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex];
             }
-            
-            // Guardar cambios
+            Object.assign(target, newData);
+
+            // Si el estado es Completado, poner avance en 100%
+            if (target.estado === 'Completado') {
+                target.avance = '100%';
+            }
+
             StorageController.save();
             StorageController.notify(`${type === 'project' ? 'Proyecto' : type === 'task' ? 'Tarea' : 'Subtarea'} "${newData.nombre}" actualizado correctamente`, 'success');
-            
-            // Re-renderizar tabla
+
             if (window.renderTable) {
                 window.renderTable();
             }
-            
-            // Limpiar estado de edición
             StorageController.currentlyEditing = null;
-            
         } catch (error) {
             console.error('Error al guardar:', error);
             StorageController.notify('Error al guardar los cambios', 'error');
@@ -416,9 +418,8 @@ const StorageController = {
             
             // Actualizar el estado
             item.estado = newEstado;
-            
-            // Si se marca como completado y no tiene avance, asignar 100%
-            if (newEstado === 'Completado' && (!item.avance || item.avance.trim() === '')) {
+            // Si se marca como completado, asignar 100% avance SIEMPRE
+            if (newEstado === 'Completado') {
                 item.avance = '100%';
             }
             

@@ -115,6 +115,7 @@
                     let estadoClass = 'estado-pendiente';
                     if (tarea.estado === 'Completado') estadoClass = 'estado-completado';
                     if (tarea.estado === 'En progreso') estadoClass = 'estado-progreso';
+                    if (tarea.estado === 'Bloqueado') estadoClass = 'estado-bloqueado';
 
                     // Mostrar avance 100% si está completado y el campo está vacío
                     let avanceMostrar = tarea.avance;
@@ -137,6 +138,7 @@
                                 <option value="Pendiente" ${tarea.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                                 <option value="En progreso" ${tarea.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
                                 <option value="Completado" ${tarea.estado === 'Completado' ? 'selected' : ''}>Completado</option>
+                                <option value="Bloqueado" ${tarea.estado === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
                             </select>
                         </td>
                         <td class="actions-cell">
@@ -165,6 +167,7 @@
                             let subEstadoClass = 'estado-pendiente';
                             if (subtarea.estado === 'Completado') subEstadoClass = 'estado-completado';
                             if (subtarea.estado === 'En progreso') subEstadoClass = 'estado-progreso';
+                            if (subtarea.estado === 'Bloqueado') subEstadoClass = 'estado-bloqueado';
 
                             let subAvanceMostrar = subtarea.avance;
                             if (subtarea.estado === 'Completado' && (!subtarea.avance || subtarea.avance.trim() === '')) {
@@ -186,6 +189,7 @@
                                         <option value="Pendiente" ${subtarea.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                                         <option value="En progreso" ${subtarea.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
                                         <option value="Completado" ${subtarea.estado === 'Completado' ? 'selected' : ''}>Completado</option>
+                                        <option value="Bloqueado" ${subtarea.estado === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
                                     </select>
                                 </td>
                                 <td class="actions-cell">

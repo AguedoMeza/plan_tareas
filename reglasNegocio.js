@@ -13,6 +13,11 @@ function calcularAvanceGeneral(proyecto) {
     proyecto.tareas.forEach(tarea => {
         if (Array.isArray(tarea.subtareas) && tarea.subtareas.length > 0) {
             tarea.subtareas.forEach(subtarea => {
+                // Excluir subtareas bloqueadas del cálculo
+                if (subtarea.estado === 'Bloqueado') {
+                    return;
+                }
+                
                 let avance = subtarea.avance;
                 if (subtarea.estado === 'Completado' && (!avance || avance.trim() === '')) {
                     avance = '100%';
@@ -27,6 +32,11 @@ function calcularAvanceGeneral(proyecto) {
                 totalItems++;
             });
         } else {
+            // Excluir tareas bloqueadas del cálculo
+            if (tarea.estado === 'Bloqueado') {
+                return;
+            }
+            
             let avance = tarea.avance;
             if (tarea.estado === 'Completado' && (!avance || avance.trim() === '')) {
                 avance = '100%';

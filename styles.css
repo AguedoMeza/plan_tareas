@@ -115,6 +115,10 @@ td {
     background: #ecc94b;
     color: #744210;
 }
+.estado-bloqueado {
+    background: #f56565;
+    color: white;
+}
 .prioridad {
     text-align: center;
     font-weight: 600;
@@ -463,6 +467,11 @@ td {
     color: #0f5132;
 }
 
+.estado-select option[value="Bloqueado"] {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
 /* Estilo visual según el estado seleccionado */
 .estado-select[data-current="Pendiente"] {
     background-color: #f8f9fa;
@@ -480,6 +489,12 @@ td {
     background-color: #d1e7dd;
     color: #0f5132;
     border-color: #badbcc;
+}
+
+.estado-select[data-current="Bloqueado"] {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f1aeb5;
 }
 
 /* Animación para cambios de estado */

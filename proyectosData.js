@@ -48,7 +48,7 @@ window.proyectosData = [
                         avance: "0%",
                         esfuerzo: "1d",
                         deadline: "",
-                        estado: "Pendiente"
+                        estado: "Bloqueado"
                     },
                     {
                         nombre: "Infra",
@@ -228,12 +228,12 @@ window.proyectosData = [
             },
             {
                 nombre: "Catálogo Actividades + Riesgo",
-                descripcion: "",
+                descripcion: "Esperando definición de requerimientos del cliente",
                 prioridad: "",
                 avance: "",
-                esfuerzo: "",
+                esfuerzo: "2d",
                 deadline: "",
-                estado: "Pendiente"
+                estado: "Bloqueado"
             }
         ]
     },

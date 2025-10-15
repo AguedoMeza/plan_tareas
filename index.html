@@ -429,8 +429,13 @@
 
         // Inicializar la aplicación al cargar la página
         function initializeApp() {
-            // Intentar cargar datos guardados, si no existen usar los originales
-            StorageController.load();
+            // Cargar datos guardados del storage, si no existen inicializar con array vacío
+            const dataLoaded = StorageController.load();
+            if (!dataLoaded) {
+                // Si no hay datos guardados, inicializar con array vacío
+                window.proyectosData = [];
+                StorageController.notify('Tablero inicializado. Puedes crear nuevos proyectos o importar datos existentes.', 'info');
+            }
             renderTable();
             
             // Cargar estados de colapso guardados

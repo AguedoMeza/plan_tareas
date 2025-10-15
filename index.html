@@ -93,7 +93,9 @@
             tbody.innerHTML = '';
 
             window.proyectosData.forEach((proyecto, index) => {
-                renderElement(proyecto, [index], 0, tbody);
+                // Aplicar ordenamiento recursivo antes de renderizar
+                const proyectoOrdenado = window.reglasNegocio.aplicarOrdenamientoRecursivo({...proyecto});
+                renderElement(proyectoOrdenado, [index], 0, tbody);
             });
 
         // Función recursiva para renderizar elementos
@@ -109,7 +111,13 @@
             }
             
             elementRow.dataset.elementPath = pathString;
-            if (isProject) elementRow.dataset.projectIndex = elementPath[0];
+            elementRow.dataset.projectIndex = elementPath[0]; // Todas las filas deben tener el índice del proyecto
+            
+            // Agregar atributos adicionales para identificar el nivel y tipo
+            elementRow.dataset.level = level;
+            if (!isProject) {
+                elementRow.dataset.parentPath = elementPath.slice(0, -1).join('-');
+            }
 
             // Construir contenido de la fila
             let rowContent = '';
@@ -276,27 +284,85 @@
             }
         }
 
-        // Función para colapsar/expandir proyectos
+        // Función para colapsar/expandir proyectos (ahora soporta estructura recursiva)
         function toggleProject(index) {
             const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${index}"]`);
             const button = document.getElementById(`btn-${index}`);
             const icon = button.querySelector('.collapse-icon');
-            const relatedRows = document.querySelectorAll(`tr[data-project-index="${index}"]:not(.proyecto-row)`);
+            
+            // Encontrar todas las filas relacionadas con este proyecto (incluye todos los niveles)
+            const allRelatedRows = document.querySelectorAll(`tr[data-project-index="${index}"]:not(.proyecto-row)`);
             
             if (projectRow.classList.contains('proyecto-collapsed')) {
-                // Expandir
+                // Expandir proyecto
                 projectRow.classList.remove('proyecto-collapsed');
                 icon.textContent = '▼';
                 button.title = 'Contraer proyecto';
-                relatedRows.forEach(row => {
+                
+                // Mostrar todas las filas relacionadas
+                allRelatedRows.forEach(row => {
                     row.style.display = '';
                 });
+                
+                // También mostrar la fila de resumen del proyecto
+                const summaryRow = document.querySelector(`tr.recuento-row[data-project-index="${index}"]`);
+                if (summaryRow) {
+                    summaryRow.style.display = '';
+                }
+                
             } else {
-                // Colapsar
+                // Colapsar proyecto
                 projectRow.classList.add('proyecto-collapsed');
                 icon.textContent = '▶';
                 button.title = 'Expandir proyecto';
-                relatedRows.forEach(row => {
+                
+                // Ocultar todas las filas relacionadas (recursivamente)
+                allRelatedRows.forEach(row => {
+                    row.style.display = 'none';
+                });
+                
+                // También ocultar la fila de resumen del proyecto
+                const summaryRow = document.querySelector(`tr.recuento-row[data-project-index="${index}"]`);
+                if (summaryRow) {
+                    summaryRow.style.display = 'none';
+                }
+            }
+            
+            // Guardar el estado persistente
+            StorageController.toggleProjectPersistent(index);
+        }
+
+        // Función para expandir/contraer elementos individuales (opcional para el futuro)
+        function toggleElement(elementPath) {
+            const pathString = elementPath.join('-');
+            const elementRow = document.querySelector(`tr[data-element-path="${pathString}"]`);
+            
+            if (!elementRow) return;
+            
+            // Encontrar todos los elementos hijos directos e indirectos
+            const allChildRows = [];
+            
+            // Buscar filas que empiecen con el path del elemento + un nivel más
+            const allRows = document.querySelectorAll('tr[data-element-path]');
+            allRows.forEach(row => {
+                const rowPath = row.dataset.elementPath;
+                if (rowPath.startsWith(pathString + '-')) {
+                    allChildRows.push(row);
+                }
+            });
+            
+            const hasCollapsedClass = elementRow.classList.contains('elemento-collapsed');
+            
+            if (hasCollapsedClass) {
+                // Expandir elemento
+                elementRow.classList.remove('elemento-collapsed');
+                allChildRows.forEach(row => {
+                    row.style.display = '';
+                });
+            } else {
+                // Colapsar elemento
+                elementRow.classList.add('elemento-collapsed');
+                allChildRows.forEach(row => {
                     row.style.display = 'none';
                 });
             }

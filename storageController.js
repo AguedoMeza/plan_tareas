@@ -595,12 +595,27 @@ const StorageController = {
                 element.avance = '100%';
             }
             
+            // Aplicar ordenamiento automático después de cambiar estado
+            // Encontrar el elemento padre para reordenar sus hijos
+            if (elementPath.length > 1) {
+                const parentPath = elementPath.slice(0, -1);
+                const parentElement = StorageController.findElementByPath(parentPath);
+                if (parentElement && Array.isArray(parentElement.elementos) && parentElement.elementos.length > 1) {
+                    parentElement.elementos = window.reglasNegocio.ordenarElementosPorEstado(parentElement.elementos);
+                }
+            } else {
+                // Si es un proyecto (nivel 0), ordenar los proyectos si hay más de uno
+                if (window.proyectosData.length > 1) {
+                    window.proyectosData = window.reglasNegocio.ordenarElementosPorEstado(window.proyectosData);
+                }
+            }
+            
             // Guardar cambios
             StorageController.save();
             
             // Mostrar notificación
             StorageController.notify(
-                `${tipoElemento} "${itemName}" cambió de "${estadoAnterior}" a "${newEstado}"`, 
+                `${tipoElemento} "${itemName}" cambió de "${estadoAnterior}" a "${newEstado}" y se reordenó automáticamente`, 
                 'success'
             );
             
@@ -688,10 +703,8 @@ const StorageController = {
     },
     
     toggleProjectPersistent: function(index) {
-        // Ejecutar el toggle
-        if (window.toggleProject) {
-            window.toggleProject(index);
-        }
+        // Solo guardar el estado, no ejecutar el toggle para evitar recursión
+        // El toggle ya se ejecutó en la función toggleProject
         
         // Guardar el estado después de un pequeño delay
         setTimeout(() => {

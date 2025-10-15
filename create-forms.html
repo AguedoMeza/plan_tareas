@@ -29,12 +29,12 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="task-tab" data-bs-toggle="tab" data-bs-target="#task-pane" type="button" role="tab" aria-controls="task-pane" aria-selected="false">
-                                📝 Tarea
+                                📝 Elemento Hijo
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="subtask-tab" data-bs-toggle="tab" data-bs-target="#subtask-pane" type="button" role="tab" aria-controls="subtask-pane" aria-selected="false">
-                                📄 Subtarea
+                                📄 Elemento Anidado
                             </button>
                         </li>
                     </ul>
@@ -57,26 +57,26 @@
                             </form>
                         </div>
                         
-                        <!-- Tab Tarea -->
+                        <!-- Tab Elemento Hijo -->
                         <div class="tab-pane fade" id="task-pane" role="tabpanel" aria-labelledby="task-tab">
                             <form id="taskForm">
                                 <div class="mb-3">
                                     <label for="taskProjectSelect" class="form-label">
-                                        <strong>Proyecto</strong> <span class="text-danger">*</span>
+                                        <strong>Elemento Padre</strong> <span class="text-danger">*</span>
                                     </label>
                                     <select class="form-select" id="taskProjectSelect" required>
-                                        <option value="">Seleccionar proyecto...</option>
+                                        <option value="">Seleccionar elemento padre...</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label for="taskName" class="form-label">
-                                        <strong>Nombre de la Tarea</strong> <span class="text-danger">*</span>
+                                        <strong>Nombre del Elemento</strong> <span class="text-danger">*</span>
                                     </label>
-                                    <input type="text" class="form-control" id="taskName" placeholder="Ingresa el nombre de la tarea" maxlength="50" required>
+                                    <input type="text" class="form-control" id="taskName" placeholder="Ingresa el nombre del elemento" maxlength="50" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="taskDescription" class="form-label">Descripción (Opcional)</label>
-                                    <textarea class="form-control" id="taskDescription" rows="2" placeholder="Describe la tarea..." maxlength="200"></textarea>
+                                    <textarea class="form-control" id="taskDescription" rows="2" placeholder="Describe el elemento..." maxlength="200"></textarea>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
@@ -100,34 +100,34 @@
                             </form>
                         </div>
                         
-                        <!-- Tab Subtarea -->
+                        <!-- Tab Elemento Anidado -->
                         <div class="tab-pane fade" id="subtask-pane" role="tabpanel" aria-labelledby="subtask-tab">
                             <form id="subtaskForm">
                                 <div class="mb-3">
                                     <label for="subtaskProjectSelect" class="form-label">
-                                        <strong>Proyecto</strong> <span class="text-danger">*</span>
+                                        <strong>Elemento Base</strong> <span class="text-danger">*</span>
                                     </label>
                                     <select class="form-select" id="subtaskProjectSelect" required>
-                                        <option value="">Seleccionar proyecto...</option>
+                                        <option value="">Seleccionar elemento base...</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label for="subtaskTaskSelect" class="form-label">
-                                        <strong>Tarea</strong> <span class="text-danger">*</span>
+                                        <strong>Elemento Padre</strong> <span class="text-danger">*</span>
                                     </label>
                                     <select class="form-select" id="subtaskTaskSelect" disabled required>
-                                        <option value="">Seleccionar tarea...</option>
+                                        <option value="">Seleccionar elemento padre...</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label for="subtaskName" class="form-label">
-                                        <strong>Nombre de la Subtarea</strong> <span class="text-danger">*</span>
+                                        <strong>Nombre del Elemento</strong> <span class="text-danger">*</span>
                                     </label>
-                                    <input type="text" class="form-control" id="subtaskName" placeholder="Ingresa el nombre de la subtarea" maxlength="50" required>
+                                    <input type="text" class="form-control" id="subtaskName" placeholder="Ingresa el nombre del elemento anidado" maxlength="50" required>
                                 </div>
                                 <div class="mb-3">
                                     <label for="subtaskDescription" class="form-label">Descripción (Opcional)</label>
-                                    <textarea class="form-control" id="subtaskDescription" rows="2" placeholder="Describe la subtarea..." maxlength="200"></textarea>
+                                    <textarea class="form-control" id="subtaskDescription" rows="2" placeholder="Describe el elemento anidado..." maxlength="200"></textarea>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-4 mb-3">

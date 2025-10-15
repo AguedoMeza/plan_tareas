@@ -87,32 +87,51 @@
     <script src="boardController.js"></script>
     <script src="formController.js"></script>
     <script>
-        // Función para renderizar la tabla
+        // Función para renderizar la tabla recursivamente
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
             window.proyectosData.forEach((proyecto, index) => {
-                // Fila del proyecto
-                const proyectoRow = document.createElement('tr');
-                proyectoRow.className = 'proyecto-row';
-                proyectoRow.dataset.projectIndex = index;
-                proyectoRow.innerHTML = `
+                renderElement(proyecto, [index], 0, tbody);
+            });
+
+        // Función recursiva para renderizar elementos
+        function renderElement(elemento, elementPath, level, container) {
+            const isProject = level === 0;
+            const pathString = elementPath.join('-');
+            
+            // Crear fila del elemento
+            const elementRow = document.createElement('tr');
+            elementRow.className = isProject ? 'proyecto-row' : (level === 1 ? 'tarea-row' : 'subtarea-row');
+            if (!isProject && Array.isArray(elemento.elementos) && elemento.elementos.length > 0) {
+                elementRow.className += ' tarea-con-subtareas';
+            }
+            
+            elementRow.dataset.elementPath = pathString;
+            if (isProject) elementRow.dataset.projectIndex = elementPath[0];
+
+            // Construir contenido de la fila
+            let rowContent = '';
+            
+            if (isProject) {
+                // Fila de proyecto
+                rowContent = `
                     <td class="proyecto-nombre" data-field="nombre">
                         <div class="project-controls">
-                            <button class="reorder-btn" onclick="moveProject(${index}, 'up')" id="up-${index}" title="Mover proyecto hacia arriba" ${index === 0 ? 'disabled' : ''}>
+                            <button class="reorder-btn" onclick="moveProject(${elementPath[0]}, 'up')" title="Mover proyecto hacia arriba" ${elementPath[0] === 0 ? 'disabled' : ''}>
                                 ↑
                             </button>
-                            <button class="reorder-btn" onclick="moveProject(${index}, 'down')" id="down-${index}" title="Mover proyecto hacia abajo" ${index === window.proyectosData.length - 1 ? 'disabled' : ''}>
+                            <button class="reorder-btn" onclick="moveProject(${elementPath[0]}, 'down')" title="Mover proyecto hacia abajo" ${elementPath[0] === window.proyectosData.length - 1 ? 'disabled' : ''}>
                                 ↓
                             </button>
-                            <button class="collapse-btn" onclick="StorageController.toggleProjectPersistent(${index})" id="btn-${index}" title="Contraer/Expandir proyecto">
+                            <button class="collapse-btn" onclick="StorageController.toggleProjectPersistent(${elementPath[0]})" id="btn-${elementPath[0]}" title="Contraer/Expandir proyecto">
                                 <span class="collapse-icon">▼</span>
                             </button>
                         </div>
-                        ${proyecto.nombre}
+                        ${escapeHtml(elemento.nombre)}
                     </td>
-                    <td colspan="2" class="descripcion-proyecto" data-field="descripcion">${proyecto.descripcion}</td>
+                    <td colspan="2" class="descripcion-proyecto" data-field="descripcion">${escapeHtml(elemento.descripcion || '')}</td>
                     <td colspan="5"></td>
                     <td class="actions-cell">
                         <div class="dropdown">
@@ -120,134 +139,141 @@
                                 ⚙️
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="StorageController.editRow('project', ${index})">✏️ Editar</a></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteRow('project', ${index})">🗑️ Eliminar</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="StorageController.editRow([${elementPath.join(',')}])">✏️ Editar</a></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([${elementPath.join(',')}])">🗑️ Eliminar</a></li>
                             </ul>
                         </div>
                     </td>
                 `;
-                tbody.appendChild(proyectoRow);
+            } else {
+                // Fila de elemento hijo
+                const indent = level * 20;
+                const icon = level === 1 ? '📝' : '📄';
+                rowContent = `
+                    <td data-field="nombre" style="padding-left: ${indent}px;">
+                        ${icon} <strong>${escapeHtml(elemento.nombre)}</strong>
+                    </td>
+                    <td data-field="descripcion">${escapeHtml(elemento.descripcion || '')}</td>
+                    <td data-field="prioridad" class="prioridad">${escapeHtml(elemento.prioridad || '')}</td>
+                    <td data-field="avance" class="avance">${escapeHtml(elemento.avance || '')}</td>
+                    <td data-field="esfuerzo" class="esfuerzo">${escapeHtml(elemento.esfuerzo || '')}</td>
+                    <td data-field="deadline">${escapeHtml(elemento.deadline || '')}</td>
+                    <td>
+                        <select class="estado estado-select" data-current="${elemento.estado || 'Pendiente'}" 
+                                onchange="StorageController.updateElementEstado([${elementPath.join(',')}], this.value)">
+                            <option value="Pendiente" ${(elemento.estado || 'Pendiente') === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                            <option value="En progreso" ${elemento.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
+                            <option value="Completado" ${elemento.estado === 'Completado' ? 'selected' : ''}>Completado</option>
+                            <option value="Bloqueado" ${elemento.estado === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
+                        </select>
+                    </td>
+                    <td class="actions-cell">
+                        <div class="dropdown">
+                            <button class="btn action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                ⚙️
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#" onclick="StorageController.editRow([${elementPath.join(',')}])">✏️ Editar</a></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([${elementPath.join(',')}])">🗑️ Eliminar</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                `;
+            }
 
-                // Calcular avance general usando la capa de negocio
-                let avanceGeneral = window.reglasNegocio.calcularAvanceGeneral(proyecto);
+            elementRow.innerHTML = rowContent;
+            container.appendChild(elementRow);
 
-                // Fila del recuento con avance general
+            if (isProject) {
+                // Añadir fila de resumen para proyectos
+                const totalElementos = window.reglasNegocio.contarElementosRecursivo(elemento) - 1; // -1 para no contar el proyecto mismo
+                const avanceGeneral = window.reglasNegocio.calcularAvanceGeneral(elemento);
+                
                 const recuentoRow = document.createElement('tr');
                 recuentoRow.className = 'recuento-row';
-                recuentoRow.dataset.projectIndex = index;
+                recuentoRow.dataset.projectIndex = elementPath[0];
                 recuentoRow.innerHTML = `
-                    <td>Recuento: ${proyecto.recuento}</td>
+                    <td>Elementos: ${totalElementos}</td>
                     <td colspan="2">Avance general: <strong>${avanceGeneral}%</strong></td>
                     <td colspan="5"></td>
                     <td></td>
                 `;
-                tbody.appendChild(recuentoRow);
+                container.appendChild(recuentoRow);
+            }
 
-                // Filas de tareas
-                proyecto.tareas.forEach((tarea, tareaIndex) => {
-                    const tareaRow = document.createElement('tr');
-                    // Si tiene subtareas, aplicar clase especial
-                    tareaRow.className = Array.isArray(tarea.subtareas) ? 'tarea-row tarea-con-subtareas' : 'tarea-row';
-                    tareaRow.dataset.projectIndex = index;
-                    tareaRow.dataset.taskIndex = tareaIndex;
-
-                    let estadoClass = 'estado-pendiente';
-                    if (tarea.estado === 'Completado') estadoClass = 'estado-completado';
-                    if (tarea.estado === 'En progreso') estadoClass = 'estado-progreso';
-                    if (tarea.estado === 'Bloqueado') estadoClass = 'estado-bloqueado';
-
-                    // Mostrar avance 100% si está completado y el campo está vacío
-                    let avanceMostrar = tarea.avance;
-                    if (tarea.estado === 'Completado' && (!tarea.avance || tarea.avance.trim() === '')) {
-                        avanceMostrar = '100%';
-                    }
-
-                    tareaRow.innerHTML = `
-                        <td></td>
-                        <td data-field="nombre"><span style="display:inline-block;vertical-align:middle;">${Array.isArray(tarea.subtareas) ? '<span style=\'font-size:18px;color:#4a5568;margin-right:4px;\'>📂</span>' : ''}<strong>${tarea.nombre}</strong></span></td>
-                        <td data-field="descripcion">${tarea.descripcion}</td>
-                        <td class="prioridad" data-field="prioridad">${tarea.prioridad}</td>
-                        <td class="avance" data-field="avance">${avanceMostrar}</td>
-                        <td class="esfuerzo" data-field="esfuerzo">${tarea.esfuerzo}</td>
-                        <td data-field="deadline">${tarea.deadline}</td>
-                        <td data-field="estado">
-                            <select class="form-select form-select-sm estado-select" 
-                                    onchange="updateEstado('task', ${index}, ${tareaIndex}, null, this.value)"
-                                    data-current="${tarea.estado}">
-                                <option value="Pendiente" ${tarea.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                                <option value="En progreso" ${tarea.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
-                                <option value="Completado" ${tarea.estado === 'Completado' ? 'selected' : ''}>Completado</option>
-                                <option value="Bloqueado" ${tarea.estado === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
-                            </select>
-                        </td>
-                        <td class="actions-cell">
-                            <div class="dropdown">
-                                <button class="btn btn-sm action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    ⚙️
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#" onclick="StorageController.editRow('task', ${index}, ${tareaIndex})">📝 Editar</a></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteRow('task', ${index}, ${tareaIndex})">🗑️ Eliminar</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tareaRow);
-
-                    // Si la tarea tiene subtareas, pintarlas con estilo especial
-                    if (Array.isArray(tarea.subtareas)) {
-                        tarea.subtareas.forEach((subtarea, subtareaIndex) => {
-                            const subRow = document.createElement('tr');
-                            subRow.className = 'subtarea-row';
-                            subRow.dataset.projectIndex = index;
-                            subRow.dataset.taskIndex = tareaIndex;
-                            subRow.dataset.subtaskIndex = subtareaIndex;
-
-                            let subEstadoClass = 'estado-pendiente';
-                            if (subtarea.estado === 'Completado') subEstadoClass = 'estado-completado';
-                            if (subtarea.estado === 'En progreso') subEstadoClass = 'estado-progreso';
-                            if (subtarea.estado === 'Bloqueado') subEstadoClass = 'estado-bloqueado';
-
-                            let subAvanceMostrar = subtarea.avance;
-                            if (subtarea.estado === 'Completado' && (!subtarea.avance || subtarea.avance.trim() === '')) {
-                                subAvanceMostrar = '100%';
-                            }
-
-                            subRow.innerHTML = `
-                                <td></td>
-                                <td class="subtarea-nombre" data-field="nombre">📄 ${subtarea.nombre}</td>
-                                <td data-field="descripcion">${subtarea.descripcion}</td>
-                                <td class="prioridad" data-field="prioridad">${subtarea.prioridad}</td>
-                                <td class="avance" data-field="avance">${subAvanceMostrar}</td>
-                                <td class="esfuerzo" data-field="esfuerzo">${subtarea.esfuerzo}</td>
-                                <td data-field="deadline">${subtarea.deadline}</td>
-                                <td data-field="estado">
-                                    <select class="form-select form-select-sm estado-select" 
-                                            onchange="updateEstado('subtask', ${index}, ${tareaIndex}, ${subtareaIndex}, this.value)"
-                                            data-current="${subtarea.estado}">
-                                        <option value="Pendiente" ${subtarea.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                                        <option value="En progreso" ${subtarea.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
-                                        <option value="Completado" ${subtarea.estado === 'Completado' ? 'selected' : ''}>Completado</option>
-                                        <option value="Bloqueado" ${subtarea.estado === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
-                                    </select>
-                                </td>
-                                <td class="actions-cell">
-                                    <div class="dropdown">
-                                        <button class="btn btn-sm action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            ⚙️
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="#" onclick="StorageController.editRow('subtask', ${index}, ${tareaIndex}, ${subtareaIndex})">📝 Editar</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteRow('subtask', ${index}, ${tareaIndex}, ${subtareaIndex})">🗑️ Eliminar</a></li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            `;
-                            tbody.appendChild(subRow);
-                        });
-                    }
+            // Renderizar elementos hijos recursivamente
+            if (Array.isArray(elemento.elementos)) {
+                elemento.elementos.forEach((hijo, hijoIndex) => {
+                    const childPath = [...elementPath, hijoIndex];
+                    renderElement(hijo, childPath, level + 1, container);
                 });
+            }
+        }
+
+        // Función auxiliar para migrar datos antiguos a nueva estructura
+        function migrateOldData() {
+            let needsMigration = false;
+            
+            window.proyectosData.forEach((proyecto) => {
+                // Migrar proyectos que tienen la estructura antigua
+                if (proyecto.tareas && !proyecto.elementos) {
+                    proyecto.elementos = proyecto.tareas.map(tarea => {
+                        const elemento = {
+                            nombre: tarea.nombre,
+                            descripcion: tarea.descripcion || '',
+                            tipo: 'tarea',
+                            prioridad: tarea.prioridad || '',
+                            avance: tarea.avance || '',
+                            esfuerzo: tarea.esfuerzo || '',
+                            deadline: tarea.deadline || '',
+                            estado: tarea.estado || 'Pendiente',
+                            elementos: []
+                        };
+                        
+                        // Migrar subtareas si existen
+                        if (Array.isArray(tarea.subtareas)) {
+                            elemento.elementos = tarea.subtareas.map(subtarea => ({
+                                nombre: subtarea.nombre,
+                                descripcion: subtarea.descripcion || '',
+                                tipo: 'subtarea',
+                                prioridad: subtarea.prioridad || '',
+                                avance: subtarea.avance || '',
+                                esfuerzo: subtarea.esfuerzo || '',
+                                deadline: subtarea.deadline || '',
+                                estado: subtarea.estado || 'Pendiente',
+                                elementos: []
+                            }));
+                        }
+                        
+                        return elemento;
+                    });
+                    
+                    // Eliminar las propiedades antiguas
+                    delete proyecto.tareas;
+                    delete proyecto.recuento;
+                    
+                    // Agregar propiedades necesarias si no existen
+                    if (!proyecto.tipo) proyecto.tipo = 'proyecto';
+                    if (!proyecto.avance) proyecto.avance = '';
+                    if (!proyecto.prioridad) proyecto.prioridad = '';
+                    if (!proyecto.esfuerzo) proyecto.esfuerzo = '';
+                    if (!proyecto.deadline) proyecto.deadline = '';
+                    if (!proyecto.estado) proyecto.estado = 'Pendiente';
+                    
+                    needsMigration = true;
+                }
             });
+            
+            // Guardar los datos migrados
+            if (needsMigration) {
+                StorageController.save();
+                StorageController.notify('Datos migrados a nueva estructura recursiva', 'success');
+            }
+        }
+            if (window.proyectosData && window.proyectosData.length > 0) {
+                // Verificar y migrar datos antiguos si es necesario
+                migrateOldData();
+            }
         }
 
         // Función para colapsar/expandir proyectos

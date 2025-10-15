@@ -130,8 +130,13 @@ const StorageController = {
         const nuevoProyecto = {
             nombre: nombre.trim(),
             descripcion: descripcion.trim(),
-            recuento: 0,
-            tareas: []
+            tipo: 'proyecto',
+            avance: '',
+            prioridad: '',
+            esfuerzo: '',
+            deadline: '',
+            estado: 'Pendiente',
+            elementos: [] // Ahora usa 'elementos' en lugar de 'tareas'
         };
         
         window.proyectosData.push(nuevoProyecto);
@@ -140,84 +145,146 @@ const StorageController = {
         return true;
     },
     
-    createTask: function(projectIndex, nombre, descripcion = '', prioridad = '', esfuerzo = '', deadline = '', estado = 'Pendiente') {
-        if (!nombre || nombre.trim() === '' || projectIndex < 0 || projectIndex >= window.proyectosData.length) {
-            StorageController.notify('Datos de tarea inválidos', 'error');
+    // Función unificada para crear elementos (puede ser tarea, subtarea, etc.)
+    createElement: function(parentPath, nombre, descripcion = '', prioridad = '', esfuerzo = '', deadline = '', estado = 'Pendiente', tipo = 'elemento') {
+        if (!nombre || nombre.trim() === '') {
+            StorageController.notify('El nombre del elemento es requerido', 'error');
             return false;
         }
         
-        const nuevaTarea = {
+        // Encontrar el elemento padre usando la ruta
+        const parent = StorageController.findElementByPath(parentPath);
+        if (!parent) {
+            StorageController.notify('Elemento padre no encontrado', 'error');
+            return false;
+        }
+        
+        const nuevoElemento = {
             nombre: nombre.trim(),
             descripcion: descripcion.trim(),
+            tipo: tipo,
             prioridad: prioridad,
             avance: '',
             esfuerzo: esfuerzo.trim(),
             deadline: deadline.trim(),
-            estado: estado
+            estado: estado,
+            elementos: [] // Cada elemento puede tener hijos
         };
         
-        window.proyectosData[projectIndex].tareas.push(nuevaTarea);
-        window.proyectosData[projectIndex].recuento = window.proyectosData[projectIndex].tareas.length;
+        // Inicializar array de elementos si no existe
+        if (!Array.isArray(parent.elementos)) {
+            parent.elementos = [];
+        }
+        
+        parent.elementos.push(nuevoElemento);
         StorageController.save();
-        StorageController.notify(`Tarea "${nombre}" añadida al proyecto`, 'success');
+        StorageController.notify(`${tipo.charAt(0).toUpperCase() + tipo.slice(1)} "${nombre}" creado exitosamente`, 'success');
         return true;
     },
-    
+
+    // Funciones auxiliares para manejo recursivo
+    findElementByPath: function(path) {
+        if (!Array.isArray(path) || path.length === 0) {
+            return null;
+        }
+        
+        // Si el primer índice apunta a un proyecto
+        if (path.length === 1) {
+            return window.proyectosData[path[0]] || null;
+        }
+        
+        // Navegar recursivamente por la ruta
+        let current = window.proyectosData[path[0]];
+        if (!current) return null;
+        
+        for (let i = 1; i < path.length; i++) {
+            if (!Array.isArray(current.elementos) || !current.elementos[path[i]]) {
+                return null;
+            }
+            current = current.elementos[path[i]];
+        }
+        
+        return current;
+    },
+
+    // Función para obtener todos los elementos de manera recursiva con sus rutas
+    getAllElementsWithPaths: function(includeProjects = true) {
+        const elements = [];
+        
+        window.proyectosData.forEach((proyecto, projectIndex) => {
+            if (includeProjects) {
+                elements.push({
+                    element: proyecto,
+                    path: [projectIndex],
+                    level: 0,
+                    displayName: proyecto.nombre
+                });
+            }
+            
+            if (Array.isArray(proyecto.elementos)) {
+                StorageController.getElementsRecursive(proyecto.elementos, [projectIndex], 1, elements);
+            }
+        });
+        
+        return elements;
+    },
+
+    getElementsRecursive: function(elementsList, basePath, level, result) {
+        elementsList.forEach((elemento, index) => {
+            const currentPath = [...basePath, index];
+            const indentation = '  '.repeat(level);
+            
+            result.push({
+                element: elemento,
+                path: currentPath,
+                level: level,
+                displayName: `${indentation}${elemento.nombre}`
+            });
+            
+            if (Array.isArray(elemento.elementos) && elemento.elementos.length > 0) {
+                StorageController.getElementsRecursive(elemento.elementos, currentPath, level + 1, result);
+            }
+        });
+    },
+
+    // Mantener compatibilidad con funciones anteriores
+    createTask: function(projectIndex, nombre, descripcion = '', prioridad = '', esfuerzo = '', deadline = '', estado = 'Pendiente') {
+        return StorageController.createElement([projectIndex], nombre, descripcion, prioridad, esfuerzo, deadline, estado, 'tarea');
+    },
+
     createSubtask: function(projectIndex, taskIndex, nombre, descripcion = '', prioridad = '', esfuerzo = '', deadline = '', estado = 'Pendiente') {
-        if (!nombre || nombre.trim() === '' || projectIndex < 0 || taskIndex < 0 || 
-            projectIndex >= window.proyectosData.length || 
-            taskIndex >= window.proyectosData[projectIndex].tareas.length) {
-            StorageController.notify('Datos de subtarea inválidos', 'error');
-            return false;
-        }
-        
-        const nuevaSubtarea = {
-            nombre: nombre.trim(),
-            descripcion: descripcion.trim(),
-            prioridad: prioridad,
-            avance: '',
-            esfuerzo: esfuerzo.trim(),
-            deadline: deadline.trim(),
-            estado: estado
-        };
-        
-        // Si la tarea no tiene subtareas, inicializar el array
-        if (!Array.isArray(window.proyectosData[projectIndex].tareas[taskIndex].subtareas)) {
-            window.proyectosData[projectIndex].tareas[taskIndex].subtareas = [];
-        }
-        
-        window.proyectosData[projectIndex].tareas[taskIndex].subtareas.push(nuevaSubtarea);
-        StorageController.save();
-        StorageController.notify(`Subtarea "${nombre}" añadida`, 'success');
-        return true;
+        return StorageController.createElement([projectIndex, taskIndex], nombre, descripcion, prioridad, esfuerzo, deadline, estado, 'subtarea');
     },
     
     // Funciones para editar y eliminar elementos
-    editRow: function(type, projectIndex, taskIndex = null, subtaskIndex = null) {
+    editRow: function(elementPath) {
         // Cancelar edición actual si existe
         if (StorageController.currentlyEditing) {
             StorageController.cancelEdit();
         }
 
-        let row;
-        let data;
-        
-        // Encontrar la fila y los datos según el tipo
-        if (type === 'project') {
-            row = document.querySelector(`tr.proyecto-row[data-project-index="${projectIndex}"]`);
-            data = window.proyectosData[projectIndex];
-        } else if (type === 'task') {
-            row = document.querySelector(`tr.tarea-row[data-project-index="${projectIndex}"][data-task-index="${taskIndex}"]`);
-            data = window.proyectosData[projectIndex].tareas[taskIndex];
-        } else if (type === 'subtask') {
-            row = document.querySelector(`tr.subtarea-row[data-project-index="${projectIndex}"][data-task-index="${taskIndex}"][data-subtask-index="${subtaskIndex}"]`);
-            data = window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex];
+        // Encontrar el elemento usando la ruta
+        const element = StorageController.findElementByPath(elementPath);
+        if (!element) {
+            StorageController.notify('Elemento no encontrado', 'error');
+            return;
         }
+
+        // Encontrar la fila correspondiente en el DOM
+        const pathString = elementPath.join('-');
+        const row = document.querySelector(`tr[data-element-path="${pathString}"]`);
         
-        if (!row || !data) return;
+        if (!row) {
+            StorageController.notify('Fila no encontrada en la interfaz', 'error');
+            return;
+        }
 
         // Marcar como editando
-        StorageController.currentlyEditing = { type, projectIndex, taskIndex, subtaskIndex, row, originalData: {...data} };
+        StorageController.currentlyEditing = { 
+            elementPath: elementPath, 
+            row: row, 
+            originalData: {...element} 
+        };
         row.classList.add('editing-mode');
         
         // Convertir celdas editables
@@ -228,25 +295,29 @@ const StorageController = {
             
             // Obtener valor actual según el campo
             if (field === 'nombre') {
-                currentValue = data.nombre || '';
+                currentValue = element.nombre || '';
             } else if (field === 'descripcion') {
-                currentValue = data.descripcion || '';
+                currentValue = element.descripcion || '';
             } else if (field === 'prioridad') {
-                currentValue = data.prioridad || '';
+                currentValue = element.prioridad || '';
             } else if (field === 'avance') {
-                currentValue = data.avance || '';
+                currentValue = element.avance || '';
             } else if (field === 'esfuerzo') {
-                currentValue = data.esfuerzo || '';
+                currentValue = element.esfuerzo || '';
             } else if (field === 'deadline') {
-                currentValue = data.deadline || '';
+                currentValue = element.deadline || '';
             } else if (field === 'estado') {
-                currentValue = data.estado || 'Pendiente';
+                currentValue = element.estado || 'Pendiente';
             }
             
-            // Crear inputs específicos según el campo y tipo
+            // Crear inputs específicos según el campo y tipo de elemento
             if (field === 'nombre') {
-                if (type === 'project') {
+                const level = elementPath.length - 1;
+                const isProject = level === 0;
+                
+                if (isProject) {
                     // Para proyectos, mantener los controles y agregar input para el nombre
+                    const projectIndex = elementPath[0];
                     cell.innerHTML = `
                         <div class="project-controls">
                             <button class="reorder-btn" onclick="moveProject(${projectIndex}, 'up')" title="Mover hacia arriba" ${projectIndex === 0 ? 'disabled' : ''}>
@@ -261,10 +332,11 @@ const StorageController = {
                         </div>
                         <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 120px); margin-left: 8px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">
                     `;
-                } else if (type === 'task') {
-                    cell.innerHTML = `<strong><input type="text" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre"></strong>`;
-                } else if (type === 'subtask') {
-                    cell.innerHTML = `📄 <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 30px);" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">`;
+                } else {
+                    // Para elementos anidados, usar indentación visual
+                    const indent = '  '.repeat(level);
+                    const icon = level === 1 ? '📝' : '📄';
+                    cell.innerHTML = `${icon} <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 30px); margin-left: ${level * 20}px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">`;
                 }
                 return;
             }
@@ -288,7 +360,6 @@ const StorageController = {
             
             if (field === 'estado') {
                 // Para estado, mantener el select directo (no crear uno nuevo en modo edición)
-                // El estado ya se puede cambiar directamente sin entrar en modo edición
                 return;
             }
             
@@ -332,7 +403,14 @@ const StorageController = {
     saveEdit: function() {
         if (!StorageController.currentlyEditing) return;
         
-        const { type, projectIndex, taskIndex, subtaskIndex, row } = StorageController.currentlyEditing;
+        const { elementPath, row } = StorageController.currentlyEditing;
+        const element = StorageController.findElementByPath(elementPath);
+        
+        if (!element) {
+            StorageController.notify('Elemento no encontrado', 'error');
+            return;
+        }
+        
         const inputs = row.querySelectorAll('.edit-input');
         const newData = {};
         
@@ -345,8 +423,6 @@ const StorageController = {
             if (field === 'estado') {
                 return;
             }
-            
-            // Para campos numéricos como prioridad, mantener como string o convertir apropiadamente
             if (field === 'prioridad' && value === '') {
                 value = ''; // Permitir prioridad vacía
             }
@@ -372,25 +448,19 @@ const StorageController = {
             input.style.borderColor = '';
         });
 
-        // Actualizar datos
+            // Actualizar datos del elemento
         try {
-            let target;
-            if (type === 'project') {
-                target = window.proyectosData[projectIndex];
-            } else if (type === 'task') {
-                target = window.proyectosData[projectIndex].tareas[taskIndex];
-            } else if (type === 'subtask') {
-                target = window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex];
-            }
-            Object.assign(target, newData);
+            // Actualizar los datos del elemento
+            Object.assign(element, newData);
 
             // Si el estado es Completado, poner avance en 100%
-            if (target.estado === 'Completado') {
-                target.avance = '100%';
+            if (element.estado === 'Completado') {
+                element.avance = '100%';
             }
 
             StorageController.save();
-            StorageController.notify(`${type === 'project' ? 'Proyecto' : type === 'task' ? 'Tarea' : 'Subtarea'} "${newData.nombre}" actualizado correctamente`, 'success');
+            const tipoElemento = element.tipo || (elementPath.length === 1 ? 'Proyecto' : 'Elemento');
+            StorageController.notify(`${tipoElemento} "${newData.nombre}" actualizado correctamente`, 'success');
 
             if (window.renderTable) {
                 window.renderTable();
@@ -412,41 +482,41 @@ const StorageController = {
         StorageController.currentlyEditing = null;
     },
 
-    deleteRow: function(type, projectIndex, taskIndex = null, subtaskIndex = null) {
-        let itemName = '';
-        let confirmMessage = '';
-        
-        // Determinar qué se va a eliminar
-        if (type === 'project') {
-            itemName = window.proyectosData[projectIndex].nombre;
-            confirmMessage = `¿Estás seguro de que deseas eliminar el proyecto "${itemName}" y todas sus tareas?`;
-        } else if (type === 'task') {
-            itemName = window.proyectosData[projectIndex].tareas[taskIndex].nombre;
-            confirmMessage = `¿Estás seguro de que deseas eliminar la tarea "${itemName}"${window.proyectosData[projectIndex].tareas[taskIndex].subtareas ? ' y todas sus subtareas' : ''}?`;
-        } else if (type === 'subtask') {
-            itemName = window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex].nombre;
-            confirmMessage = `¿Estás seguro de que deseas eliminar la subtarea "${itemName}"?`;
+    // Función recursiva para eliminar elementos
+    deleteElement: function(elementPath) {
+        const element = StorageController.findElementByPath(elementPath);
+        if (!element) {
+            StorageController.notify('Elemento no encontrado', 'error');
+            return;
         }
         
-        // Mostrar confirmación
+        const itemName = element.nombre;
+        const hasChildren = Array.isArray(element.elementos) && element.elementos.length > 0;
+        const tipoElemento = element.tipo || (elementPath.length === 1 ? 'proyecto' : 'elemento');
+        
+        const confirmMessage = hasChildren 
+            ? `¿Estás seguro de que deseas eliminar ${tipoElemento} "${itemName}" y todos sus elementos hijos?`
+            : `¿Estás seguro de que deseas eliminar ${tipoElemento} "${itemName}"?`;
+        
         if (confirm(confirmMessage)) {
             try {
-                if (type === 'project') {
-                    window.proyectosData.splice(projectIndex, 1);
-                } else if (type === 'task') {
-                    window.proyectosData[projectIndex].tareas.splice(taskIndex, 1);
-                    window.proyectosData[projectIndex].recuento = window.proyectosData[projectIndex].tareas.length;
-                } else if (type === 'subtask') {
-                    window.proyectosData[projectIndex].tareas[taskIndex].subtareas.splice(subtaskIndex, 1);
-                    // Si no quedan subtareas, eliminar el array
-                    if (window.proyectosData[projectIndex].tareas[taskIndex].subtareas.length === 0) {
-                        delete window.proyectosData[projectIndex].tareas[taskIndex].subtareas;
+                if (elementPath.length === 1) {
+                    // Eliminar proyecto
+                    window.proyectosData.splice(elementPath[0], 1);
+                } else {
+                    // Eliminar elemento anidado
+                    const parentPath = elementPath.slice(0, -1);
+                    const parent = StorageController.findElementByPath(parentPath);
+                    const elementIndex = elementPath[elementPath.length - 1];
+                    
+                    if (parent && Array.isArray(parent.elementos)) {
+                        parent.elementos.splice(elementIndex, 1);
                     }
                 }
                 
                 // Guardar cambios
                 StorageController.save();
-                StorageController.notify(`${type === 'project' ? 'Proyecto' : type === 'task' ? 'Tarea' : 'Subtarea'} "${itemName}" eliminado correctamente`, 'success');
+                StorageController.notify(`${tipoElemento.charAt(0).toUpperCase() + tipoElemento.slice(1)} "${itemName}" eliminado correctamente`, 'success');
                 
                 // Re-renderizar tabla
                 if (window.renderTable) {
@@ -458,6 +528,20 @@ const StorageController = {
                 StorageController.notify('Error al eliminar el elemento', 'error');
             }
         }
+    },
+
+    // Mantener compatibilidad con función anterior
+    deleteRow: function(type, projectIndex, taskIndex = null, subtaskIndex = null) {
+        let elementPath = [projectIndex];
+        
+        if (taskIndex !== null) {
+            elementPath.push(taskIndex);
+        }
+        if (subtaskIndex !== null) {
+            elementPath.push(subtaskIndex);
+        }
+        
+        StorageController.deleteElement(elementPath);
     },
 
     handleEditKeydown: function(e) {
@@ -489,40 +573,34 @@ const StorageController = {
         return str.replace(/[&<>"']/g, function(m) { return map[m]; });
     },
 
-    // Función para actualizar estado directamente
-    updateEstado: function(type, projectIndex, taskIndex = null, subtaskIndex = null, newEstado) {
+    // Función recursiva para actualizar estado de elementos
+    updateElementEstado: function(elementPath, newEstado) {
         try {
-            let item;
-            let itemName;
-            
-            // Obtener el elemento y su nombre
-            if (type === 'task') {
-                item = window.proyectosData[projectIndex].tareas[taskIndex];
-                itemName = item.nombre;
-            } else if (type === 'subtask') {
-                item = window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex];
-                itemName = item.nombre;
+            const element = StorageController.findElementByPath(elementPath);
+            if (!element) {
+                StorageController.notify('Elemento no encontrado', 'error');
+                return;
             }
             
-            if (!item) return;
-            
             // Guardar estado anterior para feedback
-            const estadoAnterior = item.estado;
+            const estadoAnterior = element.estado;
+            const itemName = element.nombre;
+            const tipoElemento = element.tipo || (elementPath.length === 1 ? 'Proyecto' : 'Elemento');
             
             // Actualizar el estado
-            item.estado = newEstado;
-            // Si se marca como completado, asignar 100% avance SIEMPRE
+            element.estado = newEstado;
+            
+            // Si se marca como completado, asignar 100% avance
             if (newEstado === 'Completado') {
-                item.avance = '100%';
+                element.avance = '100%';
             }
             
             // Guardar cambios
             StorageController.save();
             
             // Mostrar notificación
-            const typeLabel = type === 'task' ? 'Tarea' : 'Subtarea';
             StorageController.notify(
-                `${typeLabel} "${itemName}" cambió de "${estadoAnterior}" a "${newEstado}"`, 
+                `${tipoElemento} "${itemName}" cambió de "${estadoAnterior}" a "${newEstado}"`, 
                 'success'
             );
             
@@ -533,7 +611,8 @@ const StorageController = {
             
             // Actualizar el atributo data-current del select y agregar animación
             setTimeout(() => {
-                const selectElement = document.querySelector(`select[onchange*="'${type}', ${projectIndex}, ${taskIndex}, ${subtaskIndex}"]`);
+                const pathString = elementPath.join('-');
+                const selectElement = document.querySelector(`tr[data-element-path="${pathString}"] select.estado-select`);
                 if (selectElement) {
                     selectElement.setAttribute('data-current', newEstado);
                     selectElement.classList.add('estado-changed');
@@ -552,6 +631,20 @@ const StorageController = {
                 window.renderTable();
             }
         }
+    },
+
+    // Mantener compatibilidad con función anterior
+    updateEstado: function(type, projectIndex, taskIndex = null, subtaskIndex = null, newEstado) {
+        let elementPath = [projectIndex];
+        
+        if (taskIndex !== null) {
+            elementPath.push(taskIndex);
+        }
+        if (subtaskIndex !== null) {
+            elementPath.push(subtaskIndex);
+        }
+        
+        StorageController.updateElementEstado(elementPath, newEstado);
     },
 
     // Funciones para manejar estados de colapso persistente (por tablero)

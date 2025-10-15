@@ -80,41 +80,56 @@ const FormController = {
         }
     },
     
-    // Poblar selectores de proyectos
-    populateProjectSelects: function() {
+    // Poblar selectores con todos los elementos disponibles (recursivo)
+    populateElementSelects: function() {
         const taskSelect = FormController.selects.taskProject;
         const subtaskSelect = FormController.selects.subtaskProject;
         
         // Limpiar opciones existentes
-        taskSelect.innerHTML = '<option value="">Seleccionar proyecto...</option>';
-        subtaskSelect.innerHTML = '<option value="">Seleccionar proyecto...</option>';
+        taskSelect.innerHTML = '<option value="">Seleccionar elemento padre...</option>';
+        subtaskSelect.innerHTML = '<option value="">Seleccionar elemento padre...</option>';
         
-        // Añadir proyectos
-        if (window.proyectosData) {
-            window.proyectosData.forEach((proyecto, index) => {
-                const option1 = new Option(proyecto.nombre, index);
-                const option2 = new Option(proyecto.nombre, index);
+        // Obtener todos los elementos con sus rutas
+        if (window.StorageController && window.proyectosData) {
+            const allElements = StorageController.getAllElementsWithPaths(true);
+            
+            allElements.forEach(({ element, path, displayName }) => {
+                const pathString = path.join(',');
+                const option1 = new Option(displayName, pathString);
+                const option2 = new Option(displayName, pathString);
                 
                 taskSelect.appendChild(option1);
                 subtaskSelect.appendChild(option2);
             });
         }
     },
+
+    // Mantener compatibilidad con función anterior
+    populateProjectSelects: function() {
+        FormController.populateElementSelects();
+    },
     
-    // Actualizar selector de tareas
+    // Actualizar selector de tareas (ahora funciona con elementos recursivos)
     updateTaskSelect: function() {
-        const projectIndex = FormController.selects.subtaskProject.value;
+        const parentPathString = FormController.selects.subtaskProject.value;
         const taskSelect = FormController.selects.subtaskTask;
         
-        taskSelect.innerHTML = '<option value="">Seleccionar tarea...</option>';
-        taskSelect.disabled = projectIndex === '';
+        taskSelect.innerHTML = '<option value="">Seleccionar elemento hijo...</option>';
+        taskSelect.disabled = parentPathString === '';
         
-        if (projectIndex !== '' && window.proyectosData && window.proyectosData[projectIndex]) {
-            window.proyectosData[projectIndex].tareas.forEach((tarea, index) => {
-                const option = new Option(tarea.nombre, index);
-                taskSelect.appendChild(option);
-            });
-            taskSelect.disabled = false;
+        if (parentPathString !== '' && window.StorageController) {
+            const parentPath = parentPathString.split(',').map(Number);
+            const parentElement = StorageController.findElementByPath(parentPath);
+            
+            if (parentElement && Array.isArray(parentElement.elementos)) {
+                parentElement.elementos.forEach((elemento, index) => {
+                    const childPath = [...parentPath, index];
+                    const childPathString = childPath.join(',');
+                    const option = new Option(elemento.nombre, childPathString);
+                    taskSelect.appendChild(option);
+                });
+                taskSelect.disabled = false;
+            }
         }
         
         FormController.validateCurrentForm();
@@ -155,19 +170,19 @@ const FormController = {
         return nombre.length > 0;
     },
     
-    // Validar formulario de tarea
+    // Validar formulario de tarea (ahora funciona con elementos)
     validateTaskForm: function() {
-        const projectIndex = document.getElementById('taskProjectSelect').value;
+        const parentPathString = document.getElementById('taskProjectSelect').value;
         const nombre = document.getElementById('taskName').value.trim();
-        return projectIndex !== '' && nombre.length > 0;
+        return parentPathString !== '' && nombre.length > 0;
     },
     
-    // Validar formulario de subtarea
+    // Validar formulario de subtarea (ahora funciona con elementos recursivos)
     validateSubtaskForm: function() {
-        const projectIndex = document.getElementById('subtaskProjectSelect').value;
-        const taskIndex = document.getElementById('subtaskTaskSelect').value;
+        const parentPathString = document.getElementById('subtaskProjectSelect').value;
+        const childPathString = document.getElementById('subtaskTaskSelect').value;
         const nombre = document.getElementById('subtaskName').value.trim();
-        return projectIndex !== '' && taskIndex !== '' && nombre.length > 0;
+        return parentPathString !== '' && childPathString !== '' && nombre.length > 0;
     },
     
     // Manejar envío de formulario
@@ -202,38 +217,43 @@ const FormController = {
         }
     },
     
-    // Crear tarea
+    // Crear elemento hijo (ahora funciona recursivamente)
     createTask: function() {
-        const projectIndex = parseInt(document.getElementById('taskProjectSelect').value);
+        const parentPathString = document.getElementById('taskProjectSelect').value;
         const nombre = document.getElementById('taskName').value.trim();
         const descripcion = document.getElementById('taskDescription').value.trim();
         const prioridad = document.getElementById('taskPriority').value;
         const esfuerzo = document.getElementById('taskEffort').value.trim();
         const deadline = document.getElementById('taskDeadline').value;
         
-        if (window.StorageController && 
-            window.StorageController.createTask(projectIndex, nombre, descripcion, prioridad, esfuerzo, deadline)) {
-            FormController.closeModal();
-            // Notificar al componente padre que actualice la tabla
-            if (window.renderTable) window.renderTable();
+        if (window.StorageController && parentPathString) {
+            const parentPath = parentPathString.split(',').map(Number);
+            
+            if (StorageController.createElement(parentPath, nombre, descripcion, prioridad, esfuerzo, deadline, 'Pendiente', 'tarea')) {
+                FormController.closeModal();
+                // Notificar al componente padre que actualice la tabla
+                if (window.renderTable) window.renderTable();
+            }
         }
     },
     
-    // Crear subtarea
+    // Crear elemento anidado (funciona con cualquier nivel)
     createSubtask: function() {
-        const projectIndex = parseInt(document.getElementById('subtaskProjectSelect').value);
-        const taskIndex = parseInt(document.getElementById('subtaskTaskSelect').value);
+        const parentPathString = document.getElementById('subtaskTaskSelect').value;
         const nombre = document.getElementById('subtaskName').value.trim();
         const descripcion = document.getElementById('subtaskDescription').value.trim();
         const prioridad = document.getElementById('subtaskPriority').value;
         const esfuerzo = document.getElementById('subtaskEffort').value.trim();
         const deadline = document.getElementById('subtaskDeadline').value;
         
-        if (window.StorageController && 
-            window.StorageController.createSubtask(projectIndex, taskIndex, nombre, descripcion, prioridad, esfuerzo, deadline)) {
-            FormController.closeModal();
-            // Notificar al componente padre que actualice la tabla
-            if (window.renderTable) window.renderTable();
+        if (window.StorageController && parentPathString) {
+            const parentPath = parentPathString.split(',').map(Number);
+            
+            if (StorageController.createElement(parentPath, nombre, descripcion, prioridad, esfuerzo, deadline, 'Pendiente', 'subtarea')) {
+                FormController.closeModal();
+                // Notificar al componente padre que actualice la tabla
+                if (window.renderTable) window.renderTable();
+            }
         }
     },
     

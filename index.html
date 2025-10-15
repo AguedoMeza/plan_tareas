@@ -19,20 +19,20 @@
                     <i class="bi bi-kanban me-1"></i>Tablero Actual:
                 </label>
                 <div class="current-board-indicator">
-                    <select id="boardSelector" class="form-select" onchange="handleBoardChange(this.value)">
+                    <select id="boardSelector" class="form-select" onchange="BoardController.handleBoardChange(this.value)">
                         <!-- Las opciones se llenarán dinámicamente -->
                     </select>
                 </div>
             </div>
             <div class="col-md-8 mt-2 mt-md-0">
                 <div class="d-flex gap-2 flex-wrap">
-                    <button type="button" class="btn btn-success btn-sm" onclick="showCreateBoardModal()" title="Crear nuevo tablero">
+                    <button type="button" class="btn btn-success btn-sm" onclick="BoardController.showCreateBoardModal()" title="Crear nuevo tablero">
                         <i class="bi bi-plus-square me-1"></i>Nuevo Tablero
                     </button>
-                    <button type="button" class="btn btn-warning btn-sm" onclick="showRenameBoardModal()" title="Renombrar tablero actual">
+                    <button type="button" class="btn btn-warning btn-sm" onclick="BoardController.showRenameBoardModal()" title="Renombrar tablero actual">
                         <i class="bi bi-pencil me-1"></i>Renombrar
                     </button>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="confirmDeleteBoard()" title="Eliminar tablero actual">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="BoardController.confirmDeleteBoard()" title="Eliminar tablero actual">
                         <i class="bi bi-trash me-1"></i>Eliminar
                     </button>
                 </div>
@@ -84,6 +84,7 @@
     <script src="proyectosData.js"></script>
     <script src="reglasNegocio.js"></script>
     <script src="storageController.js"></script>
+    <script src="boardController.js"></script>
     <script src="formController.js"></script>
     <script>
         // Función para renderizar la tabla
@@ -456,78 +457,17 @@
             return str.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
-        // === FUNCIONES PARA GESTIÓN DE TABLEROS ===
-        
-        // Manejar cambio de tablero
-        function handleBoardChange(boardId) {
-            if (boardId && boardId !== StorageController.currentBoardId) {
-                // Añadir efecto visual de cambio
-                const container = document.querySelector('.container');
-                container.classList.add('board-switching');
-                
-                StorageController.switchBoard(boardId);
-                
-                // Remover efecto después de la animación
-                setTimeout(() => {
-                    container.classList.remove('board-switching');
-                }, 300);
-            }
-        }
-        
-        // Mostrar modal para crear nuevo tablero
-        function showCreateBoardModal() {
-            const name = prompt('Ingresa el nombre del nuevo tablero:');
-            if (name && name.trim()) {
-                const boardId = StorageController.createBoard(name.trim());
-                if (boardId) {
-                    StorageController.switchBoard(boardId);
-                }
-            }
-        }
-        
-        // Mostrar modal para renombrar tablero
-        function showRenameBoardModal() {
-            const currentBoard = StorageController.getCurrentBoard();
-            if (!currentBoard) {
-                StorageController.notify('No hay tablero activo', 'error');
-                return;
-            }
-            
-            const newName = prompt(`Renombrar tablero "${currentBoard.name}":`, currentBoard.name);
-            if (newName && newName.trim() && newName.trim() !== currentBoard.name) {
-                StorageController.renameBoard(StorageController.currentBoardId, newName.trim());
-            }
-        }
-        
-        // Confirmar eliminación de tablero
-        function confirmDeleteBoard() {
-            const currentBoard = StorageController.getCurrentBoard();
-            if (!currentBoard) {
-                StorageController.notify('No hay tablero activo', 'error');
-                return;
-            }
-            
-            StorageController.deleteBoard(StorageController.currentBoardId);
-        }
 
         // Inicializar la aplicación al cargar la página
         function initializeApp() {
             // Inicializar sistema de tableros
-            StorageController.initializeBoards();
-            
+            BoardController.initializeBoards();
             // Cargar datos del tablero actual
             const dataLoaded = StorageController.load();
             if (!dataLoaded) {
-                // Si no hay datos guardados, inicializar con array vacío
                 window.proyectosData = [];
             }
-            
-            // Actualizar selector de tableros
-            StorageController.updateBoardSelector();
-            
             renderTable();
-            
-            // Cargar estados de colapso guardados
             StorageController.loadCollapsedStates();
         }
 

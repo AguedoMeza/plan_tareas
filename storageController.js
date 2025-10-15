@@ -2,6 +2,57 @@
 // Controlador para gestión de storage de proyectos
 
 const StorageController = {
+    // Exportar el storage como archivo JSON
+    exportStorage: function() {
+        try {
+            const data = {
+                proyectosData: window.proyectosData,
+                collapsedStates: JSON.parse(localStorage.getItem('collapsedStates') || '{}')
+            };
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tablero_proyectos.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            StorageController.notify('Tablero exportado correctamente', 'success');
+        } catch (error) {
+            StorageController.notify('Error al exportar el tablero', 'error');
+        }
+    },
+
+    // Importar el storage desde archivo JSON
+    importStorage: function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (!data.proyectosData || !Array.isArray(data.proyectosData)) {
+                    StorageController.notify('Archivo inválido: no contiene proyectos', 'error');
+                    return;
+                }
+                window.proyectosData = data.proyectosData;
+                localStorage.setItem('proyectosData', JSON.stringify(data.proyectosData));
+                if (data.collapsedStates) {
+                    localStorage.setItem('collapsedStates', JSON.stringify(data.collapsedStates));
+                }
+                if (window.renderTable) window.renderTable();
+                StorageController.loadCollapsedStates();
+                StorageController.notify('Tablero importado correctamente', 'success');
+            } catch (error) {
+                StorageController.notify('Error al importar el tablero', 'error');
+            }
+        };
+        reader.readAsText(file);
+        // Limpiar el input para permitir importar el mismo archivo de nuevo si se desea
+        event.target.value = '';
+    },
     save: function() {
         try {
             localStorage.setItem('proyectosData', JSON.stringify(window.proyectosData));

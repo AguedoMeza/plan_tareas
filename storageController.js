@@ -2,30 +2,45 @@
 // Controlador para gestión de storage de proyectos
 
 const StorageController = {
-    // Exportar el storage como archivo JSON
+    // Variables para gestión de múltiples tableros
+    currentBoardId: null,
+    defaultBoardName: 'Tablero Principal',
+    
+    // Exportar el tablero actual como archivo JSON
     exportStorage: function() {
         try {
+            const currentBoard = StorageController.getCurrentBoard();
+            if (!currentBoard) {
+                StorageController.notify('No hay tablero activo para exportar', 'error');
+                return;
+            }
+            
             const data = {
+                boardName: currentBoard.name,
                 proyectosData: window.proyectosData,
-                collapsedStates: JSON.parse(localStorage.getItem('collapsedStates') || '{}')
+                collapsedStates: JSON.parse(localStorage.getItem(`collapsedStates_${StorageController.currentBoardId}`) || '{}'),
+                exportDate: new Date().toISOString(),
+                version: '2.0'
             };
+            
             const json = JSON.stringify(data, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'tablero_proyectos.json';
+            a.download = `${currentBoard.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            StorageController.notify('Tablero exportado correctamente', 'success');
+            StorageController.notify(`Tablero "${currentBoard.name}" exportado correctamente`, 'success');
         } catch (error) {
+            console.error('Error al exportar:', error);
             StorageController.notify('Error al exportar el tablero', 'error');
         }
     },
 
-    // Importar el storage desde archivo JSON
+    // Importar tablero desde archivo JSON
     importStorage: function(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -37,15 +52,36 @@ const StorageController = {
                     StorageController.notify('Archivo inválido: no contiene proyectos', 'error');
                     return;
                 }
-                window.proyectosData = data.proyectosData;
-                localStorage.setItem('proyectosData', JSON.stringify(data.proyectosData));
-                if (data.collapsedStates) {
-                    localStorage.setItem('collapsedStates', JSON.stringify(data.collapsedStates));
+                
+                // Obtener nombre del tablero del archivo o usar nombre por defecto
+                const boardName = data.boardName || `Tablero_Importado_${new Date().toLocaleString()}`;
+                
+                // Verificar si ya existe un tablero con ese nombre
+                let finalBoardName = boardName;
+                let counter = 1;
+                while (StorageController.boardExists(finalBoardName)) {
+                    finalBoardName = `${boardName} (${counter})`;
+                    counter++;
                 }
-                if (window.renderTable) window.renderTable();
-                StorageController.loadCollapsedStates();
-                StorageController.notify('Tablero importado correctamente', 'success');
+                
+                // Crear nuevo tablero con los datos importados
+                const newBoardId = StorageController.createBoard(finalBoardName);
+                if (newBoardId) {
+                    // Guardar los datos del tablero importado
+                    localStorage.setItem(`boardData_${newBoardId}`, JSON.stringify(data.proyectosData));
+                    
+                    // Guardar estados de colapso si existen
+                    if (data.collapsedStates) {
+                        localStorage.setItem(`collapsedStates_${newBoardId}`, JSON.stringify(data.collapsedStates));
+                    }
+                    
+                    // Cambiar al tablero recién importado
+                    StorageController.switchBoard(newBoardId);
+                    
+                    StorageController.notify(`Tablero "${finalBoardName}" importado y activado correctamente`, 'success');
+                }
             } catch (error) {
+                console.error('Error al importar:', error);
                 StorageController.notify('Error al importar el tablero', 'error');
             }
         };
@@ -55,8 +91,12 @@ const StorageController = {
     },
     save: function() {
         try {
-            localStorage.setItem('proyectosData', JSON.stringify(window.proyectosData));
-            StorageController.notify('Proyectos guardados correctamente', 'success');
+            if (!StorageController.currentBoardId) {
+                StorageController.notify('No hay tablero activo para guardar', 'error');
+                return;
+            }
+            localStorage.setItem(`boardData_${StorageController.currentBoardId}`, JSON.stringify(window.proyectosData));
+            // No mostrar notificación de guardado para no ser intrusivo
         } catch (error) {
             console.error('Error al guardar proyectos:', error);
             StorageController.notify('Error al guardar proyectos', 'error');
@@ -65,10 +105,12 @@ const StorageController = {
     
     load: function() {
         try {
-            const savedProjects = localStorage.getItem('proyectosData');
+            if (!StorageController.currentBoardId) {
+                return false;
+            }
+            const savedProjects = localStorage.getItem(`boardData_${StorageController.currentBoardId}`);
             if (savedProjects) {
                 window.proyectosData = JSON.parse(savedProjects);
-                StorageController.notify('Proyectos cargados desde el almacenamiento local', 'info');
                 return true;
             }
         } catch (error) {
@@ -512,8 +554,10 @@ const StorageController = {
         }
     },
 
-    // Funciones para manejar estados de colapso persistente
+    // Funciones para manejar estados de colapso persistente (por tablero)
     saveCollapsedStates: function() {
+        if (!StorageController.currentBoardId) return;
+        
         const collapsedStates = {};
         window.proyectosData.forEach((_, index) => {
             const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${index}"]`);
@@ -523,15 +567,17 @@ const StorageController = {
         });
         
         try {
-            localStorage.setItem('collapsedProjects', JSON.stringify(collapsedStates));
+            localStorage.setItem(`collapsedStates_${StorageController.currentBoardId}`, JSON.stringify(collapsedStates));
         } catch (error) {
             console.error('Error al guardar estados de colapso:', error);
         }
     },
     
     loadCollapsedStates: function() {
+        if (!StorageController.currentBoardId) return;
+        
         try {
-            const savedStates = localStorage.getItem('collapsedProjects');
+            const savedStates = localStorage.getItem(`collapsedStates_${StorageController.currentBoardId}`);
             if (savedStates) {
                 const collapsedStates = JSON.parse(savedStates);
                 Object.keys(collapsedStates).forEach(index => {
@@ -562,6 +608,245 @@ const StorageController = {
 
     // Variable para manejar edición
     currentlyEditing: null,
+
+    // === FUNCIONES PARA GESTIÓN DE MÚLTIPLES TABLEROS ===
+    
+    // Inicializar sistema de tableros
+    initializeBoards: function() {
+        const boards = StorageController.getAllBoards();
+        if (Object.keys(boards).length === 0) {
+            // Crear tablero por defecto si no existen tableros
+            const defaultBoardId = StorageController.createBoard(StorageController.defaultBoardName);
+            StorageController.setCurrentBoard(defaultBoardId);
+        } else {
+            // Cargar el último tablero usado o el primero disponible
+            const lastBoardId = localStorage.getItem('lastUsedBoard');
+            if (lastBoardId && boards[lastBoardId]) {
+                StorageController.setCurrentBoard(lastBoardId);
+            } else {
+                const firstBoardId = Object.keys(boards)[0];
+                StorageController.setCurrentBoard(firstBoardId);
+            }
+        }
+    },
+    
+    // Crear nuevo tablero
+    createBoard: function(name) {
+        if (!name || name.trim() === '') {
+            StorageController.notify('El nombre del tablero es requerido', 'error');
+            return null;
+        }
+        
+        const cleanName = name.trim();
+        if (StorageController.boardExists(cleanName)) {
+            StorageController.notify('Ya existe un tablero con ese nombre', 'error');
+            return null;
+        }
+        
+        try {
+            const boardId = 'board_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            const boards = StorageController.getAllBoards();
+            
+            boards[boardId] = {
+                name: cleanName,
+                createdAt: new Date().toISOString(),
+                lastModified: new Date().toISOString()
+            };
+            
+            localStorage.setItem('boards', JSON.stringify(boards));
+            localStorage.setItem(`boardData_${boardId}`, JSON.stringify([])); // Array vacío inicial
+            
+            StorageController.notify(`Tablero "${cleanName}" creado correctamente`, 'success');
+            return boardId;
+        } catch (error) {
+            console.error('Error al crear tablero:', error);
+            StorageController.notify('Error al crear el tablero', 'error');
+            return null;
+        }
+    },
+    
+    // Verificar si existe un tablero con ese nombre
+    boardExists: function(name) {
+        const boards = StorageController.getAllBoards();
+        return Object.values(boards).some(board => board.name === name);
+    },
+    
+    // Obtener todos los tableros
+    getAllBoards: function() {
+        try {
+            return JSON.parse(localStorage.getItem('boards') || '{}');
+        } catch (error) {
+            console.error('Error al obtener tableros:', error);
+            return {};
+        }
+    },
+    
+    // Obtener tablero actual
+    getCurrentBoard: function() {
+        if (!StorageController.currentBoardId) return null;
+        const boards = StorageController.getAllBoards();
+        return boards[StorageController.currentBoardId] || null;
+    },
+    
+    // Establecer tablero actual
+    setCurrentBoard: function(boardId) {
+        const boards = StorageController.getAllBoards();
+        if (!boards[boardId]) {
+            StorageController.notify('Tablero no encontrado', 'error');
+            return false;
+        }
+        
+        StorageController.currentBoardId = boardId;
+        localStorage.setItem('lastUsedBoard', boardId);
+        
+        // Actualizar timestamp de último acceso
+        boards[boardId].lastModified = new Date().toISOString();
+        localStorage.setItem('boards', JSON.stringify(boards));
+        
+        return true;
+    },
+    
+    // Cambiar a otro tablero
+    switchBoard: function(boardId) {
+        if (StorageController.setCurrentBoard(boardId)) {
+            // Cargar datos del nuevo tablero
+            const loaded = StorageController.load();
+            if (!loaded) {
+                window.proyectosData = [];
+            }
+            
+            // Re-renderizar la tabla
+            if (window.renderTable) {
+                window.renderTable();
+            }
+            
+            // Cargar estados de colapso del nuevo tablero
+            StorageController.loadCollapsedStates();
+            
+            const currentBoard = StorageController.getCurrentBoard();
+            StorageController.notify(`Tablero "${currentBoard.name}" activado`, 'success');
+            
+            // Actualizar interfaz
+            StorageController.updateBoardSelector();
+        }
+    },
+    
+    // Renombrar tablero
+    renameBoard: function(boardId, newName) {
+        if (!newName || newName.trim() === '') {
+            StorageController.notify('El nombre del tablero es requerido', 'error');
+            return false;
+        }
+        
+        const cleanName = newName.trim();
+        const boards = StorageController.getAllBoards();
+        
+        if (!boards[boardId]) {
+            StorageController.notify('Tablero no encontrado', 'error');
+            return false;
+        }
+        
+        // Verificar si ya existe otro tablero con ese nombre
+        const existingBoard = Object.entries(boards).find(([id, board]) => 
+            id !== boardId && board.name === cleanName
+        );
+        
+        if (existingBoard) {
+            StorageController.notify('Ya existe un tablero con ese nombre', 'error');
+            return false;
+        }
+        
+        try {
+            const oldName = boards[boardId].name;
+            boards[boardId].name = cleanName;
+            boards[boardId].lastModified = new Date().toISOString();
+            
+            localStorage.setItem('boards', JSON.stringify(boards));
+            StorageController.notify(`Tablero renombrado de "${oldName}" a "${cleanName}"`, 'success');
+            
+            // Actualizar interfaz si es el tablero actual
+            if (StorageController.currentBoardId === boardId) {
+                StorageController.updateBoardSelector();
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Error al renombrar tablero:', error);
+            StorageController.notify('Error al renombrar el tablero', 'error');
+            return false;
+        }
+    },
+    
+    // Eliminar tablero
+    deleteBoard: function(boardId) {
+        const boards = StorageController.getAllBoards();
+        if (!boards[boardId]) {
+            StorageController.notify('Tablero no encontrado', 'error');
+            return false;
+        }
+        
+        // No permitir eliminar el último tablero
+        if (Object.keys(boards).length === 1) {
+            StorageController.notify('No puedes eliminar el último tablero', 'error');
+            return false;
+        }
+        
+        const boardName = boards[boardId].name;
+        
+        if (!confirm(`¿Estás seguro de que deseas eliminar el tablero "${boardName}"?\n\nEsta acción no se puede deshacer.`)) {
+            return false;
+        }
+        
+        try {
+            // Eliminar tablero de la lista
+            delete boards[boardId];
+            localStorage.setItem('boards', JSON.stringify(boards));
+            
+            // Eliminar datos del tablero
+            localStorage.removeItem(`boardData_${boardId}`);
+            localStorage.removeItem(`collapsedStates_${boardId}`);
+            
+            // Si era el tablero actual, cambiar a otro
+            if (StorageController.currentBoardId === boardId) {
+                const remainingBoardIds = Object.keys(boards);
+                if (remainingBoardIds.length > 0) {
+                    StorageController.switchBoard(remainingBoardIds[0]);
+                }
+            }
+            
+            StorageController.notify(`Tablero "${boardName}" eliminado correctamente`, 'success');
+            return true;
+        } catch (error) {
+            console.error('Error al eliminar tablero:', error);
+            StorageController.notify('Error al eliminar el tablero', 'error');
+            return false;
+        }
+    },
+    
+    // Actualizar selector de tableros en la interfaz (será implementado en el HTML)
+    updateBoardSelector: function() {
+        const selector = document.getElementById('boardSelector');
+        if (!selector) return;
+        
+        const boards = StorageController.getAllBoards();
+        const currentBoard = StorageController.getCurrentBoard();
+        
+        selector.innerHTML = '';
+        
+        Object.entries(boards).forEach(([boardId, board]) => {
+            const option = document.createElement('option');
+            option.value = boardId;
+            option.textContent = board.name;
+            option.selected = boardId === StorageController.currentBoardId;
+            selector.appendChild(option);
+        });
+        
+        // Actualizar título de la página si existe
+        const pageTitle = document.getElementById('currentBoardTitle');
+        if (pageTitle && currentBoard) {
+            pageTitle.textContent = currentBoard.name;
+        }
+    },
 
     notify: function(message, type = 'success') {
         const colors = {

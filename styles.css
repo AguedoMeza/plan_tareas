@@ -524,6 +524,101 @@ td {
     transform: translateY(-1px);
 }
 
+/* Estilos para gestión de tableros */
+.board-management {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.board-management .form-label {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+#boardSelector {
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+#boardSelector:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+.board-management .btn {
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.board-management .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.board-management .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+}
+
+.board-management .btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    border: none;
+    color: #212529;
+}
+
+.board-management .btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+    border: none;
+}
+
+/* Animación para cambio de tablero */
+@keyframes boardSwitch {
+    0% { 
+        opacity: 0.5;
+        transform: scale(0.98);
+    }
+    100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.board-switching {
+    animation: boardSwitch 0.3s ease-out;
+}
+
+/* Indicador de tablero activo */
+.current-board-indicator {
+    position: relative;
+}
+
+.current-board-indicator::before {
+    content: '🔥';
+    position: absolute;
+    right: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Estilos para notificaciones específicas de tableros */
+.board-notification {
+    border-left: 4px solid #0d6efd;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .actions-cell {
@@ -545,5 +640,15 @@ td {
         font-size: 10px !important;
         padding: 1px 4px !important;
         min-height: 24px;
+    }
+    
+    .board-management .d-flex {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .board-management .btn {
+        font-size: 12px;
+        padding: 4px 8px;
     }
 }

@@ -133,9 +133,9 @@
                             <button class="reorder-btn" onclick="moveProject(${elementPath[0]}, 'down')" title="Mover proyecto hacia abajo" ${elementPath[0] === window.proyectosData.length - 1 ? 'disabled' : ''}>
                                 ↓
                             </button>
-                            <button class="collapse-btn" onclick="StorageController.toggleProjectPersistent(${elementPath[0]})" id="btn-${elementPath[0]}" title="Contraer/Expandir proyecto">
+                           <button class="collapse-btn" onclick="toggleProject(${elementPath[0]})" id="btn-${elementPath[0]}" title="Contraer/Expandir proyecto">
                                 <span class="collapse-icon">▼</span>
-                            </button>
+                           </button>
                         </div>
                         ${escapeHtml(elemento.nombre)}
                     </td>

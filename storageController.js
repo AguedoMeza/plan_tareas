@@ -464,6 +464,7 @@ const StorageController = {
 
             if (window.renderTable) {
                 window.renderTable();
+                StorageController.loadCollapsedStates();
             }
             StorageController.currentlyEditing = null;
         } catch (error) {
@@ -622,7 +623,9 @@ const StorageController = {
             // Re-renderizar para actualizar avances generales y estilos
             if (window.renderTable) {
                 window.renderTable();
+                StorageController.loadCollapsedStates();
             }
+
             
             // Actualizar el atributo data-current del select y agregar animación
             setTimeout(() => {

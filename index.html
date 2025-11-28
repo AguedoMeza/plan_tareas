@@ -298,25 +298,31 @@
                     needsMigration = true;
                 }
             });
+
+            window.proyectosData.forEach((proyecto) => {
+                // Migrar proyectos que tienen la estructura antigua
+                if (proyecto.tareas && !proyecto.elementos) {
+                    // ... código existente de migración ...
+                    needsMigration = true;
+                }
+                
+                // Migrar proyectos sin estadoProyecto
+                if (!proyecto.estadoProyecto) {
+                    proyecto.estadoProyecto = 'Activo';
+                    needsMigration = true;
+                }
+            });
+    
             
             // Guardar los datos migrados
             if (needsMigration) {
                 StorageController.save();
                 StorageController.notify('Datos migrados a nueva estructura recursiva', 'success');
             }
-        }
-            if (window.proyectosData && window.proyectosData.length > 0) {
-                // Verificar y migrar datos antiguos si es necesario
-                migrateOldData();
-            }
 
-            // Migrar proyectos sin estadoProyecto
-            window.proyectosData.forEach(proyecto => {
-                if (!proyecto.estadoProyecto) {
-                    proyecto.estadoProyecto = 'Activo';
-                    needsMigration = true;
-                }
-    });
+            
+        }
+            
         }
 
         // Función para colapsar/expandir proyectos (ahora soporta estructura recursiva)
@@ -800,10 +806,14 @@ function cambiarVista(vista) {
         renderVistaViva();
     } else {
         renderTable();
+        StorageController.loadCollapsedStates(); // ← Restaurar estados de colapso
     }
     
     // Guardar preferencia
     localStorage.setItem('vistaPreferida', vista);
+    
+    // Actualizar contador del badge
+    actualizarContadorVivoBadge(); // ← AGREGAR ESTA LÍNEA
 }
 
 // ============================================
@@ -953,7 +963,46 @@ function irAElemento(elementPathString) {
             return str.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
+        // Función para actualizar contador del badge
+        function actualizarContadorVivoBadge() {
+            const elementosVivos = obtenerElementosVivos();
+            const badgeElement = document.getElementById('contadorVivos');
+            
+            if (badgeElement) {
+                badgeElement.textContent = elementosVivos.length;
+            }
+        }
 
+        // Función para editar elemento desde Vista Viva
+        function editarElementoVivo(index) {
+            const elementosVivos = obtenerElementosVivos();
+            const item = elementosVivos[index];
+            
+            if (!item) {
+                StorageController.notify('Elemento no encontrado', 'error');
+                return;
+            }
+            
+            // Cambiar a vista completa
+            cambiarVista('completa');
+            
+            // Encontrar el path numérico del elemento
+            const elementoPath = obtenerPathNumerico(item.rutaOriginal);
+            
+            if (elementoPath) {
+                // Expandir proyecto si está colapsado
+                const projectIndex = elementoPath[0];
+                const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${projectIndex}"]`);
+                if (projectRow && projectRow.classList.contains('proyecto-collapsed')) {
+                    toggleProject(projectIndex);
+                }
+                
+                // Esperar un poco y luego editar
+                setTimeout(() => {
+                    StorageController.editRow(elementoPath);
+                }, 300);
+            }
+        }
         // Inicializar la aplicación al cargar la página
         function initializeApp() {
             // Inicializar sistema de tableros

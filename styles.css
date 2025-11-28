@@ -652,3 +652,48 @@ td {
         padding: 4px 8px;
     }
 }
+
+/* Select de estado de proyecto */
+.proyecto-estado-select {
+    font-size: 11px;
+    padding: 2px 6px;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    background-color: white;
+    cursor: pointer;
+    margin-left: 8px;
+    margin-right: 8px;
+    transition: all 0.2s ease;
+    min-width: 90px;
+    font-weight: 600;
+}
+
+.proyecto-estado-select:hover {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.125rem rgba(13, 110, 253, 0.1);
+}
+
+.proyecto-estado-select[data-current="Activo"] {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.proyecto-estado-select[data-current="Backlog"] {
+    background-color: #fff3cd;
+    color: #856404;
+    border-color: #ffeaa7;
+}
+
+.proyecto-estado-select[data-current="Archivado"] {
+    background-color: #e2e3e5;
+    color: #383d41;
+    border-color: #d6d8db;
+}
+
+/* Estado Backlog en select de elementos */
+.estado-select[data-current="Backlog"] {
+    background-color: #fff3cd;
+    color: #856404;
+    border-color: #ffeaa7;
+}

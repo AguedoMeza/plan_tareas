@@ -131,14 +131,15 @@ const StorageController = {
             nombre: nombre.trim(),
             descripcion: descripcion.trim(),
             tipo: 'proyecto',
+            estadoProyecto: 'Activo',  // ← NUEVO CAMPO
             avance: '',
             prioridad: '',
             esfuerzo: '',
             deadline: '',
             estado: 'Pendiente',
-            elementos: [] // Ahora usa 'elementos' en lugar de 'tareas'
+            elementos: []
         };
-        
+            
         window.proyectosData.push(nuevoProyecto);
         StorageController.save();
         StorageController.notify(`Proyecto "${nombre}" creado exitosamente`, 'success');

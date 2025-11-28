@@ -111,7 +111,10 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            window.proyectosData.forEach((proyecto, index) => {
+            // Ordenar proyectos por estadoProyecto antes de renderizar
+            const proyectosOrdenados = window.reglasNegocio.ordenarProyectosPorEstado(window.proyectosData);
+
+            proyectosOrdenados.forEach((proyecto, index) => {
                 // Aplicar ordenamiento recursivo antes de renderizar
                 const proyectoOrdenado = window.reglasNegocio.aplicarOrdenamientoRecursivo({...proyecto});
                 renderElement(proyectoOrdenado, [index], 0, tbody);

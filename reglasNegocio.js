@@ -130,11 +130,34 @@ function aplicarOrdenamientoRecursivo(elemento) {
     return elemento;
 }
 
+// Ordena los proyectos por estadoProyecto: Activo -> Backlog -> Archivado
+function ordenarProyectosPorEstado(proyectos) {
+    if (!Array.isArray(proyectos) || proyectos.length === 0) {
+        return proyectos;
+    }
+    const prioridadEstado = {
+        'Activo': 1,
+        'Backlog': 2,
+        'Archivado': 3
+    };
+    return proyectos.sort((a, b) => {
+        const estadoA = a.estadoProyecto || 'Activo';
+        const estadoB = b.estadoProyecto || 'Activo';
+        const prioridadA = prioridadEstado[estadoA] || 4;
+        const prioridadB = prioridadEstado[estadoB] || 4;
+        if (prioridadA === prioridadB) {
+            return a.nombre.localeCompare(b.nombre);
+        }
+        return prioridadA - prioridadB;
+    });
+}
+
 // Exponer las funciones en window para uso desde otros archivos
 window.reglasNegocio = {
     calcularAvanceGeneral,
     calcularAvanceRecursivo,
     contarElementosRecursivo,
     ordenarElementosPorEstado,
-    aplicarOrdenamientoRecursivo
+    aplicarOrdenamientoRecursivo,
+    ordenarProyectosPorEstado
 };

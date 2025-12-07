@@ -546,7 +546,7 @@ function obtenerElementosVivos() {
 }
 
 // ============================================
-// 2. FUNCIÓN RECURSIVA - Extraer elementos
+// 2. FUNCIÓN RECURSIVA - Extraer elementos (CORREGIDA)
 // ============================================
 
 function extraerElementosVivosRecursivo(elementos, pathActual, resultado) {
@@ -560,10 +560,13 @@ function extraerElementosVivosRecursivo(elementos, pathActual, resultado) {
         
         const nuevoPath = [...pathActual, elemento.nombre];
         
-        // REGLA 2: Agregar solo si está Pendiente o En progreso
+        // REGLA 2: Verificar si tiene hijos
+        const tieneHijos = Array.isArray(elemento.elementos) && elemento.elementos.length > 0;
+        
+        // REGLA 3: Agregar solo si está Pendiente o En progreso Y NO TIENE HIJOS (es nodo hoja)
         const esActivo = elemento.estado === 'Pendiente' || elemento.estado === 'En progreso';
         
-        if (esActivo) {
+        if (esActivo && !tieneHijos) {
             resultado.push({
                 // Datos del elemento
                 elemento: elemento,
@@ -587,9 +590,9 @@ function extraerElementosVivosRecursivo(elementos, pathActual, resultado) {
             });
         }
         
-        // REGLA 3: Continuar recursivamente con elementos hijos
+        // REGLA 4: Continuar recursivamente con elementos hijos
         // (incluso si este elemento no es activo, sus hijos podrían serlo)
-        if (Array.isArray(elemento.elementos) && elemento.elementos.length > 0) {
+        if (tieneHijos) {
             extraerElementosVivosRecursivo(elemento.elementos, nuevoPath, resultado);
         }
     });

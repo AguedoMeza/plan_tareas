@@ -41,7 +41,7 @@
     </div>
     <!-- FIN de Gestión de Tableros -->
 
-    <!-- Toggle de Vista - NUEVA SECCIÓN -->
+    <!-- Toggle de Vista -->
     <div class="mb-3 d-flex gap-2 align-items-center">
         <label class="me-2" style="font-weight: 600;">Vista:</label>
         <button type="button" 
@@ -59,19 +59,19 @@
     </div>
     <!-- FIN Toggle de Vista -->
 
-<!-- Botones de acciones principales -->
-<div class="mb-3 d-flex gap-2">
-    <button type="button" class="btn btn-primary btn-lg" onclick="openCreateModal()">
-        <i class="bi bi-plus-circle me-2"></i>Crear Nuevo
-    </button>
-    <button type="button" class="btn btn-outline-success btn-lg" onclick="StorageController.exportStorage()">
-        <i class="bi bi-download me-2"></i>Exportar Tablero
-    </button>
-    <label class="btn btn-outline-info btn-lg mb-0" style="cursor:pointer;">
-        <i class="bi bi-upload me-2"></i>Importar Tablero
-        <input type="file" id="importStorageInput" accept="application/json" style="display:none;" onchange="StorageController.importStorage(event)">
-    </label>
-</div>
+    <!-- Botones de acciones principales -->
+    <div class="mb-3 d-flex gap-2">
+        <button type="button" class="btn btn-primary btn-lg" onclick="openCreateModal()">
+            <i class="bi bi-plus-circle me-2"></i>Crear Nuevo
+        </button>
+        <button type="button" class="btn btn-outline-success btn-lg" onclick="StorageController.exportStorage()">
+            <i class="bi bi-download me-2"></i>Exportar Tablero
+        </button>
+        <label class="btn btn-outline-info btn-lg mb-0" style="cursor:pointer;">
+            <i class="bi bi-upload me-2"></i>Importar Tablero
+            <input type="file" id="importStorageInput" accept="application/json" style="display:none;" onchange="StorageController.importStorage(event)">
+        </label>
+    </div>
 
     <!-- Incluir Modal de Creación -->
     <div id="modalContainer"></div>
@@ -105,6 +105,8 @@
     <script src="storageController.js"></script>
     <script src="boardController.js"></script>
     <script src="formController.js"></script>
+    <script src="vistaVivaController.js"></script>
+    
     <script>
         // Función para renderizar la tabla recursivamente
         function renderTable() {
@@ -119,6 +121,7 @@
                 const proyectoOrdenado = window.reglasNegocio.aplicarOrdenamientoRecursivo({...proyecto});
                 renderElement(proyectoOrdenado, [index], 0, tbody);
             });
+        }
 
         // Función recursiva para renderizar elementos
         function renderElement(elemento, elementPath, level, container) {
@@ -133,7 +136,7 @@
             }
             
             elementRow.dataset.elementPath = pathString;
-            elementRow.dataset.projectIndex = elementPath[0]; // Todas las filas deben tener el índice del proyecto
+            elementRow.dataset.projectIndex = elementPath[0];
             
             // Agregar atributos adicionales para identificar el nivel y tipo
             elementRow.dataset.level = level;
@@ -224,7 +227,7 @@
 
             if (isProject) {
                 // Añadir fila de resumen para proyectos
-                const totalElementos = window.reglasNegocio.contarElementosRecursivo(elemento) - 1; // -1 para no contar el proyecto mismo
+                const totalElementos = window.reglasNegocio.contarElementosRecursivo(elemento) - 1;
                 const avanceGeneral = window.reglasNegocio.calcularAvanceGeneral(elemento);
                 
                 const recuentoRow = document.createElement('tr');
@@ -300,14 +303,6 @@
                     
                     needsMigration = true;
                 }
-            });
-
-            window.proyectosData.forEach((proyecto) => {
-                // Migrar proyectos que tienen la estructura antigua
-                if (proyecto.tareas && !proyecto.elementos) {
-                    // ... código existente de migración ...
-                    needsMigration = true;
-                }
                 
                 // Migrar proyectos sin estadoProyecto
                 if (!proyecto.estadoProyecto) {
@@ -315,26 +310,21 @@
                     needsMigration = true;
                 }
             });
-    
             
             // Guardar los datos migrados
             if (needsMigration) {
                 StorageController.save();
                 StorageController.notify('Datos migrados a nueva estructura recursiva', 'success');
             }
-
-            
-        }
-            
         }
 
-        // Función para colapsar/expandir proyectos (ahora soporta estructura recursiva)
+        // Función para colapsar/expandir proyectos
         function toggleProject(index) {
             const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${index}"]`);
             const button = document.getElementById(`btn-${index}`);
             const icon = button.querySelector('.collapse-icon');
             
-            // Encontrar todas las filas relacionadas con este proyecto (incluye todos los niveles)
+            // Encontrar todas las filas relacionadas con este proyecto
             const allRelatedRows = document.querySelectorAll(`tr[data-project-index="${index}"]:not(.proyecto-row)`);
             
             if (projectRow.classList.contains('proyecto-collapsed')) {
@@ -343,12 +333,10 @@
                 icon.textContent = '▼';
                 button.title = 'Contraer proyecto';
                 
-                // Mostrar todas las filas relacionadas
                 allRelatedRows.forEach(row => {
                     row.style.display = '';
                 });
                 
-                // También mostrar la fila de resumen del proyecto
                 const summaryRow = document.querySelector(`tr.recuento-row[data-project-index="${index}"]`);
                 if (summaryRow) {
                     summaryRow.style.display = '';
@@ -360,12 +348,10 @@
                 icon.textContent = '▶';
                 button.title = 'Expandir proyecto';
                 
-                // Ocultar todas las filas relacionadas (recursivamente)
                 allRelatedRows.forEach(row => {
                     row.style.display = 'none';
                 });
                 
-                // También ocultar la fila de resumen del proyecto
                 const summaryRow = document.querySelector(`tr.recuento-row[data-project-index="${index}"]`);
                 if (summaryRow) {
                     summaryRow.style.display = 'none';
@@ -374,42 +360,6 @@
             
             // Guardar el estado persistente
             StorageController.toggleProjectPersistent(index);
-        }
-
-        // Función para expandir/contraer elementos individuales (opcional para el futuro)
-        function toggleElement(elementPath) {
-            const pathString = elementPath.join('-');
-            const elementRow = document.querySelector(`tr[data-element-path="${pathString}"]`);
-            
-            if (!elementRow) return;
-            
-            // Encontrar todos los elementos hijos directos e indirectos
-            const allChildRows = [];
-            
-            // Buscar filas que empiecen con el path del elemento + un nivel más
-            const allRows = document.querySelectorAll('tr[data-element-path]');
-            allRows.forEach(row => {
-                const rowPath = row.dataset.elementPath;
-                if (rowPath.startsWith(pathString + '-')) {
-                    allChildRows.push(row);
-                }
-            });
-            
-            const hasCollapsedClass = elementRow.classList.contains('elemento-collapsed');
-            
-            if (hasCollapsedClass) {
-                // Expandir elemento
-                elementRow.classList.remove('elemento-collapsed');
-                allChildRows.forEach(row => {
-                    row.style.display = '';
-                });
-            } else {
-                // Colapsar elemento
-                elementRow.classList.add('elemento-collapsed');
-                allChildRows.forEach(row => {
-                    row.style.display = 'none';
-                });
-            }
         }
 
         // Función para reordenar proyectos
@@ -422,7 +372,7 @@
             } else if (direction === 'down' && index < window.proyectosData.length - 1) {
                 newIndex = index + 1;
             } else {
-                return; // No se puede mover
+                return;
             }
             
             // Intercambiar proyectos en el array
@@ -475,7 +425,6 @@
         }
 
         function cambiarEstadoProyecto(projectIndex, nuevoEstado) {
-           
             if (!window.proyectosData[projectIndex]) {
                 StorageController.notify('Proyecto no encontrado', 'error');
                 return;
@@ -503,8 +452,8 @@
             );
             
             // Re-renderizar según vista actual
-            if (typeof vistaActual !== 'undefined' && vistaActual === 'viva') {
-                renderVistaViva();
+            if (VistaVivaController.vistaActual === 'viva') {
+                VistaVivaController.renderVistaViva();
             } else {
                 renderTable();
                 StorageController.loadCollapsedStates();
@@ -521,346 +470,10 @@
             }, 100);
         }
 
-        // ============================================
-// 1. FUNCIÓN PRINCIPAL - Obtener Elementos Vivos
-// ============================================
-
-function obtenerElementosVivos() {
-    const elementosVivos = [];
-    
-    // Filtrar solo proyectos activos (no Backlog ni Archivado)
-    const proyectosActivos = window.proyectosData.filter(proyecto => {
-        // Si no tiene estadoProyecto, considerarlo Activo por defecto
-        const estado = proyecto.estadoProyecto || 'Activo';
-        return estado === 'Activo';
-    });
-    
-    // Recorrer cada proyecto activo
-    proyectosActivos.forEach(proyecto => {
-        const pathBase = [proyecto.nombre];
-        extraerElementosVivosRecursivo(proyecto.elementos, pathBase, elementosVivos);
-    });
-    
-    // Ordenar por prioridad y deadline
-    return ordenarElementosVivos(elementosVivos);
-}
-
-// ============================================
-// 2. FUNCIÓN RECURSIVA - Extraer elementos (CORREGIDA)
-// ============================================
-
-function extraerElementosVivosRecursivo(elementos, pathActual, resultado) {
-    if (!Array.isArray(elementos) || elementos.length === 0) return;
-    
-    elementos.forEach(elemento => {
-        // REGLA 1: Skip si el elemento está marcado como Backlog
-        if (elemento.estado === 'Backlog') {
-            return; // No procesar este elemento ni sus hijos
-        }
-        
-        const nuevoPath = [...pathActual, elemento.nombre];
-        
-        // REGLA 2: Verificar si tiene hijos
-        const tieneHijos = Array.isArray(elemento.elementos) && elemento.elementos.length > 0;
-        
-        // REGLA 3: Agregar solo si está Pendiente o En progreso Y NO TIENE HIJOS (es nodo hoja)
-        const esActivo = elemento.estado === 'Pendiente' || elemento.estado === 'En progreso';
-        
-        if (esActivo && !tieneHijos) {
-            resultado.push({
-                // Datos del elemento
-                elemento: elemento,
-                nombre: elemento.nombre,
-                descripcion: elemento.descripcion || '',
-                
-                // Path para mostrar (sin el nombre del elemento actual)
-                pathCompleto: pathActual.join(' / '),
-                
-                // Path completo para navegación/edición
-                rutaOriginal: nuevoPath,
-                
-                // Campos para ordenamiento
-                prioridad: parseInt(elemento.prioridad) || 999,
-                deadline: elemento.deadline || '9999-99-99',
-                esfuerzo: elemento.esfuerzo || '',
-                
-                // Estado actual
-                estado: elemento.estado,
-                avance: elemento.avance || ''
-            });
-        }
-        
-        // REGLA 4: Continuar recursivamente con elementos hijos
-        // (incluso si este elemento no es activo, sus hijos podrían serlo)
-        if (tieneHijos) {
-            extraerElementosVivosRecursivo(elemento.elementos, nuevoPath, resultado);
-        }
-    });
-}
-
-// ============================================
-// 3. FUNCIÓN DE ORDENAMIENTO
-// ============================================
-
-function ordenarElementosVivos(elementos) {
-    return elementos.sort((a, b) => {
-        // 1. Primero por estado (En progreso antes que Pendiente)
-        const estadoOrden = { 'En progreso': 1, 'Pendiente': 2 };
-        const ordenA = estadoOrden[a.estado] || 3;
-        const ordenB = estadoOrden[b.estado] || 3;
-        if (ordenA !== ordenB) return ordenA - ordenB;
-        
-        // 2. Luego por prioridad (1, 2, 3, sin prioridad al final)
-        if (a.prioridad !== b.prioridad) {
-            return a.prioridad - b.prioridad;
-        }
-        
-        // 3. Luego por deadline (más cercano primero)
-        if (a.deadline !== b.deadline) {
-            // Deadlines vacíos al final
-            if (a.deadline === '9999-99-99') return 1;
-            if (b.deadline === '9999-99-99') return -1;
-            return a.deadline.localeCompare(b.deadline);
-        }
-        
-        // 4. Finalmente por nombre
-        return a.nombre.localeCompare(b.nombre);
-    });
-}
-
-// ============================================
-// 4. FUNCIÓN PARA RENDERIZAR VISTA VIVA
-// ============================================
-
-function renderVistaViva() {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '';
-    
-    const elementosVivos = obtenerElementosVivos();
-    
-    // Mostrar mensaje si no hay elementos
-    if (elementosVivos.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="9" style="text-align: center; padding: 40px; color: #718096;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
-                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
-                        ¡No hay elementos activos!
-                    </div>
-                    <div style="font-size: 14px;">
-                        Todos los elementos están completados o en backlog.
-                    </div>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    // Renderizar cada elemento
-    elementosVivos.forEach((item, index) => {
-        const row = document.createElement('tr');
-        row.className = 'vista-viva-row';
-        row.dataset.index = index;
-        
-        // Construir el HTML de la fila
-        row.innerHTML = `
-            <td class="path-column">
-                <span class="breadcrumb">${escapeHtml(item.pathCompleto)}</span>
-            </td>
-            <td class="nombre-column">
-                <strong>${escapeHtml(item.nombre)}</strong>
-            </td>
-            <td class="descripcion-column">
-                ${escapeHtml(item.descripcion)}
-            </td>
-            <td class="prioridad-column text-center">
-                ${item.prioridad !== 999 ? item.prioridad : ''}
-            </td>
-            <td class="avance-column text-center">
-                ${escapeHtml(item.avance)}
-            </td>
-            <td class="esfuerzo-column text-center">
-                ${escapeHtml(item.esfuerzo)}
-            </td>
-            <td class="deadline-column">
-                ${item.deadline !== '9999-99-99' ? escapeHtml(item.deadline) : ''}
-            </td>
-            <td class="estado-column">
-                <select class="estado estado-select" data-current="${item.estado}" 
-                        onchange="cambiarEstadoDesdeVistaViva(${index}, this.value)">
-                    <option value="Pendiente" ${item.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                    <option value="En progreso" ${item.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
-                    <option value="Completado">Completado</option>
-                    <option value="Bloqueado">Bloqueado</option>
-                    <option value="Backlog">🔶 Backlog</option>
-                </select>
-            </td>
-            <td class="actions-cell">
-                <button class="btn btn-sm btn-link" onclick="irAElemento('${item.rutaOriginal.join('-')}')" title="Ir a elemento">
-                    📍
-                </button>
-                <button class="btn btn-sm btn-link" onclick="editarElementoVivo(${index})" title="Editar">
-                    ✏️
-                </button>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-    
-    // Actualizar contador
-    actualizarContadorVistaViva(elementosVivos);
-}
-
-// ============================================
-// 5. FUNCIÓN PARA CAMBIAR ESTADO DESDE VISTA VIVA
-// ============================================
-
-function cambiarEstadoDesdeVistaViva(index, nuevoEstado) {
-    const elementosVivos = obtenerElementosVivos();
-    const item = elementosVivos[index];
-    
-    if (!item) {
-        StorageController.notify('Elemento no encontrado', 'error');
-        return;
-    }
-    
-    // Actualizar el estado del elemento original
-    const elementoPath = obtenerPathNumerico(item.rutaOriginal);
-    StorageController.updateElementEstado(elementoPath, nuevoEstado);
-    
-    // Re-renderizar vista viva
-    renderVistaViva();
-}
-
-// ============================================
-// 6. FUNCIÓN AUXILIAR - Convertir path a numérico
-// ============================================
-
-function obtenerPathNumerico(rutaOriginal) {
-    // rutaOriginal es array de strings: ["Proyecto A", "Tarea 1", "Subtarea X"]
-    // Necesitamos convertir a índices numéricos: [0, 2, 1]
-    
-    const path = [];
-    
-    // Buscar índice del proyecto
-    const nombreProyecto = rutaOriginal[0];
-    const indexProyecto = window.proyectosData.findIndex(p => p.nombre === nombreProyecto);
-    if (indexProyecto === -1) return null;
-    
-    path.push(indexProyecto);
-    
-    // Si solo es proyecto, retornar
-    if (rutaOriginal.length === 1) return path;
-    
-    // Navegar recursivamente para obtener índices
-    let elementoActual = window.proyectosData[indexProyecto];
-    
-    for (let i = 1; i < rutaOriginal.length; i++) {
-        const nombreBuscado = rutaOriginal[i];
-        
-        if (!Array.isArray(elementoActual.elementos)) {
-            return null;
-        }
-        
-        const index = elementoActual.elementos.findIndex(e => e.nombre === nombreBuscado);
-        if (index === -1) return null;
-        
-        path.push(index);
-        elementoActual = elementoActual.elementos[index];
-    }
-    
-    return path;
-}
-
-// ============================================
-// 7. FUNCIÓN PARA ACTUALIZAR CONTADOR
-// ============================================
-
-function actualizarContadorVistaViva(elementos) {
-    const contadorElement = document.getElementById('vistaVivaContador');
-    if (!contadorElement) return;
-    
-    const pendientes = elementos.filter(e => e.estado === 'Pendiente').length;
-    const enProgreso = elementos.filter(e => e.estado === 'En progreso').length;
-    const total = elementos.length;
-    
-    contadorElement.innerHTML = `
-        <span class="badge bg-info">${total} total</span>
-        <span class="badge bg-secondary">${pendientes} pendientes</span>
-        <span class="badge bg-warning text-dark">${enProgreso} en progreso</span>
-    `;
-}
-
-// ============================================
-// 8. FUNCIÓN PARA CAMBIAR ENTRE VISTAS
-// ============================================
-
-let vistaActual = 'completa'; // 'completa' o 'viva'
-
-function cambiarVista(vista) {
-    vistaActual = vista;
-    
-    // Actualizar botones/tabs
-    document.querySelectorAll('.vista-toggle').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    document.querySelector(`[data-vista="${vista}"]`)?.classList.add('active');
-    
-    // Renderizar vista correspondiente
-    if (vista === 'viva') {
-        renderVistaViva();
-    } else {
-        renderTable();
-        StorageController.loadCollapsedStates(); // ← Restaurar estados de colapso
-    }
-    
-    // Guardar preferencia
-    localStorage.setItem('vistaPreferida', vista);
-    
-    // Actualizar contador del badge
-    actualizarContadorVivoBadge(); // ← AGREGAR ESTA LÍNEA
-}
-
-// ============================================
-// 9. FUNCIÓN PARA IR A ELEMENTO EN VISTA COMPLETA
-// ============================================
-
-function irAElemento(elementPathString) {
-    // Cambiar a vista completa
-    cambiarVista('completa');
-    
-    // Expandir el proyecto correspondiente
-    const projectIndex = parseInt(elementPathString.split('-')[0]);
-    
-    // Asegurarse de que el proyecto esté expandido
-    const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${projectIndex}"]`);
-    if (projectRow && projectRow.classList.contains('proyecto-collapsed')) {
-        toggleProject(projectIndex);
-    }
-    
-    // Hacer scroll y highlight al elemento
-    setTimeout(() => {
-        const elementRow = document.querySelector(`tr[data-element-path="${elementPathString}"]`);
-        if (elementRow) {
-            elementRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            elementRow.classList.add('highlight-element');
-            setTimeout(() => {
-                elementRow.classList.remove('highlight-element');
-            }, 2000);
-        }
-    }, 300);
-}
-
         // Función para mostrar confirmación de movimiento
         function showMoveConfirmation(projectName, direction) {
             const message = `Proyecto "${projectName}" movido hacia ${direction === 'up' ? 'arriba' : 'abajo'}`;
             StorageController.notify(message, 'success');
-        }
-
-        // Función para actualizar estado (wrapper global)
-        function updateEstado(type, projectIndex, taskIndex, subtaskIndex, newEstado) {
-            StorageController.updateEstado(type, projectIndex, taskIndex, subtaskIndex, newEstado);
         }
 
         // Función para abrir modal de creación
@@ -889,74 +502,12 @@ function irAElemento(elementPathString) {
             }
         }
 
-        // Inicializar la aplicación al cargar la página
-        
-
-        // Función para cancelar edición
-        function cancelEdit() {
-            if (!currentlyEditing) return;
-            
-            // Re-renderizar para restaurar estado original
-            renderTable();
-            currentlyEditing = null;
-        }
-
-        // Función para eliminar elemento
-        function deleteRow(type, projectIndex, taskIndex = null, subtaskIndex = null) {
-            let itemName = '';
-            let confirmMessage = '';
-            
-            // Determinar qué se va a eliminar
-            if (type === 'project') {
-                itemName = window.proyectosData[projectIndex].nombre;
-                confirmMessage = `¿Estás seguro de que deseas eliminar el proyecto "${itemName}" y todas sus tareas?`;
-            } else if (type === 'task') {
-                itemName = window.proyectosData[projectIndex].tareas[taskIndex].nombre;
-                confirmMessage = `¿Estás seguro de que deseas eliminar la tarea "${itemName}"${window.proyectosData[projectIndex].tareas[taskIndex].subtareas ? ' y todas sus subtareas' : ''}?`;
-            } else if (type === 'subtask') {
-                itemName = window.proyectosData[projectIndex].tareas[taskIndex].subtareas[subtaskIndex].nombre;
-                confirmMessage = `¿Estás seguro de que deseas eliminar la subtarea "${itemName}"?`;
-            }
-            
-            // Mostrar confirmación
-            if (confirm(confirmMessage)) {
-                try {
-                    if (type === 'project') {
-                        window.proyectosData.splice(projectIndex, 1);
-                    } else if (type === 'task') {
-                        window.proyectosData[projectIndex].tareas.splice(taskIndex, 1);
-                        // Actualizar recuento del proyecto
-                        window.proyectosData[projectIndex].recuento = window.proyectosData[projectIndex].tareas.length;
-                    } else if (type === 'subtask') {
-                        window.proyectosData[projectIndex].tareas[taskIndex].subtareas.splice(subtaskIndex, 1);
-                        // Si no quedan subtareas, eliminar el array
-                        if (window.proyectosData[projectIndex].tareas[taskIndex].subtareas.length === 0) {
-                            delete window.proyectosData[projectIndex].tareas[taskIndex].subtareas;
-                        }
-                    }
-                    
-                    // Guardar cambios
-                    StorageController.save();
-                    StorageController.notify(`${type === 'project' ? 'Proyecto' : type === 'task' ? 'Tarea' : 'Subtarea'} "${itemName}" eliminado correctamente`, 'success');
-                    
-                    // Re-renderizar tabla
-                    renderTable();
-                    
-                } catch (error) {
-                    console.error('Error al eliminar:', error);
-                    StorageController.notify('Error al eliminar el elemento', 'error');
-                }
-            }
-        }
-
         // Función auxiliar para escapar HTML
         function escapeHtml(text) {
-            // Manejar valores null, undefined o vacíos
             if (text === null || text === undefined) {
                 return '';
             }
             
-            // Convertir a string si no lo es
             const str = String(text);
             
             const map = {
@@ -969,46 +520,6 @@ function irAElemento(elementPathString) {
             return str.replace(/[&<>"']/g, function(m) { return map[m]; });
         }
 
-        // Función para actualizar contador del badge
-        function actualizarContadorVivoBadge() {
-            const elementosVivos = obtenerElementosVivos();
-            const badgeElement = document.getElementById('contadorVivos');
-            
-            if (badgeElement) {
-                badgeElement.textContent = elementosVivos.length;
-            }
-        }
-
-        // Función para editar elemento desde Vista Viva
-        function editarElementoVivo(index) {
-            const elementosVivos = obtenerElementosVivos();
-            const item = elementosVivos[index];
-            
-            if (!item) {
-                StorageController.notify('Elemento no encontrado', 'error');
-                return;
-            }
-            
-            // Cambiar a vista completa
-            cambiarVista('completa');
-            
-            // Encontrar el path numérico del elemento
-            const elementoPath = obtenerPathNumerico(item.rutaOriginal);
-            
-            if (elementoPath) {
-                // Expandir proyecto si está colapsado
-                const projectIndex = elementoPath[0];
-                const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${projectIndex}"]`);
-                if (projectRow && projectRow.classList.contains('proyecto-collapsed')) {
-                    toggleProject(projectIndex);
-                }
-                
-                // Esperar un poco y luego editar
-                setTimeout(() => {
-                    StorageController.editRow(elementoPath);
-                }, 300);
-            }
-        }
         // Inicializar la aplicación al cargar la página
         function initializeApp() {
             // Inicializar sistema de tableros
@@ -1022,19 +533,11 @@ function irAElemento(elementPathString) {
             StorageController.loadCollapsedStates();
         }
 
-        // Inicializar vista preferida
-        const vistaPreferida = localStorage.getItem('vistaPreferida') || 'completa';
-        if (vistaPreferida === 'viva') {
-            cambiarVista('viva');
-        }
-        
-        // Actualizar contador
-        if (typeof actualizarContadorVivoBadge === 'function') {
-            actualizarContadorVivoBadge();
-        }
-
         // Inicializar cuando se carga la página
         document.addEventListener('DOMContentLoaded', initializeApp);
+        
+        // Inicializar Vista Viva
+        VistaVivaController.initializeVistaPreferida();
     </script>
 </body>
 </html>

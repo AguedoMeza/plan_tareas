@@ -130,24 +130,35 @@ function aplicarOrdenamientoRecursivo(elemento) {
     return elemento;
 }
 
-// Ordena los proyectos por estadoProyecto: Activo -> Backlog -> Archivado
+/**
+ * Ordena los proyectos por estadoProyecto: Activo -> Backlog -> Archivado
+ * @param {Array} proyectos - Array de proyectos a ordenar
+ * @returns {Array} Array ordenado por prioridad de estado
+ */
 function ordenarProyectosPorEstado(proyectos) {
     if (!Array.isArray(proyectos) || proyectos.length === 0) {
         return proyectos;
     }
+    
+    // CORRECCIÓN: Filtrar elementos null o undefined
+    const proyectosValidos = proyectos.filter(proyecto => proyecto != null);
+    
     const prioridadEstado = {
         'Activo': 1,
         'Backlog': 2,
         'Archivado': 3
     };
-    return proyectos.sort((a, b) => {
+    
+    return proyectosValidos.sort((a, b) => {
         const estadoA = a.estadoProyecto || 'Activo';
         const estadoB = b.estadoProyecto || 'Activo';
         const prioridadA = prioridadEstado[estadoA] || 4;
         const prioridadB = prioridadEstado[estadoB] || 4;
+        
         if (prioridadA === prioridadB) {
             return a.nombre.localeCompare(b.nombre);
         }
+        
         return prioridadA - prioridadB;
     });
 }

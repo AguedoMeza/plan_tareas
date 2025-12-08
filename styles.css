@@ -173,47 +173,70 @@ td {
     gap: 4px;
     margin-right: 8px;
 }
-.reorder-btn {
-    background: none;
-    border: none;
-    color: #2d3748;
-    cursor: pointer;
-    font-size: 16px;
+
+/* ESTILOS PARA DRAG HANDLE */
+.drag-handle {
+    cursor: grab;
+    padding: 4px 8px;
+    color: #718096;
+    font-size: 18px;
     font-weight: bold;
-    padding: 2px 4px;
-    border-radius: 3px;
-    transition: all 0.2s ease;
+    user-select: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 22px;
-    height: 22px;
-    opacity: 0.9;
-    background-color: rgba(255, 255, 255, 0.8);
+    min-width: 26px;
+    height: 26px;
+    background: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    letter-spacing: -2px;
 }
-.reorder-btn:hover {
+
+.drag-handle:hover {
     background-color: rgba(255, 255, 255, 0.95);
-    opacity: 1;
-    transform: translateY(-2px);
+    color: #2d3748;
+    transform: scale(1.1);
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-    color: #1a202c;
 }
-.reorder-btn:active {
-    transform: translateY(0px);
+
+.drag-handle:active {
+    cursor: grabbing;
+    transform: scale(1.05);
 }
-.reorder-btn:disabled {
+
+/* ESTILOS PARA SORTABLE */
+.sortable-ghost {
     opacity: 0.4;
-    cursor: not-allowed;
-    transform: none;
-    background-color: rgba(255, 255, 255, 0.4);
-    color: #a0aec0;
+    background: #bee3f8 !important;
 }
-.reorder-btn:disabled:hover {
-    background-color: rgba(255, 255, 255, 0.4);
-    transform: none;
-    color: #a0aec0;
+
+.sortable-drag {
+    opacity: 0.8;
+    cursor: grabbing !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3) !important;
 }
+
+/* Animación de proyecto movido */
+.project-moved-highlight {
+    animation: projectMoved 1.5s ease-out;
+}
+
+@keyframes projectMoved {
+    0% { 
+        background-color: #bee3f8;
+        box-shadow: 0 0 0 4px #4299e1;
+    }
+    50% {
+        background-color: #90cdf4;
+    }
+    100% { 
+        background-color: #e2e8f0;
+        box-shadow: none;
+    }
+}
+
 .move-animation {
     transition: all 0.3s ease;
     background-color: #bee3f8 !important;
@@ -619,40 +642,6 @@ td {
     background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .actions-cell {
-        width: 50px;
-    }
-    
-    .action-btn {
-        font-size: 14px;
-        padding: 2px 4px;
-    }
-    
-    .edit-input {
-        font-size: 11px !important;
-        padding: 2px 4px !important;
-    }
-    
-    .estado-select {
-        width: 95px;
-        font-size: 10px !important;
-        padding: 1px 4px !important;
-        min-height: 24px;
-    }
-    
-    .board-management .d-flex {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
-    .board-management .btn {
-        font-size: 12px;
-        padding: 4px 8px;
-    }
-}
-
 /* Select de estado de proyecto */
 .proyecto-estado-select {
     font-size: 11px;
@@ -773,4 +762,45 @@ td {
 
 .vista-toggle .badge {
     margin-left: 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .actions-cell {
+        width: 50px;
+    }
+    
+    .action-btn {
+        font-size: 14px;
+        padding: 2px 4px;
+    }
+    
+    .edit-input {
+        font-size: 11px !important;
+        padding: 2px 4px !important;
+    }
+    
+    .estado-select {
+        width: 95px;
+        font-size: 10px !important;
+        padding: 1px 4px !important;
+        min-height: 24px;
+    }
+    
+    .board-management .d-flex {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .board-management .btn {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    
+    .drag-handle {
+        font-size: 16px;
+        min-width: 22px;
+        height: 22px;
+        padding: 2px 6px;
+    }
 }

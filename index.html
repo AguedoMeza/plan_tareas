@@ -119,11 +119,10 @@
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
 
-            // Ordenar proyectos por estadoProyecto antes de renderizar
-            const proyectosOrdenados = window.reglasNegocio.ordenarProyectosPorEstado(window.proyectosData);
-
-            proyectosOrdenados.forEach((proyecto, index) => {
-                // Aplicar ordenamiento recursivo antes de renderizar
+            // NO ordenar proyectos automáticamente - respetar orden manual del usuario
+            // Solo aplicar ordenamiento recursivo a elementos hijos dentro de cada proyecto
+            window.proyectosData.forEach((proyecto, index) => {
+                // Aplicar ordenamiento recursivo solo a elementos hijo
                 const proyectoOrdenado = window.reglasNegocio.aplicarOrdenamientoRecursivo({...proyecto});
                 renderElement(proyectoOrdenado, [index], 0, tbody);
             });

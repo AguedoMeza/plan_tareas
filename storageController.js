@@ -321,17 +321,19 @@ const StorageController = {
                     const projectIndex = elementPath[0];
                     cell.innerHTML = `
                         <div class="project-controls">
-                            <button class="reorder-btn" onclick="moveProject(${projectIndex}, 'up')" title="Mover hacia arriba" ${projectIndex === 0 ? 'disabled' : ''}>
-                                ⬆️
-                            </button>
-                            <button class="reorder-btn" onclick="moveProject(${projectIndex}, 'down')" title="Mover hacia abajo" ${projectIndex >= (window.proyectosData ? window.proyectosData.length - 1 : 0) ? 'disabled' : ''}>
-                                ⬇️
-                            </button>
+                            <span class="drag-handle" title="Arrastra para reordenar">⋮⋮</span>
                             <button class="collapse-btn" onclick="toggleProject(${projectIndex})" title="Contraer/Expandir proyecto">
                                 <span class="collapse-icon">🔽</span>
                             </button>
                         </div>
-                        <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 120px); margin-left: 8px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">
+                        <select class="proyecto-estado-select" 
+                                data-current="${element.estadoProyecto || 'Activo'}"
+                                onchange="cambiarEstadoProyecto(${projectIndex}, this.value)">
+                            <option value="Activo" ${(!element.estadoProyecto || element.estadoProyecto === 'Activo') ? 'selected' : ''}>🟢 Activo</option>
+                            <option value="Backlog" ${element.estadoProyecto === 'Backlog' ? 'selected' : ''}>🔶 Backlog</option>
+                            <option value="Archivado" ${element.estadoProyecto === 'Archivado' ? 'selected' : ''}>📦 Archivado</option>
+                        </select>
+                        <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 180px); margin-left: 8px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">
                     `;
                 } else {
                     // Para elementos anidados, usar indentación visual
@@ -597,27 +599,23 @@ const StorageController = {
                 element.avance = '100%';
             }
             
-            // Aplicar ordenamiento automático después de cambiar estado
-            // Encontrar el elemento padre para reordenar sus hijos
+            // Aplicar ordenamiento automático SOLO a elementos hijo (NO a proyectos)
             if (elementPath.length > 1) {
                 const parentPath = elementPath.slice(0, -1);
                 const parentElement = StorageController.findElementByPath(parentPath);
                 if (parentElement && Array.isArray(parentElement.elementos) && parentElement.elementos.length > 1) {
                     parentElement.elementos = window.reglasNegocio.ordenarElementosPorEstado(parentElement.elementos);
                 }
-            } else {
-                // Si es un proyecto (nivel 0), ordenar los proyectos si hay más de uno
-                if (window.proyectosData.length > 1) {
-                    window.proyectosData = window.reglasNegocio.ordenarElementosPorEstado(window.proyectosData);
-                }
             }
+            // NO ordenar proyectos - respetar orden manual del usuario
             
             // Guardar cambios
             StorageController.save();
             
             // Mostrar notificación
+            const mensajeReorden = elementPath.length > 1 ? ' y se reordenó automáticamente' : '';
             StorageController.notify(
-                `${tipoElemento} "${itemName}" cambió de "${estadoAnterior}" a "${newEstado}" y se reordenó automáticamente`, 
+                `${tipoElemento} "${itemName}" cambió de "${estadoAnterior}" a "${newEstado}"${mensajeReorden}`, 
                 'success'
             );
             

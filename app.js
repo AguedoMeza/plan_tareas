@@ -1,0 +1,67 @@
+// app.js
+// Punto de entrada de la aplicación - inicialización y funciones globales
+
+const App = {
+    
+    /**
+     * Inicializa la aplicación al cargar la página.
+     * Orden: tableros → datos → migración → limpieza → renderizado → colapsos
+     */
+    initialize: function() {
+        BoardController.initializeBoards();
+        
+        const dataLoaded = StorageController.load();
+        if (!dataLoaded) {
+            window.proyectosData = [];
+        }
+        
+        // Migrar datos antiguos si es necesario
+        DataController.migrateOldData();
+        
+        // Limpiar datos corruptos antes de renderizar
+        DataController.cleanupCorruptedData();
+        
+        // Renderizar y restaurar estado visual
+        RenderController.renderTable();
+        StorageController.loadCollapsedStates();
+    },
+
+    /**
+     * Abre el modal de creación cargando el HTML del formulario si es necesario.
+     * @param {string} tabId - Tab a abrir por defecto ('project', 'task', 'subtask')
+     */
+    openCreateModal: async function(tabId = 'project') {
+        try {
+            const modalContainer = document.getElementById('modalContainer');
+            if (!modalContainer.innerHTML.trim()) {
+                const response = await fetch('create-forms.html');
+                const html = await response.text();
+                modalContainer.innerHTML = html;
+                
+                if (window.FormController) {
+                    window.FormController.init();
+                }
+            }
+            
+            if (window.FormController) {
+                window.FormController.openModal(tabId);
+            }
+        } catch (error) {
+            console.error('Error al cargar el modal:', error);
+            StorageController.notify('Error al cargar el formulario de creación', 'error');
+        }
+    }
+};
+
+// Exponer globalmente
+window.App = App;
+
+// Compatibilidad con funciones globales usadas en onclick del HTML
+window.openCreateModal = App.openCreateModal;
+window.cambiarVista = VistaVivaController.cambiarVista.bind(VistaVivaController);
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', App.initialize);
+
+// Restaurar vista preferida del usuario
+VistaVivaController.initializeVistaPreferida();

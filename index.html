@@ -48,13 +48,13 @@
                 class="btn btn-outline-primary vista-toggle active" 
                 data-vista="completa"
                 onclick="cambiarVista('completa')">
-            📋 Vista Completa
+            <i class="bi bi-list-task me-1"></i>Vista Completa
         </button>
         <button type="button" 
                 class="btn btn-outline-success vista-toggle" 
                 data-vista="viva"
                 onclick="cambiarVista('viva')">
-            🎯 Vista Viva <span class="badge bg-success" id="contadorVivos">0</span>
+            <i class="bi bi-bullseye me-1"></i>Vista Viva <span class="badge bg-success" id="contadorVivos">0</span>
         </button>
     </div>
     <!-- FIN Toggle de Vista -->
@@ -82,7 +82,7 @@
         <div class="container mb-4">
             <div class="section-header">
                 <h5 class="section-title">
-                    <span class="status-icon">🟢</span> Proyectos Activos
+                    <span class="status-icon"><i class="bi bi-circle-fill text-success"></i></span> Proyectos Activos
                     <span class="badge bg-success ms-2" id="contadorActivos">0</span>
                 </h5>
             </div>
@@ -103,8 +103,8 @@
                 <tbody id="tableBodyActive">
                 </tbody>
             </table>
-            <div id="emptyStateActive" style="display: none; text-align: center; padding: 40px; color: #718096;">
-                <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
+            <div id="emptyStateActive" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
+                <div style="font-size: 48px; margin-bottom: 16px;"><i class="bi bi-bullseye"></i></div>
                 <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
                     No hay proyectos activos
                 </div>
@@ -118,7 +118,7 @@
         <div class="container mb-4" id="backlogSection">
             <div class="section-header backlog-section">
                 <h5 class="section-title">
-                    <span class="status-icon">🔶</span> Proyectos en Backlog
+                    <span class="status-icon"><i class="bi bi-diamond-fill" style="color: var(--warning)"></i></span> Proyectos en Backlog
                     <span class="badge bg-warning text-dark ms-2" id="contadorBacklog">0</span>
                 </h5>
             </div>
@@ -145,7 +145,7 @@
         <div class="container mb-4" id="archivedSection">
             <div class="section-header archived-section">
                 <h5 class="section-title">
-                    <span class="status-icon">📦</span> Proyectos Archivados
+                    <span class="status-icon"><i class="bi bi-archive"></i></span> Proyectos Archivados
                     <span class="badge bg-secondary ms-2" id="contadorArchivado">0</span>
                 </h5>
             </div>

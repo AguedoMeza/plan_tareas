@@ -20,7 +20,7 @@ const ProjectController = {
         if (projectRow.classList.contains('proyecto-collapsed')) {
             // Expandir
             projectRow.classList.remove('proyecto-collapsed');
-            icon.textContent = '▼';
+            icon.innerHTML = '<i class="bi bi-chevron-down"></i>';
             button.title = 'Contraer proyecto';
             
             allRelatedRows.forEach(row => {
@@ -34,7 +34,7 @@ const ProjectController = {
         } else {
             // Colapsar
             projectRow.classList.add('proyecto-collapsed');
-            icon.textContent = '▶';
+            icon.innerHTML = '<i class="bi bi-chevron-right"></i>';
             button.title = 'Expandir proyecto';
             
             allRelatedRows.forEach(row => {

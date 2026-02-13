@@ -121,8 +121,8 @@ const VistaVivaController = {
         if (elementosVivos.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="9" style="text-align: center; padding: 40px; color: #718096;">
-                        <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+                    <td colspan="9" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                        <div style="font-size: 48px; margin-bottom: 16px;"><i class="bi bi-check-circle"></i></div>
                         <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
                             ¡No hay elementos activos!
                         </div>
@@ -171,15 +171,15 @@ const VistaVivaController = {
                         <option value="En progreso" ${item.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
                         <option value="Completado">Completado</option>
                         <option value="Bloqueado">Bloqueado</option>
-                        <option value="Backlog">🔶 Backlog</option>
+                        <option value="Backlog">Backlog</option>
                     </select>
                 </td>
                 <td class="actions-cell">
                     <button class="btn btn-sm btn-link" onclick="VistaVivaController.irAElemento('${item.rutaOriginal.join('-')}')" title="Ir a elemento">
-                        📍
+                        <i class="bi bi-geo-alt"></i>
                     </button>
                     <button class="btn btn-sm btn-link" onclick="VistaVivaController.editarElementoVivo(${index})" title="Editar">
-                        ✏️
+                        <i class="bi bi-pencil"></i>
                     </button>
                 </td>
             `;

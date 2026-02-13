@@ -321,24 +321,24 @@ const StorageController = {
                     const projectIndex = elementPath[0];
                     cell.innerHTML = `
                         <div class="project-controls">
-                            <span class="drag-handle" title="Arrastra para reordenar">⋮⋮</span>
+                            <span class="drag-handle" title="Arrastra para reordenar"><i class="bi bi-grip-vertical"></i></span>
                             <button class="collapse-btn" onclick="toggleProject(${projectIndex})" title="Contraer/Expandir proyecto">
-                                <span class="collapse-icon">🔽</span>
+                                <span class="collapse-icon"><i class="bi bi-chevron-down"></i></span>
                             </button>
                         </div>
                         <select class="proyecto-estado-select" 
                                 data-current="${element.estadoProyecto || 'Activo'}"
                                 onchange="cambiarEstadoProyecto(${projectIndex}, this.value)">
-                            <option value="Activo" ${(!element.estadoProyecto || element.estadoProyecto === 'Activo') ? 'selected' : ''}>🟢 Activo</option>
-                            <option value="Backlog" ${element.estadoProyecto === 'Backlog' ? 'selected' : ''}>🔶 Backlog</option>
-                            <option value="Archivado" ${element.estadoProyecto === 'Archivado' ? 'selected' : ''}>📦 Archivado</option>
+                            <option value="Activo" ${(!element.estadoProyecto || element.estadoProyecto === 'Activo') ? 'selected' : ''}>Activo</option>
+                            <option value="Backlog" ${element.estadoProyecto === 'Backlog' ? 'selected' : ''}>Backlog</option>
+                            <option value="Archivado" ${element.estadoProyecto === 'Archivado' ? 'selected' : ''}>Archivado</option>
                         </select>
                         <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 180px); margin-left: 8px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">
                     `;
                 } else {
                     // Para elementos anidados, usar indentación visual
                     const indent = '  '.repeat(level);
-                    const icon = level === 1 ? '📝' : '📄';
+                    const icon = level === 1 ? '<i class="bi bi-file-text"></i>' : '<i class="bi bi-file-earmark"></i>';
                     cell.innerHTML = `${icon} <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 30px); margin-left: ${level * 20}px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">`;
                 }
                 return;
@@ -379,10 +379,10 @@ const StorageController = {
         actionsCell.innerHTML = `
             <div class="btn-group btn-group-sm">
                 <button class="btn btn-success btn-sm" onclick="StorageController.saveEdit()" title="Guardar">
-                    💾
+                    <i class="bi bi-check-lg"></i>
                 </button>
                 <button class="btn btn-secondary btn-sm" onclick="StorageController.cancelEdit()" title="Cancelar">
-                    ❌
+                    <i class="bi bi-x-lg"></i>
                 </button>
             </div>
         `;
@@ -958,10 +958,10 @@ const StorageController = {
 
     notify: function(message, type = 'success') {
         const colors = {
-            success: { bg: '#48bb78', icon: '✅' },
-            error: { bg: '#f56565', icon: '❌' },
-            info: { bg: '#4299e1', icon: 'ℹ️' },
-            warning: { bg: '#ed8936', icon: '⚠️' }
+            success: { bg: '#065f46', icon: '<i class="bi bi-check-circle-fill"></i>' },
+            error: { bg: '#7f1d1d', icon: '<i class="bi bi-exclamation-circle-fill"></i>' },
+            info: { bg: '#1e3a5f', icon: '<i class="bi bi-info-circle-fill"></i>' },
+            warning: { bg: '#78350f', icon: '<i class="bi bi-exclamation-triangle-fill"></i>' }
         };
         
         const config = colors[type] || colors.success;

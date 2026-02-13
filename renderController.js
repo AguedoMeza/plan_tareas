@@ -130,7 +130,7 @@ const RenderController = {
     _buildProjectRow: function(elemento, elementPath) {
         const estadoProyecto = elemento.estadoProyecto || 'Activo';
         const dragHandle = estadoProyecto === 'Activo' 
-            ? '<span class="drag-handle" title="Arrastra para reordenar">⋮⋮</span>'
+            ? '<span class="drag-handle" title="Arrastra para reordenar"><i class="bi bi-grip-vertical"></i></span>'
             : '';
         
         return `
@@ -138,15 +138,15 @@ const RenderController = {
                 <div class="project-controls">
                     ${dragHandle}
                     <button class="collapse-btn" onclick="ProjectController.toggle(${elementPath[0]})" id="btn-${elementPath[0]}" title="Contraer/Expandir proyecto">
-                        <span class="collapse-icon">▼</span>
+                        <span class="collapse-icon"><i class="bi bi-chevron-down"></i></span>
                     </button>
                 </div>
                 <select class="proyecto-estado-select" 
                         data-current="${elemento.estadoProyecto || 'Activo'}"
                         onchange="ProjectController.cambiarEstado(${elementPath[0]}, this.value)">
-                    <option value="Activo" ${(!elemento.estadoProyecto || elemento.estadoProyecto === 'Activo') ? 'selected' : ''}>🟢 Activo</option>
-                    <option value="Backlog" ${elemento.estadoProyecto === 'Backlog' ? 'selected' : ''}>🔶 Backlog</option>
-                    <option value="Archivado" ${elemento.estadoProyecto === 'Archivado' ? 'selected' : ''}>📦 Archivado</option>
+                    <option value="Activo" ${(!elemento.estadoProyecto || elemento.estadoProyecto === 'Activo') ? 'selected' : ''}>Activo</option>
+                    <option value="Backlog" ${elemento.estadoProyecto === 'Backlog' ? 'selected' : ''}>Backlog</option>
+                    <option value="Archivado" ${elemento.estadoProyecto === 'Archivado' ? 'selected' : ''}>Archivado</option>
                 </select>
                 ${RenderController.escapeHtml(elemento.nombre)}
             </td>
@@ -155,11 +155,11 @@ const RenderController = {
             <td class="actions-cell">
                 <div class="dropdown">
                     <button class="btn action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        ⚙️
+                        <i class="bi bi-three-dots-vertical"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" onclick="StorageController.editRow([${elementPath.join(',')}])">✏️ Editar</a></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([${elementPath.join(',')}])">🗑️ Eliminar</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="StorageController.editRow([${elementPath.join(',')}])"><i class="bi bi-pencil me-2"></i>Editar</a></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([${elementPath.join(',')}])"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
                     </ul>
                 </div>
             </td>
@@ -171,7 +171,7 @@ const RenderController = {
      */
     _buildElementRow: function(elemento, elementPath, level) {
         const indent = level * 20;
-        const icon = level === 1 ? '📝' : '📄';
+        const icon = level === 1 ? '<i class="bi bi-file-text"></i>' : '<i class="bi bi-file-earmark"></i>';
         
         return `
             <td data-field="nombre" style="padding-left: ${indent}px;">
@@ -189,17 +189,17 @@ const RenderController = {
                     <option value="En progreso" ${elemento.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
                     <option value="Completado" ${elemento.estado === 'Completado' ? 'selected' : ''}>Completado</option>
                     <option value="Bloqueado" ${elemento.estado === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
-                    <option value="Backlog" ${elemento.estado === 'Backlog' ? 'selected' : ''}>🔶 Backlog</option>
+                    <option value="Backlog" ${elemento.estado === 'Backlog' ? 'selected' : ''}>Backlog</option>
                 </select>
             </td>
             <td class="actions-cell">
                 <div class="dropdown">
                     <button class="btn action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        ⚙️
+                        <i class="bi bi-three-dots-vertical"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" onclick="StorageController.editRow([${elementPath.join(',')}])">✏️ Editar</a></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([${elementPath.join(',')}])">🗑️ Eliminar</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="StorageController.editRow([${elementPath.join(',')}])"><i class="bi bi-pencil me-2"></i>Editar</a></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([${elementPath.join(',')}])"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
                     </ul>
                 </div>
             </td>

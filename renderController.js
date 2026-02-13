@@ -119,7 +119,7 @@ const RenderController = {
             : 'statusChip--archivado';
 
         const card = document.createElement('div');
-        card.className = 'projRow';
+        card.className = 'projRow' + (estadoProyecto === 'Archivado' ? ' projRow--archived' : '');
         card.dataset.projectIndex = originalIndex;
         card.dataset.elementPath = String(originalIndex);
 
@@ -135,14 +135,23 @@ const RenderController = {
         colBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
         colBtn.addEventListener('click', () => ProjectController.toggle(originalIndex));
 
-        // 2. Status chip (with hidden select inside for changing state)
+        // 2. Status chip (with select or lock icon for archived)
         const chipWrap = document.createElement('div');
         chipWrap.className = 'statusChip ' + chipClass;
-        chipWrap.innerHTML = '<select class="proyecto-estado-select" data-current="' + esc(estadoProyecto) + '" onchange="ProjectController.cambiarEstado(' + originalIndex + ', this.value)">'
-            + '<option value="Activo"' + (estadoProyecto === 'Activo' ? ' selected' : '') + '>Activo</option>'
-            + '<option value="Backlog"' + (estadoProyecto === 'Backlog' ? ' selected' : '') + '>Backlog</option>'
-            + '<option value="Archivado"' + (estadoProyecto === 'Archivado' ? ' selected' : '') + '>Archivado</option>'
-            + '</select>';
+        if (estadoProyecto === 'Archivado') {
+            chipWrap.innerHTML = '<i class="bi bi-lock-fill" style="font-size:11px;margin-right:4px"></i>'
+                + '<select class="proyecto-estado-select" data-current="' + esc(estadoProyecto) + '" onchange="ProjectController.cambiarEstado(' + originalIndex + ', this.value)">'
+                + '<option value="Activo">Activo</option>'
+                + '<option value="Backlog">Backlog</option>'
+                + '<option value="Archivado" selected>Archivado</option>'
+                + '</select>';
+        } else {
+            chipWrap.innerHTML = '<select class="proyecto-estado-select" data-current="' + esc(estadoProyecto) + '" onchange="ProjectController.cambiarEstado(' + originalIndex + ', this.value)">'
+                + '<option value="Activo"' + (estadoProyecto === 'Activo' ? ' selected' : '') + '>Activo</option>'
+                + '<option value="Backlog"' + (estadoProyecto === 'Backlog' ? ' selected' : '') + '>Backlog</option>'
+                + '<option value="Archivado"' + (estadoProyecto === 'Archivado' ? ' selected' : '') + '>Archivado</option>'
+                + '</select>';
+        }
 
         // 3. Title block
         const titleBlock = document.createElement('div');
@@ -150,21 +159,20 @@ const RenderController = {
         titleBlock.innerHTML = '<p class="name">' + esc(proyecto.nombre) + '</p>'
             + '<p class="desc">' + esc(proyecto.descripcion || '—') + '</p>';
 
-        // 4. Meta KPIs
+        // 4. Meta KPIs — compact single line
         const meta = document.createElement('div');
         meta.className = 'projMeta';
-        meta.innerHTML = '<div class="kpiLine"><span class="label">Tareas</span><span class="value">' + totalHijos + '</span></div>'
-            + '<div class="kpiLine"><span class="label">Esfuerzo</span><span class="value">' + (esfuerzoTotal || '—') + '</span></div>';
+        const metaParts = [totalHijos + ' tareas'];
+        if (esfuerzoTotal) metaParts.push(esfuerzoTotal);
+        meta.innerHTML = '<span>' + metaParts.join(' · ') + '</span>';
 
-        // 5. Progress
+        // 5. Progress — % overlay inside bar
         const progressWrap = document.createElement('div');
-        progressWrap.innerHTML = '<div class="proj-progress" title="Avance ' + avance + '%"><span class="proj-progress-bar" style="width:' + Math.max(avance, 2) + '%"></span></div>'
-            + '<div class="proj-progress-label">' + avance + '%</div>';
-
-        // 6. Effort total
-        const effortEl = document.createElement('div');
-        effortEl.className = 'proj-effort';
-        effortEl.textContent = esfuerzoTotal || '—';
+        progressWrap.className = 'proj-progress-wrap';
+        progressWrap.innerHTML = '<div class="proj-progress" title="Avance ' + avance + '%">'
+            + '<span class="proj-progress-bar" style="width:' + Math.max(avance, 2) + '%"></span>'
+            + '<span class="proj-progress-pct">' + avance + '%</span>'
+            + '</div>';
 
         // 7. Actions (more menu)
         const moreWrap = document.createElement('div');
@@ -184,7 +192,6 @@ const RenderController = {
         main.appendChild(titleBlock);
         main.appendChild(meta);
         main.appendChild(progressWrap);
-        main.appendChild(effortEl);
         main.appendChild(moreWrap);
         card.appendChild(main);
 

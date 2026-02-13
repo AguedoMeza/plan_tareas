@@ -10,6 +10,26 @@ const RenderController = {
     renderTable: function() {
         DataController.cleanupCorruptedData();
 
+        // ── Capturar estados antes de destruir el DOM ──
+        const prevProjectStates = {};
+        const prevGrouperStates = {};
+        document.querySelectorAll('.projRow').forEach(card => {
+            const idx = card.dataset.projectIndex;
+            const detail = document.getElementById('detail-' + idx);
+            if (detail && detail.style.display !== 'none') {
+                prevProjectStates[idx] = true; // expanded
+            }
+        });
+        document.querySelectorAll('.grouper-toggle').forEach(btn => {
+            const icon = btn.querySelector('i');
+            const gp = btn.dataset.groupPath;
+            if (icon && gp && icon.classList.contains('bi-chevron-right')) {
+                prevGrouperStates[gp] = true; // collapsed
+            }
+        });
+        const hadPreviousDOM = Object.keys(prevProjectStates).length > 0 ||
+            document.querySelectorAll('.projRow').length > 0;
+
         const activos = [];
         const backlog = [];
         const archivados = [];
@@ -100,6 +120,29 @@ const RenderController = {
         if (ca) ca.textContent = activos.length;
         if (cb) cb.textContent = backlog.length;
         if (cr) cr.textContent = archivados.length;
+
+        // ── Restaurar estados colapsados si había DOM previo ──
+        if (hadPreviousDOM) {
+            // Restaurar proyectos expandidos
+            Object.keys(prevProjectStates).forEach(idx => {
+                const detail = document.getElementById('detail-' + idx);
+                if (detail && detail.style.display === 'none') {
+                    ProjectController.toggle(parseInt(idx));
+                }
+            });
+            // Restaurar agrupadores colapsados
+            setTimeout(() => {
+                Object.keys(prevGrouperStates).forEach(gp => {
+                    const btn = document.querySelector(`.grouper-toggle[data-group-path="${gp}"]`);
+                    if (btn) {
+                        const icon = btn.querySelector('i');
+                        if (icon && icon.classList.contains('bi-chevron-down')) {
+                            RenderController.toggleGroup(gp, btn);
+                        }
+                    }
+                });
+            }, 20);
+        }
 
         DragDropController.initialize();
     },

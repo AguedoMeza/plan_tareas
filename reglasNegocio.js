@@ -76,7 +76,7 @@ function contarElementosRecursivo(elemento) {
 
 /**
  * Ordena los elementos hijos según su estado de prioridad.
- * Orden: Pendiente -> En progreso -> Bloqueado -> Completado
+ * Orden: Pendiente -> En progreso -> Bloqueado -> Backlog -> Completado
  * @param {Array} elementos - Array de elementos a ordenar
  * @returns {Array} Array ordenado por prioridad de estado
  */
@@ -90,12 +90,13 @@ function ordenarElementosPorEstado(elementos) {
         'Pendiente': 1,
         'En progreso': 2, 
         'Bloqueado': 3,
-        'Completado': 4
+        'Backlog': 4,
+        'Completado': 5
     };
 
     return elementos.sort((a, b) => {
-        const prioridadA = prioridadEstado[a.estado] || 5;
-        const prioridadB = prioridadEstado[b.estado] || 5;
+        const prioridadA = prioridadEstado[a.estado] || 6;
+        const prioridadB = prioridadEstado[b.estado] || 6;
         
         // Si tienen la misma prioridad, mantener orden alfabético por nombre
         if (prioridadA === prioridadB) {
@@ -108,6 +109,7 @@ function ordenarElementosPorEstado(elementos) {
 
 /**
  * Aplica ordenamiento recursivo a todos los elementos que tengan hijos.
+ * NOTA: Solo ordena elementos hijo, NO ordena proyectos (respeta orden manual del usuario)
  * @param {Object} elemento - Elemento raíz (proyecto o cualquier elemento con hijos)
  * @returns {Object} Elemento con todos sus hijos ordenados recursivamente
  */
@@ -130,45 +132,11 @@ function aplicarOrdenamientoRecursivo(elemento) {
     return elemento;
 }
 
-/**
- * Ordena los proyectos por estadoProyecto: Activo -> Backlog -> Archivado
- * @param {Array} proyectos - Array de proyectos a ordenar
- * @returns {Array} Array ordenado por prioridad de estado
- */
-function ordenarProyectosPorEstado(proyectos) {
-    if (!Array.isArray(proyectos) || proyectos.length === 0) {
-        return proyectos;
-    }
-    
-    // CORRECCIÓN: Filtrar elementos null o undefined
-    const proyectosValidos = proyectos.filter(proyecto => proyecto != null);
-    
-    const prioridadEstado = {
-        'Activo': 1,
-        'Backlog': 2,
-        'Archivado': 3
-    };
-    
-    return proyectosValidos.sort((a, b) => {
-        const estadoA = a.estadoProyecto || 'Activo';
-        const estadoB = b.estadoProyecto || 'Activo';
-        const prioridadA = prioridadEstado[estadoA] || 4;
-        const prioridadB = prioridadEstado[estadoB] || 4;
-        
-        if (prioridadA === prioridadB) {
-            return a.nombre.localeCompare(b.nombre);
-        }
-        
-        return prioridadA - prioridadB;
-    });
-}
-
 // Exponer las funciones en window para uso desde otros archivos
 window.reglasNegocio = {
     calcularAvanceGeneral,
     calcularAvanceRecursivo,
     contarElementosRecursivo,
     ordenarElementosPorEstado,
-    aplicarOrdenamientoRecursivo,
-    ordenarProyectosPorEstado
+    aplicarOrdenamientoRecursivo
 };

@@ -280,10 +280,19 @@ const VistaVivaController = {
         });
         document.querySelector(`[data-vista="${vista}"]`)?.classList.add('active');
         
-        // Renderizar vista correspondiente
+        // Mostrar/ocultar contenedores
+        const vistaCompletaContainer = document.getElementById('vistaCompletaContainer');
+        const vistaVivaContainer = document.getElementById('vistaVivaContainer');
+        
         if (vista === 'viva') {
+            // Ocultar vista completa, mostrar vista viva
+            if (vistaCompletaContainer) vistaCompletaContainer.style.display = 'none';
+            if (vistaVivaContainer) vistaVivaContainer.style.display = 'block';
             VistaVivaController.renderVistaViva();
         } else {
+            // Ocultar vista viva, mostrar vista completa
+            if (vistaVivaContainer) vistaVivaContainer.style.display = 'none';
+            if (vistaCompletaContainer) vistaCompletaContainer.style.display = 'block';
             if (window.renderTable) {
                 window.renderTable();
             }
@@ -304,8 +313,24 @@ const VistaVivaController = {
         // Cambiar a vista completa
         VistaVivaController.cambiarVista('completa');
         
-        // Expandir el proyecto correspondiente
-        const projectIndex = parseInt(elementPathString.split('-')[0]);
+        // Extraer el nombre del proyecto de la ruta para encontrar el índice
+        const pathParts = elementPathString.split('-');
+        
+        // Buscar el proyecto por nombre
+        let projectIndex = -1;
+        const projectName = pathParts[0];
+        
+        for (let i = 0; i < window.proyectosData.length; i++) {
+            if (window.proyectosData[i].nombre === projectName) {
+                projectIndex = i;
+                break;
+            }
+        }
+        
+        if (projectIndex === -1) {
+            StorageController.notify('Proyecto no encontrado', 'error');
+            return;
+        }
         
         // Asegurarse de que el proyecto esté expandido
         const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${projectIndex}"]`);
@@ -317,7 +342,7 @@ const VistaVivaController = {
         
         // Hacer scroll y highlight al elemento
         setTimeout(() => {
-            const elementRow = document.querySelector(`tr[data-element-path="${elementPathString}"]`);
+            const elementRow = document.querySelector(`tr[data-element-path="${projectIndex}"]`);
             if (elementRow) {
                 elementRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 elementRow.classList.add('highlight-element');

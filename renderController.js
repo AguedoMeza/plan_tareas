@@ -177,7 +177,7 @@ const RenderController = {
         // 7. Actions (more menu)
         const moreWrap = document.createElement('div');
         moreWrap.className = 'proj-more';
-        if (estadoProyecto === 'Activo') {
+        if (estadoProyecto === 'Activo' || estadoProyecto === 'Backlog') {
             moreWrap.innerHTML = '<span class="drag-handle" title="Arrastra para reordenar"><i class="bi bi-grip-vertical"></i></span>';
         }
         moreWrap.innerHTML += '<div class="dropdown">'

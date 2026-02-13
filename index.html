@@ -59,94 +59,37 @@
 
     <!-- VISTA COMPLETA -->
     <div id="vistaCompletaContainer">
-        <!-- TABLA DE PROYECTOS ACTIVOS -->
-        <div class="container mb-4">
-            <div class="section-header">
-                <h5 class="section-title">
-                    <span class="status-icon"><i class="bi bi-circle-fill text-success"></i></span> Proyectos Activos
-                    <span class="badge bg-success ms-2" id="contadorActivos">0</span>
-                </h5>
-            </div>
-            <table id="projectTableActive">
+        <div class="board-table-wrap">
+            <table id="boardTable">
+                <colgroup>
+                    <col style="width:260px"><!-- Nombre -->
+                    <col><!-- Descripción -->
+                    <col style="width:70px"><!-- Prioridad -->
+                    <col style="width:90px"><!-- Avance -->
+                    <col style="width:110px"><!-- Esfuerzo -->
+                    <col style="width:100px"><!-- Deadline -->
+                    <col style="width:120px"><!-- Estado -->
+                    <col style="width:50px"><!-- Acciones -->
+                </colgroup>
                 <thead>
                     <tr>
-                        <th>Proyecto</th>
-                        <th>Tarea</th>
-                        <th>Descripción breve</th>
-                        <th>Prioridad</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Prior.</th>
                         <th>Avance</th>
-                        <th>Esfuerzo (días/semanas)</th>
-                        <th>DeadLine</th>
+                        <th>Esfuerzo</th>
+                        <th>Deadline</th>
                         <th>Estado</th>
-                        <th style="width: 60px;">Acciones</th>
+                        <th></th>
                     </tr>
                 </thead>
-                <tbody id="tableBodyActive">
-                </tbody>
+                <tbody id="boardTableBody"></tbody>
             </table>
             <div id="emptyStateActive" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
                 <div style="font-size: 48px; margin-bottom: 16px;"><i class="bi bi-bullseye"></i></div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
-                    No hay proyectos activos
-                </div>
-                <div style="font-size: 14px;">
-                    Crea un nuevo proyecto o activa alguno desde Backlog
-                </div>
+                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No hay proyectos activos</div>
+                <div style="font-size: 14px;">Crea un nuevo proyecto o activa alguno desde Backlog</div>
             </div>
-        </div>
-
-        <!-- TABLA DE PROYECTOS EN BACKLOG -->
-        <div class="container mb-4" id="backlogSection">
-            <div class="section-header backlog-section">
-                <h5 class="section-title">
-                    <span class="status-icon"><i class="bi bi-diamond-fill" style="color: var(--warning)"></i></span> Proyectos en Backlog
-                    <span class="badge bg-warning text-dark ms-2" id="contadorBacklog">0</span>
-                </h5>
-            </div>
-            <table id="projectTableBacklog">
-                <thead>
-                    <tr>
-                        <th>Proyecto</th>
-                        <th>Tarea</th>
-                        <th>Descripción breve</th>
-                        <th>Prioridad</th>
-                        <th>Avance</th>
-                        <th>Esfuerzo (días/semanas)</th>
-                        <th>DeadLine</th>
-                        <th>Estado</th>
-                        <th style="width: 60px;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBodyBacklog">
-                </tbody>
-            </table>
-        </div>
-
-        <!-- TABLA DE PROYECTOS ARCHIVADOS -->
-        <div class="container mb-4" id="archivedSection">
-            <div class="section-header archived-section">
-                <h5 class="section-title">
-                    <span class="status-icon"><i class="bi bi-archive"></i></span> Proyectos Archivados
-                    <span class="badge bg-secondary ms-2" id="contadorArchivado">0</span>
-                </h5>
-            </div>
-            <table id="projectTableArchived">
-                <thead>
-                    <tr>
-                        <th>Proyecto</th>
-                        <th>Tarea</th>
-                        <th>Descripción breve</th>
-                        <th>Prioridad</th>
-                        <th>Avance</th>
-                        <th>Esfuerzo (días/semanas)</th>
-                        <th>DeadLine</th>
-                        <th>Estado</th>
-                        <th style="width: 60px;">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBodyArchived">
-                </tbody>
-            </table>
         </div>
     </div>
 

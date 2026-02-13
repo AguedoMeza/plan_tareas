@@ -10,7 +10,7 @@ const DragDropController = {
      * Usa forceFallback para evitar bugs del HTML5 DnD nativo en tablas.
      */
     initialize: function() {
-        const tbody = document.getElementById('tableBodyActive');
+        const tbody = document.getElementById('boardTableBody');
         if (!tbody) return;
         
         // Destruir instancia anterior si existe
@@ -21,7 +21,7 @@ const DragDropController = {
             animation: 200,
             handle: '.drag-handle',
             draggable: '.proyecto-row',
-            filter: '.recuento-row, .tarea-row, .subtarea-row',
+            filter: '.section-row, .tarea-row, .subtarea-row',
             preventOnFilter: true,
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
@@ -69,6 +69,15 @@ const DragDropController = {
         const nonProjectRows = tbody.querySelectorAll('tr:not(.proyecto-row)');
         nonProjectRows.forEach(row => {
             row.style.display = 'none';
+        });
+
+        // También ocultar proyecto-rows que NO son activos (backlog/archivados)
+        tbody.querySelectorAll('tr.proyecto-row').forEach(row => {
+            const idx = parseInt(row.dataset.projectIndex);
+            const p = window.proyectosData[idx];
+            if (p && (p.estadoProyecto || 'Activo') !== 'Activo') {
+                row.style.display = 'none';
+            }
         });
     },
 

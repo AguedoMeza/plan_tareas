@@ -4,11 +4,11 @@
 const BoardController = {
     handleBoardChange: function(boardId) {
         if (boardId && boardId !== StorageController.currentBoardId) {
-            const container = document.querySelector('.container');
-            if (container) container.classList.add('board-switching');
+            const wrap = document.querySelector('.board-table-wrap');
+            if (wrap) wrap.classList.add('board-switching');
             StorageController.switchBoard(boardId);
             setTimeout(() => {
-                if (container) container.classList.remove('board-switching');
+                if (wrap) wrap.classList.remove('board-switching');
             }, 300);
         }
     },

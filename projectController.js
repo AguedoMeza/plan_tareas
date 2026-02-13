@@ -26,11 +26,6 @@ const ProjectController = {
             allRelatedRows.forEach(row => {
                 row.style.display = '';
             });
-            
-            const summaryRow = document.querySelector(`tr.recuento-row[data-project-index="${index}"]`);
-            if (summaryRow) {
-                summaryRow.style.display = '';
-            }
         } else {
             // Colapsar
             projectRow.classList.add('proyecto-collapsed');
@@ -40,11 +35,6 @@ const ProjectController = {
             allRelatedRows.forEach(row => {
                 row.style.display = 'none';
             });
-            
-            const summaryRow = document.querySelector(`tr.recuento-row[data-project-index="${index}"]`);
-            if (summaryRow) {
-                summaryRow.style.display = 'none';
-            }
         }
         
         StorageController.toggleProjectPersistent(index);

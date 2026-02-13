@@ -28,6 +28,7 @@ body {
     min-height: 100vh;
 }
 
+/* Keep .container for vista-viva */
 .container {
     max-width: 100%;
     background: var(--bg-surface);
@@ -37,35 +38,41 @@ body {
     overflow: hidden;
 }
 
-.section-header {
-    padding: 14px 20px;
-    background: var(--bg-surface-raised);
+/* ---- Single global board table ---- */
+.board-table-wrap {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.section-row td {
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    background: var(--bg-body);
     border-bottom: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
 }
 
-.section-header.backlog-section {
-    border-left: 3px solid var(--warning);
-}
+.section-label { color: var(--text-muted); }
 
-.section-header.archived-section {
-    border-left: 3px solid var(--text-muted);
-}
-
-.section-title {
-    margin: 0;
-    font-size: 15px;
+.section-count {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 10px;
+    background: var(--bg-surface-hover);
+    color: var(--text-secondary);
+    padding: 1px 6px;
+    border-radius: 8px;
     font-weight: 600;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-.status-icon {
-    font-size: 16px;
-    display: inline-flex;
-    align-items: center;
-}
+.section-success .section-label { color: var(--success); }
+.section-warning .section-label { color: var(--warning); }
+.section-muted .section-label { color: var(--text-muted); }
 
 table {
     width: 100%;
@@ -108,15 +115,45 @@ thead th {
     white-space: nowrap;
 }
 
-.recuento-row {
-    background: var(--bg-surface-raised);
+/* ---- Project row summary cells ---- */
+.proyecto-meta {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 400;
 }
 
-.recuento-row td {
-    padding: 6px 14px;
+.progress-mini {
+    display: inline-block;
+    width: 40px;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    vertical-align: middle;
+    overflow: hidden;
+}
+
+.progress-mini-bar {
+    height: 100%;
+    background: var(--success);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.progress-label {
     font-size: 11px;
     color: var(--text-muted);
-    border-bottom: 1px solid var(--border-color);
+    margin-left: 4px;
+}
+
+.task-count {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.deadline-hint {
+    font-size: 11px;
+    color: var(--text-muted);
 }
 
 .tarea-row {
@@ -238,9 +275,16 @@ thead th {
 }
 
 .proyecto-collapsed .tarea-row,
-.proyecto-collapsed .recuento-row,
 .proyecto-collapsed .subtarea-row {
     display: none;
+}
+
+.proyecto-name-text {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .project-controls {
@@ -782,7 +826,6 @@ thead th {
     .toolbar-select { min-width: 100px; font-size: 12px; }
     .toolbar-label { display: none; }
     .drag-handle { font-size: 14px; min-width: 22px; height: 22px; padding: 2px 6px; }
-    .section-title { font-size: 13px; }
 }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }

@@ -215,11 +215,6 @@
             // CRÍTICO: Limpiar datos corruptos ANTES de cualquier operación
             cleanupCorruptedData();
             
-            console.log('=== RENDER TABLE ===');
-            console.log('Orden actual de proyectosData:', window.proyectosData.map((p, i) => 
-                `${i}: ${p.nombre} (${p.estadoProyecto || 'Activo'})`
-            ));
-            
             // Separar proyectos por estado
             const proyectosActivos = [];
             const proyectosBacklog = [];
@@ -237,9 +232,6 @@
                     proyectosArchivados.push({ proyecto: proyectoOrdenado, originalIndex: index });
                 }
             });
-
-            console.log('Proyectos Activos para renderizar:', proyectosActivos.map(p => p.proyecto.nombre));
-            console.log('Proyectos Backlog para renderizar:', proyectosBacklog.map(p => p.proyecto.nombre));
 
             // Renderizar cada sección
             renderSection('tableBodyActive', proyectosActivos, 'emptyStateActive');
@@ -412,10 +404,12 @@
         // Función para inicializar Drag & Drop (SOLO para proyectos activos)
         function initializeDragAndDrop() {
             const tbody = document.getElementById('tableBodyActive');
+            if (!tbody) return;
             
             // Destruir instancia anterior si existe
             if (sortableInstance) {
                 sortableInstance.destroy();
+                sortableInstance = null;
             }
             
             // Crear nueva instancia de Sortable solo para proyectos activos
@@ -427,82 +421,82 @@
                 preventOnFilter: true,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
+                forceFallback: true,
+                fallbackTolerance: 3,
                 
-                // MEJORADO: Guardar contexto completo antes de comenzar
                 onStart: function(evt) {
-                    const projectIndex = parseInt(evt.item.dataset.projectIndex);
-                    
-                    // Ocultar elementos hijos durante el arrastre
-                    const childRows = document.querySelectorAll(
-                        `#tableBodyActive tr[data-project-index="${projectIndex}"]:not(.proyecto-row)`
-                    );
-                    childRows.forEach(row => row.style.display = 'none');
-                    
-                    // Guardar contexto global para uso en onEnd
+                    // Guardar contexto ANTES de ocultar filas
                     window._dragContext = {
                         collapsedStates: getCollapsedStatesByName(),
                         scrollPosition: window.scrollY,
-                        draggedProjectName: window.proyectosData[projectIndex]?.nombre
+                        draggedProjectName: evt.item.querySelector('.proyecto-nombre')?.textContent?.trim() || ''
                     };
+                    
+                    // CLAVE: Ocultar TODAS las filas no-proyecto del tbody
+                    // Esto permite que SortableJS calcule posiciones correctamente
+                    const nonProjectRows = tbody.querySelectorAll('tr:not(.proyecto-row)');
+                    nonProjectRows.forEach(row => {
+                        row.style.display = 'none';
+                    });
                 },
                 
                 onEnd: function(evt) {
                     try {
-                        // PASO 1: Obtener índices de Sortable (solo para .proyecto-row)
+                        // Usar oldDraggableIndex/newDraggableIndex de SortableJS
+                        // Estos cuentan SOLO elementos que coinciden con 'draggable'
+                        const oldIdx = evt.oldDraggableIndex;
+                        const newIdx = evt.newDraggableIndex;
+                        
+                        // Si no hay cambio real o índices inválidos, restaurar
+                        if (oldIdx === newIdx || oldIdx == null || newIdx == null) {
+                            renderTable();
+                            restoreCollapsedStatesByName(window._dragContext.collapsedStates);
+                            return;
+                        }
+                        
+                        // Separar proyectos activos y otros
                         const proyectosActivos = window.proyectosData.filter(p => 
-                            (p.estadoProyecto || 'Activo') === 'Activo'
+                            p && (p.estadoProyecto || 'Activo') === 'Activo'
                         );
-
-                        const oldVisualIndex = evt.oldDraggableIndex;
-                        const newVisualIndex = evt.newDraggableIndex;
-                        
-                        // Si no hay cambio real, solo re-renderizar
-                        if (oldVisualIndex === newVisualIndex) {
-                            renderTable();
-                            StorageController.loadCollapsedStates();
-                            return;
-                        }
-                        
-                        // PASO 2: Validar que los índices estén en rango
-                        if (typeof oldVisualIndex !== 'number' || typeof newVisualIndex !== 'number' ||
-                            oldVisualIndex < 0 || oldVisualIndex >= proyectosActivos.length ||
-                            newVisualIndex < 0 || newVisualIndex >= proyectosActivos.length) {
-                            console.error('Índices fuera de rango');
-                            renderTable();
-                            return;
-                        }
-                        
-                        // PASO 3: Reordenar SOLO dentro del array de activos
-                        const [movedProject] = proyectosActivos.splice(oldVisualIndex, 1);
-                        proyectosActivos.splice(newVisualIndex, 0, movedProject);
-                        
-                        // PASO 4: Reconstruir proyectosData (activos + otros)
                         const otrosProyectos = window.proyectosData.filter(p => 
-                            (p.estadoProyecto || 'Activo') !== 'Activo'
+                            p && (p.estadoProyecto || 'Activo') !== 'Activo'
                         );
+                        
+                        // Validar rango
+                        if (oldIdx < 0 || oldIdx >= proyectosActivos.length ||
+                            newIdx < 0 || newIdx >= proyectosActivos.length) {
+                            console.error('Índices D&D fuera de rango:', oldIdx, newIdx, 'total:', proyectosActivos.length);
+                            renderTable();
+                            restoreCollapsedStatesByName(window._dragContext.collapsedStates);
+                            return;
+                        }
+                        
+                        // Reordenar dentro de activos
+                        const [movedProject] = proyectosActivos.splice(oldIdx, 1);
+                        proyectosActivos.splice(newIdx, 0, movedProject);
+                        
+                        // Reconstruir array global
                         window.proyectosData = [...proyectosActivos, ...otrosProyectos];
                         
-                        // PASO 5: Guardar y re-renderizar
+                        // Guardar y re-renderizar
                         StorageController.save();
                         renderTable();
                         
-                        // PASO 6: Restaurar estados de colapso POR NOMBRE
+                        // Restaurar colapsos por nombre
                         setTimeout(() => {
                             restoreCollapsedStatesByName(window._dragContext.collapsedStates);
                             window.scrollTo(0, window._dragContext.scrollPosition);
                             StorageController.saveCollapsedStates();
                         }, 50);
                         
-                        // PASO 7: Notificación y highlight
-                        const direction = newVisualIndex < oldVisualIndex ? 'arriba' : 'abajo';
+                        // Notificación
+                        const direction = newIdx < oldIdx ? 'arriba' : 'abajo';
                         StorageController.notify(
                             `Proyecto "${movedProject.nombre}" movido hacia ${direction}`, 
                             'success'
                         );
                         
-                        setTimeout(() => {
-                            highlightMovedProject(movedProject.nombre);
-                        }, 100);
+                        setTimeout(() => highlightMovedProject(movedProject.nombre), 100);
                         
                     } catch (error) {
                         console.error('Error en drag & drop:', error);

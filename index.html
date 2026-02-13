@@ -448,32 +448,13 @@
                 
                 onEnd: function(evt) {
                     try {
-                        // PASO 1: Calcular índices CORRECTOS
+                        // PASO 1: Obtener índices de Sortable (solo para .proyecto-row)
                         const proyectosActivos = window.proyectosData.filter(p => 
                             (p.estadoProyecto || 'Activo') === 'Activo'
                         );
-                        
-                        // Contar SOLO filas de proyecto antes de la posición arrastrada
-                        const allRows = Array.from(tbody.children);
-                        const draggedRowPosition = allRows.indexOf(evt.item);
-                        
-                        let oldVisualIndex = 0;
-                        let newVisualIndex = 0;
-                        
-                        // Calcular oldIndex: cuántas filas de proyecto hay ANTES del item arrastrado
-                        for (let i = 0; i < draggedRowPosition; i++) {
-                            if (allRows[i].classList.contains('proyecto-row')) {
-                                oldVisualIndex++;
-                            }
-                        }
-                        
-                        // Calcular newIndex: cuántas filas de proyecto hay ANTES de la nueva posición
-                        const newPosition = allRows.indexOf(evt.item);
-                        for (let i = 0; i < newPosition; i++) {
-                            if (allRows[i].classList.contains('proyecto-row')) {
-                                newVisualIndex++;
-                            }
-                        }
+
+                        const oldVisualIndex = evt.oldDraggableIndex;
+                        const newVisualIndex = evt.newDraggableIndex;
                         
                         // Si no hay cambio real, solo re-renderizar
                         if (oldVisualIndex === newVisualIndex) {
@@ -483,7 +464,8 @@
                         }
                         
                         // PASO 2: Validar que los índices estén en rango
-                        if (oldVisualIndex < 0 || oldVisualIndex >= proyectosActivos.length ||
+                        if (typeof oldVisualIndex !== 'number' || typeof newVisualIndex !== 'number' ||
+                            oldVisualIndex < 0 || oldVisualIndex >= proyectosActivos.length ||
                             newVisualIndex < 0 || newVisualIndex >= proyectosActivos.length) {
                             console.error('Índices fuera de rango');
                             renderTable();

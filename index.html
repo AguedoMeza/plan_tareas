@@ -294,9 +294,6 @@
             
             elementRow.dataset.elementPath = pathString;
             elementRow.dataset.projectIndex = elementPath[0];
-            if (isProject && elemento.nombre) {
-                elementRow.dataset.projectName = elemento.nombre;
-            }
             
             // Agregar atributos adicionales para identificar el nivel y tipo
             elementRow.dataset.level = level;
@@ -457,7 +454,7 @@
                         );
 
                         const projectRows = Array.from(tbody.querySelectorAll('tr.proyecto-row'));
-                        const draggedProjectName = window._dragContext?.draggedProjectName || evt.item?.dataset?.projectName;
+                        const draggedProjectName = window._dragContext?.draggedProjectName;
 
                         // oldIndex robusto: por Sortable si existe, si no por nombre dentro de activos
                         let oldVisualIndex = evt.oldDraggableIndex;

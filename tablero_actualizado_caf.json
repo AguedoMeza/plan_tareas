@@ -1,0 +1,563 @@
+{
+  "boardName": "Tablero_Importado_15/10/2025, 10:58:00 a.m.",
+  "proyectosData": [
+    {
+      "nombre": "Nintex APIS",
+      "descripcion": "Proyecto general de integración y servicios Nintex",
+      "elementos": [
+        {
+          "nombre": "Desarrollar API Customizada",
+          "descripcion": "Desarrollar API Customizada de Prueba sobre Web Design de MRI",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "ISN Implementación",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "Nintex-MRI Connector",
+          "descripcion": "Conector entre Nintex y MRI para sincronización de vendors y webhooks",
+          "tipo": "tarea",
+          "prioridad": "1",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "2025-10-15",
+          "estado": "En progreso",
+          "elementos": []
+        },
+        {
+          "nombre": "Diseño de infraestructura para guardado de documentos en nintex",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": 2,
+          "avance": "",
+          "esfuerzo": "2d",
+          "deadline": "",
+          "estado": "Bloqueado",
+          "elementos": []
+        }
+      ],
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente"
+    },
+    {
+      "nombre": "Migración Automate a Python",
+      "descripcion": "Monthly closing automation update",
+      "elementos": [
+        {
+          "nombre": "Extract MPA modules to Import MPAFund V2",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        }
+      ],
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente"
+    },
+    {
+  "nombre": "MPA Web App CAF",
+  "descripcion": "Pasar Power App a Web App Python",
+  "tipo": "proyecto",
+  "avance": "",
+  "prioridad": "",
+  "esfuerzo": "",
+  "deadline": "",
+  "estado": "Pendiente",
+  "elementos": [
+
+    {
+      "nombre": "Release 1 – Implementación inicial",
+      "descripcion": "Primera versión productiva de CAF",
+      "tipo": "tarea",
+      "estado": "Completado",
+      "elementos": [
+
+        {
+          "nombre": "Requerimientos Fede",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Backend",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Bug en formatos de pd y fd",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Bug validacion de sesion, refresca la página",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Frontend",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Infra & Dploy",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Integracion AD",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Repo & Desarrollo de Plantilla base Front",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Requerimiento Karla",
+          "tipo": "tarea",
+          "estado": "Completado",
+          "elementos": []
+        }
+      ]
+    },
+
+    {
+      "nombre": "Release 2 – Nuevos requerimientos usuarios (Andrea)",
+      "descripcion": "Ajustes solicitados por PM para uso del sistema CAFS",
+      "tipo": "tarea",
+      "estado": "Pendiente",
+      "elementos": [
+
+        {
+          "nombre": "Alta de Admins PM",
+          "descripcion": "Dar de alta MARIA.MARTINEZ@MPAGROUP.MX y YENYFERT.MORA@MPAGROUP.MX",
+          "tipo": "tarea",
+          "estado": "Pendiente",
+          "elementos": [
+            {
+              "nombre": "Asignar roles correctos",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            },
+            {
+              "nombre": "Validar acceso producción",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            }
+          ]
+        },
+
+        {
+          "nombre": "Actualizar solicitud CAF – Nuevos Check Marks",
+          "tipo": "tarea",
+          "estado": "Pendiente",
+          "elementos": [
+
+            {
+              "nombre": "Confirmar cuenta (Cost Code)",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            },
+            {
+              "nombre": "PAF",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            },
+            {
+              "nombre": "Para pintura: aprobación Leslie + render + volumetría",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            },
+            {
+              "nombre": "Explicar lógica REC / NREC",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            },
+            {
+              "nombre": "Price Analysis (Budget vs Contracted)",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            },
+
+            {
+              "nombre": "Backend – Ajustes técnicos",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            },
+            {
+              "nombre": "Frontend – Ajustes UI",
+              "tipo": "subtarea",
+              "estado": "Pendiente",
+              "elementos": []
+            }
+          ]
+        }
+
+      ]
+    }
+
+  ]
+},
+    {
+      "nombre": "Good Catch",
+      "descripcion": "",
+      "tipo": "proyecto",
+      "estadoProyecto": "Activo",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "elementos": []
+    },
+    {
+      "nombre": "API Payments Checklist",
+      "descripcion": "Analizar vendors conflictivos para el procesamiento del API",
+      "tipo": "proyecto",
+      "estadoProyecto": "Activo",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "elementos": [
+        {
+          "nombre": "Mejorar procesamiento Vendors en API Payment Check",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        }
+      ]
+    },
+    {
+      "nombre": "Apps Hub",
+      "descripcion": "",
+      "tipo": "proyecto",
+      "estadoProyecto": "Activo",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "elementos": [
+        {
+          "nombre": "Poner fotos de buildings en carrusel home",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "Re Dploy frontend y Backend",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        }
+      ]
+    },
+    {
+      "nombre": "Capacitación APIS Betty",
+      "descripcion": "",
+      "tipo": "proyecto",
+      "estadoProyecto": "Backlog",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "elementos": [
+        {
+          "nombre": "Preparativos Capacitación APIS",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        }
+      ]
+    },
+    {
+      "nombre": "Reporte de Errores en CAFS",
+      "descripcion": "",
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "elementos": [
+        {
+          "nombre": "Hacer que funcione Cron en servidor",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "100%",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Completado",
+          "elementos": []
+        }
+      ],
+      "estadoProyecto": "Archivado"
+    },
+    {
+      "nombre": "InterFlow",
+      "descripcion": "Migrar las APIS de cierre de Samuel al nuevo Azure",
+      "elementos": [
+        {
+          "nombre": "Migración de Código a nuevo Azure",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "60%",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Backlog",
+          "elementos": []
+        }
+      ],
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "estadoProyecto": "Backlog"
+    },
+    {
+      "nombre": "Alejando Solicitud Reportes CAF",
+      "descripcion": "agregarlo a los reportes y mandarlos también a las 9am",
+      "elementos": [],
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "estadoProyecto": "Archivado"
+    },
+    {
+      "nombre": "WHSE Seguridad",
+      "descripcion": "WHSE Administración de Catálogos",
+      "elementos": [
+        {
+          "nombre": "Catálogo Actividades + Riesgo",
+          "descripcion": "",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "Catálogo buildings",
+          "descripcion": "crear catálogo propio con constraint de unicidad, UI para asignar muchas propiedades a la vez (filtrar por ciudad \"Guadalajara\", seleccionar \"todas\", etc.).",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "1d",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "Catálogo Contratistas",
+          "descripcion": "Crear catálogo con campo capturable con trim, mayúsculas, sin acentos. dedupe básico.",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "1d",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "Pantalla para asignación de buildings",
+          "descripcion": "filtro por ciudad, \"Seleccionar todos\" y buscador dinámico",
+          "tipo": "tarea",
+          "prioridad": "",
+          "avance": "",
+          "esfuerzo": "4d",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "Integración Reporte WHSE POWER BI",
+          "descripcion": "Pestaña visible con tarjetas de reportes",
+          "tipo": "tarea",
+          "prioridad": 2,
+          "avance": "",
+          "esfuerzo": "1s",
+          "deadline": "",
+          "estado": "Completado",
+          "elementos": []
+        },
+        {
+          "nombre": "Renombrar pestaña",
+          "descripcion": "Cambiar \"React App\" → \"MPA Web Application\".",
+          "tipo": "tarea",
+          "prioridad": 1,
+          "avance": "100%",
+          "esfuerzo": "1d",
+          "deadline": "",
+          "estado": "Completado",
+          "elementos": []
+        }
+      ],
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "estadoProyecto": "Backlog"
+    },
+    {
+      "nombre": "MPA Web App Administración de Usuarios",
+      "descripcion": "Administración de usuarios, roles y aplicaciones",
+      "elementos": [
+        {
+          "nombre": "Home/Launcher",
+          "descripcion": "pantalla inicial para administrar y acceder a múltiples apps, con navegación lateral o superior.",
+          "tipo": "tarea",
+          "prioridad": 3,
+          "avance": "",
+          "esfuerzo": "4d",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "Modelo Entidad Relación",
+          "descripcion": "roles, modules, applications, pivotes.",
+          "tipo": "tarea",
+          "prioridad": 3,
+          "avance": "",
+          "esfuerzo": "1d",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        },
+        {
+          "nombre": "UI asignación App+Rol",
+          "descripcion": "Pantalla mínima para vincular usuario ↔ aplicación ↔ rol.",
+          "tipo": "tarea",
+          "prioridad": 3,
+          "avance": "",
+          "esfuerzo": "3d",
+          "deadline": "",
+          "estado": "Pendiente",
+          "elementos": []
+        }
+      ],
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "estadoProyecto": "Backlog"
+    },
+    {
+      "nombre": "Reporte Quincenal CAFs Diana",
+      "descripcion": "",
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "elementos": [],
+      "estadoProyecto": "Archivado"
+    },
+    {
+      "nombre": "Reportes CAFS",
+      "descripcion": "Integración y desarrollo de reportes CAFS (SharePoint, K2, AD, Excel)",
+      "elementos": [],
+      "tipo": "proyecto",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "estadoProyecto": "Archivado"
+    },
+    {
+      "nombre": "Documentación Web Apps",
+      "descripcion": "cuando te sea posible genera documentos de los desarrollos que se han concluido algo sencillo pero que tenga las bases de datos, tablas y pues nombre de los proyectos solo para tener una documentacion",
+      "tipo": "proyecto",
+      "estadoProyecto": "Backlog",
+      "avance": "",
+      "prioridad": "",
+      "esfuerzo": "",
+      "deadline": "",
+      "estado": "Pendiente",
+      "elementos": []
+    }
+  ],
+  "collapsedStates": {},
+  "exportDate": "2026-02-13T19:00:00.000Z",
+  "version": "2.0"
+}

@@ -152,7 +152,7 @@ body {
     border: 1px solid var(--border-color);
     background: rgba(0,0,0,.18);
     border-radius: var(--radius2);
-    overflow: hidden;
+    overflow: visible;
     transition: border-color .15s;
 }
 
@@ -166,6 +166,8 @@ body {
     gap: 10px;
     align-items: center;
     padding: 10px;
+    border-radius: var(--radius2);
+    background: inherit;
 }
 
 /* Collapse / expand button */
@@ -334,6 +336,7 @@ body {
     border-top: 1px solid var(--border-color);
     background: rgba(0,0,0,.22);
     padding: 10px;
+    border-radius: 0 0 var(--radius2) var(--radius2);
 }
 
 .projDetail table {

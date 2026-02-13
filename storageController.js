@@ -687,8 +687,19 @@ const StorageController = {
             }
         });
         
+        // Guardar estados de agrupadores colapsados
+        const grouperStates = {};
+        document.querySelectorAll('.grouper-toggle').forEach(btn => {
+            const icon = btn.querySelector('i');
+            const groupPath = btn.dataset.groupPath;
+            if (icon && groupPath && icon.classList.contains('bi-chevron-right')) {
+                grouperStates[groupPath] = true; // collapsed
+            }
+        });
+        
         try {
             localStorage.setItem(`collapsedStates_${StorageController.currentBoardId}`, JSON.stringify(collapsedStates));
+            localStorage.setItem(`grouperStates_${StorageController.currentBoardId}`, JSON.stringify(grouperStates));
         } catch (error) {
             console.error('Error al guardar estados de colapso:', error);
         }
@@ -712,6 +723,25 @@ const StorageController = {
                         }, 10);
                     }
                 });
+            }
+            
+            // Restaurar estados de agrupadores
+            const savedGroupers = localStorage.getItem(`grouperStates_${StorageController.currentBoardId}`);
+            if (savedGroupers) {
+                const grouperStates = JSON.parse(savedGroupers);
+                // Aplicar con delay para que el DOM ya esté listo tras expandir proyectos
+                setTimeout(() => {
+                    Object.keys(grouperStates).forEach(groupPath => {
+                        const btn = document.querySelector(`.grouper-toggle[data-group-path="${groupPath}"]`);
+                        if (btn && grouperStates[groupPath]) {
+                            const icon = btn.querySelector('i');
+                            // Solo colapsar si actualmente está expandido
+                            if (icon && icon.classList.contains('bi-chevron-down')) {
+                                RenderController.toggleGroup(groupPath, btn);
+                            }
+                        }
+                    });
+                }, 50);
             }
         } catch (error) {
             console.error('Error al cargar estados de colapso:', error);
@@ -927,6 +957,7 @@ const StorageController = {
             // Eliminar datos del tablero
             localStorage.removeItem(`boardData_${boardId}`);
             localStorage.removeItem(`collapsedStates_${boardId}`);
+            localStorage.removeItem(`grouperStates_${boardId}`);
             
             // Si era el tablero actual, cambiar a otro
             if (StorageController.currentBoardId === boardId) {

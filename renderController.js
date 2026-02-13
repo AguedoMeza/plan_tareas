@@ -261,10 +261,14 @@ const RenderController = {
 
         const indent = level > 1 ? 'style="padding-left:' + ((level - 1) * 20 + 10) + 'px"' : '';
 
+        const toggleBtn = hasChildren
+            ? '<span class="grouper-toggle" data-group-path="' + pathString + '" onclick="RenderController.toggleGroup(\'' + pathString + '\', this)" title="Contraer/Expandir"><i class="bi bi-chevron-down"></i></span> '
+            : '';
+
         tr.innerHTML = ''
             + '<td ' + indent + ' data-field="nombre">'
-            + '<div class="itemName">' + esc(elemento.nombre) + '</div>'
-            + (hasChildren ? '<div class="itemSub">Agrupador</div>' : (level > 1 ? '<div class="itemSub">Subtarea</div>' : '<div class="itemSub">Tarea</div>'))
+            + '<div class="itemName">' + toggleBtn + esc(elemento.nombre) + '</div>'
+            + (hasChildren ? '<div class="itemSub">Agrupador · ' + elemento.elementos.length + ' items</div>' : (level > 1 ? '<div class="itemSub">Subtarea</div>' : '<div class="itemSub">Tarea</div>'))
             + '</td>'
             + '<td data-field="descripcion"><span class="itemSub">' + esc(elemento.descripcion || '—') + '</span></td>'
             + '<td data-field="prioridad">' + (prioVal ? '<span class="prio ' + prioClass + '">' + esc(prioVal) + '</span>' : '') + '</td>'
@@ -295,6 +299,56 @@ const RenderController = {
                 RenderController._buildDetailRows(hijo, [...elementPath, idx], level + 1, tbody, projectName);
             });
         }
+    },
+
+    // --------------------------------------------------
+    // Toggle collapse/expand for grouper rows in detail table
+    // --------------------------------------------------
+    toggleGroup: function(groupPath, btnElement) {
+        const icon = btnElement.querySelector('i');
+        const isCollapsed = icon.classList.contains('bi-chevron-right');
+
+        // Find all child rows whose path starts with this group path
+        const detailContainer = btnElement.closest('.projDetail');
+        if (!detailContainer) return;
+
+        const allRows = detailContainer.querySelectorAll('tbody tr');
+        allRows.forEach(row => {
+            const rowPath = row.dataset.elementPath;
+            if (!rowPath) return;
+            // Must start with groupPath + '-' (direct or nested children)
+            if (rowPath.startsWith(groupPath + '-')) {
+                if (isCollapsed) {
+                    row.style.display = '';
+                    // If this child is itself a collapsed grouper, keep ITS children hidden
+                    const childToggle = row.querySelector('.grouper-toggle i');
+                    if (childToggle && childToggle.classList.contains('bi-chevron-right')) {
+                        // This child grouper is collapsed — hide its descendants
+                        const childPath = row.dataset.elementPath;
+                        allRows.forEach(grandChild => {
+                            if (grandChild.dataset.elementPath &&
+                                grandChild.dataset.elementPath.startsWith(childPath + '-')) {
+                                grandChild.style.display = 'none';
+                            }
+                        });
+                    }
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+
+        // Toggle icon
+        if (isCollapsed) {
+            icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
+            btnElement.title = 'Contraer';
+        } else {
+            icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
+            btnElement.title = 'Expandir';
+        }
+
+        // Persistir estado
+        setTimeout(() => StorageController.saveCollapsedStates(), 50);
     },
 
     // --------------------------------------------------

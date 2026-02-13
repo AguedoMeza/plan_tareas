@@ -394,11 +394,37 @@ body {
 .projDetail .task-row-parent {
     background: rgba(255,255,255,.02);
 }
+.projDetail .task-row-parent:hover {
+    background: rgba(255,255,255,.04);
+}
 .projDetail .subtask-row td {
     color: var(--text-muted);
 }
 .projDetail .subtask-row td:first-child {
     padding-left: 30px;
+}
+
+/* Grouper toggle button */
+.grouper-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all .15s;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+.grouper-toggle:hover {
+    background: rgba(255,255,255,.08);
+    color: var(--accent);
+}
+.grouper-toggle i {
+    font-size: 11px;
+    transition: transform .2s ease;
 }
 
 /* ======================================

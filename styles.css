@@ -551,66 +551,101 @@ thead th {
 
 .estado-select.estado-changed { animation: estadoChanged 0.5s ease-out; }
 
-.board-management {
+/* ---- Toolbar ---- */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 8px;
+    margin-bottom: 16px;
     background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    box-shadow: none;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 8px;
+    flex-wrap: wrap;
 }
 
-.board-management .form-label {
-    color: var(--text-secondary);
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
-#boardSelector {
-    background-color: var(--bg-body);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-weight: 500;
+.toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-color);
+    margin: 0 6px;
+}
+
+.toolbar-select {
+    background: transparent;
+    border: none;
     color: var(--text-primary);
-    transition: all 0.15s ease;
-}
-
-#boardSelector:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(79, 143, 247, 0.15);
-}
-
-#boardSelector option {
-    background: var(--bg-surface);
-    color: var(--text-primary);
-}
-
-.board-management .btn {
-    font-weight: 500;
-    border-radius: 6px;
-    transition: all 0.15s ease;
     font-size: 13px;
+    font-weight: 500;
+    padding: 6px 10px;
+    cursor: pointer;
+    outline: none;
+    min-width: 140px;
+    border-radius: 4px;
 }
 
-.board-management .btn:hover { transform: translateY(-1px); }
+.toolbar-select:hover { background: var(--bg-surface-hover); }
+.toolbar-select:focus { background: var(--bg-surface-hover); }
 
-.board-management .btn-success {
-    background: var(--success);
-    border: none;
-    color: #0f1117;
+.toolbar-select option {
+    background: var(--bg-surface-raised);
+    color: var(--text-primary);
 }
 
-.board-management .btn-warning {
-    background: var(--warning);
+.toolbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: transparent;
     border: none;
-    color: #0f1117;
+    color: var(--text-secondary);
+    font-size: 15px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+    line-height: 1;
+    white-space: nowrap;
 }
 
-.board-management .btn-danger {
-    background: var(--danger);
-    border: none;
-    color: #0f1117;
+.toolbar-btn:hover {
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+}
+
+.toolbar-btn:active { background: var(--border-color); }
+
+.toolbar-btn-danger:hover { color: var(--danger); }
+
+.toolbar-btn-accent {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.toolbar-btn-accent:hover {
+    background: rgba(79, 143, 247, 0.1);
+    color: var(--accent-hover);
+}
+
+.toolbar-label {
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.toolbar-badge {
+    font-size: 10px;
+    background: var(--bg-surface-hover);
+    color: var(--text-muted);
+    padding: 1px 5px;
+    border-radius: 8px;
+    font-weight: 600;
+    line-height: 1.4;
 }
 
 @keyframes boardSwitch {
@@ -619,8 +654,6 @@ thead th {
 }
 
 .board-switching { animation: boardSwitch 0.3s ease-out; }
-
-.current-board-indicator::before { display: none; }
 
 .proyecto-estado-select {
     font-size: 11px;
@@ -705,44 +738,13 @@ thead th {
     }
 }
 
-.vista-toggle {
-    padding: 8px 16px;
-    border: 1px solid var(--border-color);
-    background: var(--bg-surface);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-    border-radius: 6px;
-    font-weight: 500;
-    font-size: 13px;
-}
-
 .vista-toggle.active {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-    box-shadow: 0 2px 8px rgba(79, 143, 247, 0.3);
-}
-
-.vista-toggle:not(.active):hover {
-    border-color: var(--accent);
-    color: var(--text-primary);
     background: var(--bg-surface-hover);
+    color: var(--text-primary);
 }
-
-.vista-toggle .badge { margin-left: 6px; }
 
 .btn-primary { background: var(--accent); border-color: var(--accent); }
 .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-
-.btn-outline-success { color: var(--success); border-color: var(--success); }
-.btn-outline-success:hover { background: var(--success); color: #0f1117; }
-
-.btn-outline-info { color: var(--info); border-color: var(--info); }
-.btn-outline-info:hover { background: var(--info); color: #0f1117; }
-
-.btn-outline-primary { color: var(--accent); border-color: var(--border-color); background: var(--bg-surface); }
-.btn-outline-primary:hover { color: var(--text-primary); border-color: var(--accent); background: var(--bg-surface-hover); }
 
 .was-validated .form-control:valid, .form-control.is-valid { border-color: var(--success); }
 .was-validated .form-control:invalid, .form-control.is-invalid { border-color: var(--danger); }
@@ -776,8 +778,9 @@ thead th {
     .action-btn { font-size: 14px; padding: 2px 4px; }
     .edit-input { font-size: 11px !important; padding: 2px 4px !important; }
     .estado-select { width: 100px; font-size: 10px !important; padding: 2px 6px !important; min-height: 24px; }
-    .board-management .d-flex { flex-direction: column; gap: 8px; }
-    .board-management .btn { font-size: 12px; padding: 4px 8px; }
+    .toolbar { gap: 0; }
+    .toolbar-select { min-width: 100px; font-size: 12px; }
+    .toolbar-label { display: none; }
     .drag-handle { font-size: 14px; min-width: 22px; height: 22px; padding: 2px 6px; }
     .section-title { font-size: 13px; }
 }

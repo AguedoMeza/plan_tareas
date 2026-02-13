@@ -11,66 +11,47 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body>
-    <!-- Gestión de Tableros -->
-    <div class="mb-3 p-3 board-management">
-        <div class="row align-items-center">
-            <div class="col-md-4">
-                <label for="boardSelector" class="form-label mb-1">
-                    <i class="bi bi-kanban me-1"></i>Tablero Actual:
-                </label>
-                <div class="current-board-indicator">
-                    <select id="boardSelector" class="form-select" onchange="BoardController.handleBoardChange(this.value)">
-                        <!-- Las opciones se llenarán dinámicamente -->
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-8 mt-2 mt-md-0">
-                <div class="d-flex gap-2 flex-wrap">
-                    <button type="button" class="btn btn-success btn-sm" onclick="BoardController.showCreateBoardModal()" title="Crear nuevo tablero">
-                        <i class="bi bi-plus-square me-1"></i>Nuevo Tablero
-                    </button>
-                    <button type="button" class="btn btn-warning btn-sm" onclick="BoardController.showRenameBoardModal()" title="Renombrar tablero actual">
-                        <i class="bi bi-pencil me-1"></i>Renombrar
-                    </button>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="BoardController.confirmDeleteBoard()" title="Eliminar tablero actual">
-                        <i class="bi bi-trash me-1"></i>Eliminar
-                    </button>
-                </div>
-            </div>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <select id="boardSelector" class="toolbar-select" onchange="BoardController.handleBoardChange(this.value)">
+                <!-- Las opciones se llenarán dinámicamente -->
+            </select>
+            <div class="toolbar-divider"></div>
+            <button type="button" class="toolbar-btn" onclick="BoardController.showCreateBoardModal()" title="Nuevo tablero">
+                <i class="bi bi-plus"></i>
+            </button>
+            <button type="button" class="toolbar-btn" onclick="BoardController.showRenameBoardModal()" title="Renombrar tablero">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button type="button" class="toolbar-btn toolbar-btn-danger" onclick="BoardController.confirmDeleteBoard()" title="Eliminar tablero">
+                <i class="bi bi-trash3"></i>
+            </button>
         </div>
-    </div>
-    <!-- FIN de Gestión de Tableros -->
 
-    <!-- Toggle de Vista -->
-    <div class="mb-3 d-flex gap-2 align-items-center">
-        <label class="me-2" style="font-weight: 600;">Vista:</label>
-        <button type="button" 
-                class="btn btn-outline-primary vista-toggle active" 
-                data-vista="completa"
-                onclick="cambiarVista('completa')">
-            <i class="bi bi-list-task me-1"></i>Vista Completa
-        </button>
-        <button type="button" 
-                class="btn btn-outline-success vista-toggle" 
-                data-vista="viva"
-                onclick="cambiarVista('viva')">
-            <i class="bi bi-bullseye me-1"></i>Vista Viva <span class="badge bg-success" id="contadorVivos">0</span>
-        </button>
-    </div>
-    <!-- FIN Toggle de Vista -->
+        <div class="toolbar-group">
+            <div class="toolbar-divider"></div>
+            <button type="button" class="toolbar-btn vista-toggle active" data-vista="completa" onclick="cambiarVista('completa')" title="Vista completa">
+                <i class="bi bi-list-task"></i>
+            </button>
+            <button type="button" class="toolbar-btn vista-toggle" data-vista="viva" onclick="cambiarVista('viva')" title="Vista viva">
+                <i class="bi bi-bullseye"></i><span class="toolbar-badge" id="contadorVivos">0</span>
+            </button>
+        </div>
 
-    <!-- Botones de acciones principales -->
-    <div class="mb-3 d-flex gap-2">
-        <button type="button" class="btn btn-primary btn-lg" onclick="openCreateModal()">
-            <i class="bi bi-plus-circle me-2"></i>Crear Nuevo
-        </button>
-        <button type="button" class="btn btn-outline-success btn-lg" onclick="StorageController.exportStorage()">
-            <i class="bi bi-download me-2"></i>Exportar Tablero
-        </button>
-        <label class="btn btn-outline-info btn-lg mb-0" style="cursor:pointer;">
-            <i class="bi bi-upload me-2"></i>Importar Tablero
-            <input type="file" id="importStorageInput" accept="application/json" style="display:none;" onchange="StorageController.importStorage(event)">
-        </label>
+        <div class="toolbar-group">
+            <div class="toolbar-divider"></div>
+            <button type="button" class="toolbar-btn toolbar-btn-accent" onclick="openCreateModal()" title="Crear nuevo">
+                <i class="bi bi-plus-lg"></i><span class="toolbar-label">Nuevo</span>
+            </button>
+            <button type="button" class="toolbar-btn" onclick="StorageController.exportStorage()" title="Exportar tablero">
+                <i class="bi bi-download"></i>
+            </button>
+            <label class="toolbar-btn" title="Importar tablero" style="cursor:pointer; margin:0;">
+                <i class="bi bi-upload"></i>
+                <input type="file" id="importStorageInput" accept="application/json" style="display:none;" onchange="StorageController.importStorage(event)">
+            </label>
+        </div>
     </div>
 
     <!-- Incluir Modal de Creación -->

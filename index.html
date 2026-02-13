@@ -422,163 +422,105 @@
             sortableInstance = new Sortable(tbody, {
                 animation: 200,
                 handle: '.drag-handle',
-                draggable: '.proyecto-row', // Solo filas de proyecto son arrastrables
-                filter: '.recuento-row, .tarea-row, .subtarea-row', // Excluir explícitamente otras filas
-                preventOnFilter: true, // Prevenir drag en filas filtradas
+                draggable: '.proyecto-row',
+                filter: '.recuento-row, .tarea-row, .subtarea-row',
+                preventOnFilter: true,
                 ghostClass: 'sortable-ghost',
                 dragClass: 'sortable-drag',
                 
-                // IMPORTANTE: Usar onChoose para obtener el índice correcto
-                onChoose: function(evt) {
-                    console.log('onChoose - item seleccionado:', evt.item.dataset.projectIndex);
-                },
-                
+                // MEJORADO: Guardar contexto completo antes de comenzar
                 onStart: function(evt) {
                     const projectIndex = parseInt(evt.item.dataset.projectIndex);
-                    console.log('onStart - proyecto:', projectIndex);
-                    const childRows = document.querySelectorAll(`#tableBodyActive tr[data-project-index="${projectIndex}"]:not(.proyecto-row)`);
-                    childRows.forEach(row => {
-                        row.style.display = 'none';
-                    });
+                    
+                    // Ocultar elementos hijos durante el arrastre
+                    const childRows = document.querySelectorAll(
+                        `#tableBodyActive tr[data-project-index="${projectIndex}"]:not(.proyecto-row)`
+                    );
+                    childRows.forEach(row => row.style.display = 'none');
+                    
+                    // Guardar contexto global para uso en onEnd
+                    window._dragContext = {
+                        collapsedStates: getCollapsedStatesByName(),
+                        scrollPosition: window.scrollY,
+                        draggedProjectName: window.proyectosData[projectIndex]?.nombre
+                    };
                 },
                 
                 onEnd: function(evt) {
                     try {
-                        console.log('=== DRAG & DROP INICIADO ===');
-                        console.log('SortableJS indexes (INCORRECTOS):', { 
-                            oldIndex: evt.oldIndex, 
-                            newIndex: evt.newIndex 
-                        });
+                        // PASO 1: Calcular índices CORRECTOS
+                        const proyectosActivos = window.proyectosData.filter(p => 
+                            (p.estadoProyecto || 'Activo') === 'Activo'
+                        );
                         
-                        // Limpiar datos corruptos PRIMERO
-                        window.proyectosData = window.proyectosData.filter(p => p && p.nombre);
-                        
-                        // Obtener SOLO las filas de proyecto (ignorando tareas/subtareas/recuento)
-                        const projectRows = Array.from(document.querySelectorAll('#tableBodyActive .proyecto-row'));
-                        
-                        console.log('Filas de proyecto encontradas:', projectRows.length);
-                        
-                        // Obtener índices correctos basados en la posición en el DOM
-                        const oldVisualIndex = projectRows.indexOf(evt.item);
-                        
-                        // Calcular el nuevo índice: contar cuántas filas de proyecto hay antes de la posición actual
-                        let newVisualIndex = 0;
+                        // Contar SOLO filas de proyecto antes de la posición arrastrada
                         const allRows = Array.from(tbody.children);
-                        const newPosition = allRows.indexOf(evt.item);
+                        const draggedRowPosition = allRows.indexOf(evt.item);
                         
+                        let oldVisualIndex = 0;
+                        let newVisualIndex = 0;
+                        
+                        // Calcular oldIndex: cuántas filas de proyecto hay ANTES del item arrastrado
+                        for (let i = 0; i < draggedRowPosition; i++) {
+                            if (allRows[i].classList.contains('proyecto-row')) {
+                                oldVisualIndex++;
+                            }
+                        }
+                        
+                        // Calcular newIndex: cuántas filas de proyecto hay ANTES de la nueva posición
+                        const newPosition = allRows.indexOf(evt.item);
                         for (let i = 0; i < newPosition; i++) {
                             if (allRows[i].classList.contains('proyecto-row')) {
                                 newVisualIndex++;
                             }
                         }
                         
-                        console.log('Índices CORRECTOS calculados:', { oldVisualIndex, newVisualIndex });
-                        
-                        if (oldVisualIndex === newVisualIndex || oldVisualIndex === -1 || newVisualIndex === -1) {
-                            console.log('No hay cambio de posición o índices inválidos');
+                        // Si no hay cambio real, solo re-renderizar
+                        if (oldVisualIndex === newVisualIndex) {
                             renderTable();
                             StorageController.loadCollapsedStates();
                             return;
                         }
                         
-                        console.log('ProyectosData completo:', window.proyectosData.map((p, i) => 
-                            `${i}: ${p.nombre} (${p.estadoProyecto || 'Activo'})`
-                        ));
-                        
-                        // Extraer SOLO los proyectos activos en orden
-                        const activeProjects = window.proyectosData.filter(p => 
-                            p && (p.estadoProyecto || 'Activo') === 'Activo'
-                        );
-                        
-                        console.log('Active projects antes del reorden:', activeProjects.map(p => p.nombre));
-                        
-                        // Validar que los índices sean válidos
-                        if (oldVisualIndex < 0 || oldVisualIndex >= activeProjects.length ||
-                            newVisualIndex < 0 || newVisualIndex >= activeProjects.length) {
-                            console.error('Índices fuera de rango:', { oldVisualIndex, newVisualIndex, total: activeProjects.length });
+                        // PASO 2: Validar que los índices estén en rango
+                        if (oldVisualIndex < 0 || oldVisualIndex >= proyectosActivos.length ||
+                            newVisualIndex < 0 || newVisualIndex >= proyectosActivos.length) {
+                            console.error('Índices fuera de rango');
                             renderTable();
                             return;
                         }
                         
-                        // Reordenar dentro del array de activos
-                        const [movedProject] = activeProjects.splice(oldVisualIndex, 1);
+                        // PASO 3: Reordenar SOLO dentro del array de activos
+                        const [movedProject] = proyectosActivos.splice(oldVisualIndex, 1);
+                        proyectosActivos.splice(newVisualIndex, 0, movedProject);
                         
-                        if (!movedProject) {
-                            console.error('No se pudo extraer el proyecto movido');
-                            renderTable();
-                            return;
-                        }
-                        
-                        activeProjects.splice(newVisualIndex, 0, movedProject);
-                        
-                        console.log('Active projects después del reorden:', activeProjects.map(p => p.nombre));
-                        
-                        // Reconstruir proyectosData manteniendo el orden de activos y preservando otros estados
+                        // PASO 4: Reconstruir proyectosData (activos + otros)
                         const otrosProyectos = window.proyectosData.filter(p => 
-                            p && (p.estadoProyecto || 'Activo') !== 'Activo'
+                            (p.estadoProyecto || 'Activo') !== 'Activo'
                         );
+                        window.proyectosData = [...proyectosActivos, ...otrosProyectos];
                         
-                        console.log('Otros proyectos (no activos):', otrosProyectos.map(p => `${p.nombre} (${p.estadoProyecto})`));
-                        
-                        // Nuevo array: activos reordenados + otros proyectos al final
-                        window.proyectosData = [...activeProjects, ...otrosProyectos];
-                        
-                        console.log('Orden final proyectosData:', window.proyectosData.map((p, i) => 
-                            `${i}: ${p.nombre} (${p.estadoProyecto || 'Activo'})`
-                        ));
-                        
-                        // Guardar estados de colapso ANTES de re-renderizar
-                        const collapsedStates = {};
-                        document.querySelectorAll('tr.proyecto-row.proyecto-collapsed').forEach(row => {
-                            const index = parseInt(row.dataset.projectIndex);
-                            const project = window.proyectosData[index];
-                            if (project && project.nombre) {
-                                collapsedStates[project.nombre] = true;
-                            }
-                        });
-                        
-                        console.log('Estados colapsados guardados:', Object.keys(collapsedStates));
-                        
-                        // Guardar en localStorage
+                        // PASO 5: Guardar y re-renderizar
                         StorageController.save();
-                        console.log('Guardado en localStorage exitoso');
-                        
-                        // Re-renderizar
                         renderTable();
                         
-                        // Restaurar estados de colapso por nombre de proyecto
+                        // PASO 6: Restaurar estados de colapso POR NOMBRE
                         setTimeout(() => {
-                            Object.keys(collapsedStates).forEach(projectName => {
-                                const newIndex = window.proyectosData.findIndex(p => p && p.nombre === projectName);
-                                if (newIndex !== -1 && collapsedStates[projectName]) {
-                                    toggleProject(newIndex);
-                                }
-                            });
-                            
+                            restoreCollapsedStatesByName(window._dragContext.collapsedStates);
+                            window.scrollTo(0, window._dragContext.scrollPosition);
                             StorageController.saveCollapsedStates();
                         }, 50);
                         
+                        // PASO 7: Notificación y highlight
                         const direction = newVisualIndex < oldVisualIndex ? 'arriba' : 'abajo';
                         StorageController.notify(
                             `Proyecto "${movedProject.nombre}" movido hacia ${direction}`, 
                             'success'
                         );
                         
-                        // Highlight del proyecto movido
                         setTimeout(() => {
-                            const newArrayIndex = window.proyectosData.findIndex(p => p && p.nombre === movedProject.nombre);
-                            if (newArrayIndex !== -1) {
-                                const movedRow = document.querySelector(`tr.proyecto-row[data-project-index="${newArrayIndex}"]`);
-                                if (movedRow) {
-                                    movedRow.classList.add('project-moved-highlight');
-                                    setTimeout(() => {
-                                        movedRow.classList.remove('project-moved-highlight');
-                                    }, 1500);
-                                }
-                            }
+                            highlightMovedProject(movedProject.nombre);
                         }, 100);
-                        
-                        console.log('=== DRAG & DROP COMPLETADO ===');
                         
                     } catch (error) {
                         console.error('Error en drag & drop:', error);
@@ -587,6 +529,54 @@
                     }
                 }
             });
+        }
+
+        // Guardar estados colapsados por NOMBRE (no índice)
+        function getCollapsedStatesByName() {
+            const states = {};
+            document.querySelectorAll('tr.proyecto-row.proyecto-collapsed').forEach(row => {
+                const index = parseInt(row.dataset.projectIndex);
+                const project = window.proyectosData[index];
+                if (project && project.nombre) {
+                    states[project.nombre] = true;
+                }
+            });
+            return states;
+        }
+
+        // Restaurar estados colapsados por NOMBRE
+        function restoreCollapsedStatesByName(collapsedStates) {
+            Object.keys(collapsedStates).forEach(projectName => {
+                // Buscar el índice actual del proyecto por nombre
+                const currentIndex = window.proyectosData.findIndex(p => p && p.nombre === projectName);
+                
+                if (currentIndex !== -1 && collapsedStates[projectName]) {
+                    const projectRow = document.querySelector(
+                        `tr.proyecto-row[data-project-index="${currentIndex}"]`
+                    );
+                    
+                    // Solo toggle si NO está ya colapsado
+                    if (projectRow && !projectRow.classList.contains('proyecto-collapsed')) {
+                        toggleProject(currentIndex);
+                    }
+                }
+            });
+        }
+
+        // Highlight del proyecto movido
+        function highlightMovedProject(projectName) {
+            const projectIndex = window.proyectosData.findIndex(p => p && p.nombre === projectName);
+            if (projectIndex !== -1) {
+                const movedRow = document.querySelector(
+                    `tr.proyecto-row[data-project-index="${projectIndex}"]`
+                );
+                if (movedRow) {
+                    movedRow.classList.add('project-moved-highlight');
+                    setTimeout(() => {
+                        movedRow.classList.remove('project-moved-highlight');
+                    }, 1500);
+                }
+            }
         }
 
         // Función para limpiar datos corruptos

@@ -294,6 +294,9 @@
             
             elementRow.dataset.elementPath = pathString;
             elementRow.dataset.projectIndex = elementPath[0];
+            if (isProject && elemento.nombre) {
+                elementRow.dataset.projectName = elemento.nombre;
+            }
             
             // Agregar atributos adicionales para identificar el nivel y tipo
             elementRow.dataset.level = level;
@@ -448,31 +451,24 @@
                 
                 onEnd: function(evt) {
                     try {
-                        // PASO 1: Calcular índices CORRECTOS
+                        // PASO 1: Obtener índices de Sortable (solo para .proyecto-row)
                         const proyectosActivos = window.proyectosData.filter(p => 
                             (p.estadoProyecto || 'Activo') === 'Activo'
                         );
-                        
-                        // Contar SOLO filas de proyecto antes de la posición arrastrada
-                        const allRows = Array.from(tbody.children);
-                        const draggedRowPosition = allRows.indexOf(evt.item);
-                        
-                        let oldVisualIndex = 0;
-                        let newVisualIndex = 0;
-                        
-                        // Calcular oldIndex: cuántas filas de proyecto hay ANTES del item arrastrado
-                        for (let i = 0; i < draggedRowPosition; i++) {
-                            if (allRows[i].classList.contains('proyecto-row')) {
-                                oldVisualIndex++;
-                            }
+
+                        const projectRows = Array.from(tbody.querySelectorAll('tr.proyecto-row'));
+                        const draggedProjectName = window._dragContext?.draggedProjectName || evt.item?.dataset?.projectName;
+
+                        // oldIndex robusto: por Sortable si existe, si no por nombre dentro de activos
+                        let oldVisualIndex = evt.oldDraggableIndex;
+                        if (typeof oldVisualIndex !== 'number' || oldVisualIndex < 0) {
+                            oldVisualIndex = proyectosActivos.findIndex(p => p.nombre === draggedProjectName);
                         }
-                        
-                        // Calcular newIndex: cuántas filas de proyecto hay ANTES de la nueva posición
-                        const newPosition = allRows.indexOf(evt.item);
-                        for (let i = 0; i < newPosition; i++) {
-                            if (allRows[i].classList.contains('proyecto-row')) {
-                                newVisualIndex++;
-                            }
+
+                        // newIndex robusto: por Sortable si existe, si no por posición final en filas de proyecto
+                        let newVisualIndex = evt.newDraggableIndex;
+                        if (typeof newVisualIndex !== 'number' || newVisualIndex < 0) {
+                            newVisualIndex = projectRows.findIndex(row => row === evt.item);
                         }
                         
                         // Si no hay cambio real, solo re-renderizar
@@ -485,7 +481,12 @@
                         // PASO 2: Validar que los índices estén en rango
                         if (oldVisualIndex < 0 || oldVisualIndex >= proyectosActivos.length ||
                             newVisualIndex < 0 || newVisualIndex >= proyectosActivos.length) {
-                            console.error('Índices fuera de rango');
+                            console.error('Índices fuera de rango', {
+                                oldVisualIndex,
+                                newVisualIndex,
+                                activos: proyectosActivos.length,
+                                draggedProjectName
+                            });
                             renderTable();
                             return;
                         }

@@ -333,16 +333,14 @@ const VistaVivaController = {
         }
         
         // Asegurarse de que el proyecto esté expandido
-        const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${projectIndex}"]`);
-        if (projectRow && projectRow.classList.contains('proyecto-collapsed')) {
-            if (window.toggleProject) {
-                window.toggleProject(projectIndex);
-            }
+        const detail = document.getElementById('detail-' + projectIndex);
+        if (detail && detail.style.display === 'none') {
+            ProjectController.toggle(projectIndex);
         }
         
         // Hacer scroll y highlight al elemento
         setTimeout(() => {
-            const elementRow = document.querySelector(`tr[data-element-path="${projectIndex}"]`);
+            const elementRow = document.querySelector(`.projRow[data-element-path="${projectIndex}"]`);
             if (elementRow) {
                 elementRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 elementRow.classList.add('highlight-element');
@@ -386,11 +384,9 @@ const VistaVivaController = {
         if (elementoPath) {
             // Expandir proyecto si está colapsado
             const projectIndex = elementoPath[0];
-            const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${projectIndex}"]`);
-            if (projectRow && projectRow.classList.contains('proyecto-collapsed')) {
-                if (window.toggleProject) {
-                    window.toggleProject(projectIndex);
-                }
+            const detail = document.getElementById('detail-' + projectIndex);
+            if (detail && detail.style.display === 'none') {
+                ProjectController.toggle(projectIndex);
             }
             
             // Esperar un poco y luego editar

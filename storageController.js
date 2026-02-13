@@ -273,7 +273,11 @@ const StorageController = {
 
         // Encontrar la fila correspondiente en el DOM
         const pathString = elementPath.join('-');
-        const row = document.querySelector(`tr[data-element-path="${pathString}"]`);
+        // Para proyectos (path length 1), buscar en .projRow; para hijos, en tr del detail table
+        const isProject = elementPath.length === 1;
+        const row = isProject
+            ? document.querySelector(`.projRow[data-element-path="${pathString}"]`)
+            : document.querySelector(`tr[data-element-path="${pathString}"]`);
         
         if (!row) {
             StorageController.notify('Fila no encontrada en la interfaz', 'error');
@@ -288,104 +292,106 @@ const StorageController = {
         };
         row.classList.add('editing-mode');
         
-        // Convertir celdas editables
-        const editableCells = row.querySelectorAll('[data-field]');
-        editableCells.forEach(cell => {
-            const field = cell.getAttribute('data-field');
-            let currentValue = '';
-            
-            // Obtener valor actual según el campo
-            if (field === 'nombre') {
-                currentValue = element.nombre || '';
-            } else if (field === 'descripcion') {
-                currentValue = element.descripcion || '';
-            } else if (field === 'prioridad') {
-                currentValue = element.prioridad || '';
-            } else if (field === 'avance') {
-                currentValue = element.avance || '';
-            } else if (field === 'esfuerzo') {
-                currentValue = element.esfuerzo || '';
-            } else if (field === 'deadline') {
-                currentValue = element.deadline || '';
-            } else if (field === 'estado') {
-                currentValue = element.estado || 'Pendiente';
+        // ── Proyecto-level: editar dentro del card .projRow ──
+        if (isProject) {
+            // Reemplazar .projTitle con inputs de nombre y descripción
+            const titleBlock = row.querySelector('.projTitle');
+            if (titleBlock) {
+                titleBlock.innerHTML = `
+                    <input type="text" class="form-control form-control-sm edit-input mb-1" value="${StorageController.escapeHtml(element.nombre || '')}" data-field="nombre" placeholder="Nombre">
+                    <textarea class="form-control form-control-sm edit-input" rows="1" data-field="descripcion" placeholder="Descripción">${StorageController.escapeHtml(element.descripcion || '')}</textarea>
+                `;
             }
-            
-            // Crear inputs específicos según el campo y tipo de elemento
-            if (field === 'nombre') {
-                const level = elementPath.length - 1;
-                const isProject = level === 0;
+            // Reemplazar .proj-more con botones guardar/cancelar
+            const moreWrap = row.querySelector('.proj-more');
+            if (moreWrap) {
+                moreWrap.innerHTML = `
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-success btn-sm" onclick="StorageController.saveEdit()" title="Guardar">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="StorageController.cancelEdit()" title="Cancelar">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                `;
+            }
+        } else {
+            // ── Child-level: editar dentro de la fila tr del detail table ──
+            // Convertir celdas editables
+            const editableCells = row.querySelectorAll('[data-field]');
+            editableCells.forEach(cell => {
+                const field = cell.getAttribute('data-field');
+                let currentValue = '';
                 
-                if (isProject) {
-                    // Para proyectos, mantener los controles y agregar input para el nombre
-                    const projectIndex = elementPath[0];
-                    cell.innerHTML = `
-                        <div class="project-controls">
-                            <span class="drag-handle" title="Arrastra para reordenar"><i class="bi bi-grip-vertical"></i></span>
-                            <button class="collapse-btn" onclick="toggleProject(${projectIndex})" title="Contraer/Expandir proyecto">
-                                <span class="collapse-icon"><i class="bi bi-chevron-down"></i></span>
-                            </button>
-                        </div>
-                        <select class="proyecto-estado-select" 
-                                data-current="${element.estadoProyecto || 'Activo'}"
-                                onchange="cambiarEstadoProyecto(${projectIndex}, this.value)">
-                            <option value="Activo" ${(!element.estadoProyecto || element.estadoProyecto === 'Activo') ? 'selected' : ''}>Activo</option>
-                            <option value="Backlog" ${element.estadoProyecto === 'Backlog' ? 'selected' : ''}>Backlog</option>
-                            <option value="Archivado" ${element.estadoProyecto === 'Archivado' ? 'selected' : ''}>Archivado</option>
-                        </select>
-                        <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 180px); margin-left: 8px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">
-                    `;
-                } else {
-                    // Para elementos anidados, usar indentación visual
-                    const indent = '  '.repeat(level);
+                // Obtener valor actual según el campo
+                if (field === 'nombre') {
+                    currentValue = element.nombre || '';
+                } else if (field === 'descripcion') {
+                    currentValue = element.descripcion || '';
+                } else if (field === 'prioridad') {
+                    currentValue = element.prioridad || '';
+                } else if (field === 'avance') {
+                    currentValue = element.avance || '';
+                } else if (field === 'esfuerzo') {
+                    currentValue = element.esfuerzo || '';
+                } else if (field === 'deadline') {
+                    currentValue = element.deadline || '';
+                } else if (field === 'estado') {
+                    currentValue = element.estado || 'Pendiente';
+                }
+                
+                // Crear inputs específicos según el campo
+                if (field === 'nombre') {
+                    const level = elementPath.length - 1;
                     const icon = level === 1 ? '<i class="bi bi-file-text"></i>' : '<i class="bi bi-file-earmark"></i>';
                     cell.innerHTML = `${icon} <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 30px); margin-left: ${level * 20}px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">`;
+                    return;
                 }
-                return;
-            }
+                
+                if (field === 'prioridad') {
+                    cell.innerHTML = `
+                        <select class="form-select form-select-sm edit-input" data-field="prioridad">
+                            <option value="">Sin prioridad</option>
+                            <option value="1" ${currentValue == '1' ? 'selected' : ''}>1 - Alta</option>
+                            <option value="2" ${currentValue == '2' ? 'selected' : ''}>2 - Media</option>
+                            <option value="3" ${currentValue == '3' ? 'selected' : ''}>3 - Baja</option>
+                        </select>
+                    `;
+                    return;
+                }
+                
+                if (field === 'deadline') {
+                    cell.innerHTML = `<input type="date" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="deadline">`;
+                    return;
+                }
+                
+                if (field === 'estado') {
+                    // Para estado, mantener el select directo (no crear uno nuevo en modo edición)
+                    return;
+                }
+                
+                // Input de texto por defecto para otros campos
+                if (field === 'descripcion') {
+                    cell.innerHTML = `<textarea class="form-control form-control-sm edit-input" rows="1" data-field="${field}">${StorageController.escapeHtml(currentValue)}</textarea>`;
+                } else {
+                    cell.innerHTML = `<input type="text" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="${field}">`;
+                }
+            });
             
-            if (field === 'prioridad') {
-                cell.innerHTML = `
-                    <select class="form-select form-select-sm edit-input" data-field="prioridad">
-                        <option value="">Sin prioridad</option>
-                        <option value="1" ${currentValue == '1' ? 'selected' : ''}>1 - Alta</option>
-                        <option value="2" ${currentValue == '2' ? 'selected' : ''}>2 - Media</option>
-                        <option value="3" ${currentValue == '3' ? 'selected' : ''}>3 - Baja</option>
-                    </select>
+            // Cambiar el área de acciones por botones de guardar/cancelar
+            const actionsArea = row.querySelector('.tblActions');
+            if (actionsArea) {
+                actionsArea.innerHTML = `
+                    <button class="btn btn-success btn-sm" onclick="StorageController.saveEdit()" title="Guardar">
+                        <i class="bi bi-check-lg"></i>
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="StorageController.cancelEdit()" title="Cancelar">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
                 `;
-                return;
             }
-            
-            if (field === 'deadline') {
-                cell.innerHTML = `<input type="date" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="deadline">`;
-                return;
-            }
-            
-            if (field === 'estado') {
-                // Para estado, mantener el select directo (no crear uno nuevo en modo edición)
-                return;
-            }
-            
-            // Input de texto por defecto para otros campos
-            if (field === 'descripcion') {
-                cell.innerHTML = `<textarea class="form-control form-control-sm edit-input" rows="1" data-field="${field}">${StorageController.escapeHtml(currentValue)}</textarea>`;
-            } else {
-                cell.innerHTML = `<input type="text" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="${field}">`;
-            }
-        });
-        
-        // Cambiar el dropdown de acciones por botones de guardar/cancelar
-        const actionsCell = row.querySelector('.actions-cell');
-        actionsCell.innerHTML = `
-            <div class="btn-group btn-group-sm">
-                <button class="btn btn-success btn-sm" onclick="StorageController.saveEdit()" title="Guardar">
-                    <i class="bi bi-check-lg"></i>
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="StorageController.cancelEdit()" title="Cancelar">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-        `;
+        } // end else (child-level)
         
         // Enfocar primer input
         const firstInput = row.querySelector('.edit-input');
@@ -629,7 +635,11 @@ const StorageController = {
             // Actualizar el atributo data-current del select y agregar animación
             setTimeout(() => {
                 const pathString = elementPath.join('-');
-                const selectElement = document.querySelector(`tr[data-element-path="${pathString}"] select.estado-select`);
+                // Buscar en .projRow (proyectos) o tr (hijos) según el nivel
+                const container = elementPath.length === 1
+                    ? document.querySelector(`.projRow[data-element-path="${pathString}"]`)
+                    : document.querySelector(`tr[data-element-path="${pathString}"]`);
+                const selectElement = container?.querySelector('select.estado-select');
                 if (selectElement) {
                     selectElement.setAttribute('data-current', newEstado);
                     selectElement.classList.add('estado-changed');
@@ -670,8 +680,9 @@ const StorageController = {
         
         const collapsedStates = {};
         window.proyectosData.forEach((_, index) => {
-            const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${index}"]`);
-            if (projectRow && projectRow.classList.contains('proyecto-collapsed')) {
+            const detail = document.getElementById('detail-' + index);
+            // Guardar como colapsado si el detail NO está visible
+            if (detail && detail.style.display === 'none') {
                 collapsedStates[index] = true;
             }
         });
@@ -690,11 +701,14 @@ const StorageController = {
             const savedStates = localStorage.getItem(`collapsedStates_${StorageController.currentBoardId}`);
             if (savedStates) {
                 const collapsedStates = JSON.parse(savedStates);
-                Object.keys(collapsedStates).forEach(index => {
-                    if (collapsedStates[index] && window.toggleProject) {
-                        // Usar setTimeout para asegurar que la tabla esté renderizada
+                // En el nuevo layout los details inician ocultos (display:none).
+                // collapsedStates guarda los que ESTÁN colapsados.
+                // Debemos expandir los que NO están en collapsedStates.
+                window.proyectosData.forEach((_, index) => {
+                    if (!collapsedStates[index]) {
+                        // Este proyecto estaba expandido, abrirlo
                         setTimeout(() => {
-                            window.toggleProject(parseInt(index));
+                            ProjectController.toggle(parseInt(index));
                         }, 10);
                     }
                 });

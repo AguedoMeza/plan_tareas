@@ -1,11 +1,11 @@
 // renderController.js
-// Controlador para renderizado – tabla global única con filas de sección
+// Controlador para renderizado – layout de tarjetas de proyecto con detalle expandible
 
 const RenderController = {
 
     /**
-     * Renderiza la tabla global única.
-     * Flujo: separar por estado → insertar section-header-row → proyectos → tareas.
+     * Renderiza el board completo con tarjetas de proyecto.
+     * Flujo: separar por estado → secciones Activos/Backlog/Archivados → tarjetas
      */
     renderTable: function() {
         DataController.cleanupCorruptedData();
@@ -16,49 +16,81 @@ const RenderController = {
 
         window.proyectosData.forEach((proyecto, index) => {
             const estado = proyecto.estadoProyecto || 'Activo';
-            const proyectoOrdenado = window.reglasNegocio.aplicarOrdenamientoRecursivo({...proyecto});
+            const proyectoOrdenado = window.reglasNegocio.aplicarOrdenamientoRecursivo({...proyecto, elementos: proyecto.elementos ? JSON.parse(JSON.stringify(proyecto.elementos)) : []});
             const entry = { proyecto: proyectoOrdenado, originalIndex: index };
             if (estado === 'Activo') activos.push(entry);
             else if (estado === 'Backlog') backlog.push(entry);
             else if (estado === 'Archivado') archivados.push(entry);
         });
 
-        const tbody = document.getElementById('boardTableBody');
-        tbody.innerHTML = '';
-
         const emptyState = document.getElementById('emptyStateActive');
-        const table = document.getElementById('boardTable');
+
+        // Secciones
+        const sectionActivos = document.getElementById('sectionActivos');
+        const sectionBacklog = document.getElementById('sectionBacklog');
+        const sectionArchivados = document.getElementById('sectionArchivados');
+        const listActivos = document.getElementById('projListActivos');
+        const listBacklog = document.getElementById('projListBacklog');
+        const listArchivados = document.getElementById('projListArchivados');
+
+        // Limpiar
+        listActivos.innerHTML = '';
+        listBacklog.innerHTML = '';
+        listArchivados.innerHTML = '';
 
         if (activos.length === 0 && backlog.length === 0 && archivados.length === 0) {
-            table.style.display = 'none';
+            sectionActivos.style.display = 'none';
+            sectionBacklog.style.display = 'none';
+            sectionArchivados.style.display = 'none';
             emptyState.style.display = 'block';
         } else {
-            table.style.display = 'table';
             emptyState.style.display = 'none';
+
+            // Activos
+            if (activos.length > 0) {
+                sectionActivos.style.display = '';
+                document.getElementById('countActivos').textContent = activos.length;
+                activos.forEach(entry => {
+                    listActivos.appendChild(
+                        RenderController._buildProjectCard(entry.proyecto, entry.originalIndex)
+                    );
+                });
+            } else {
+                sectionActivos.style.display = 'none';
+            }
+
+            // Backlog
+            if (backlog.length > 0) {
+                sectionBacklog.style.display = '';
+                document.getElementById('countBacklog').textContent = backlog.length;
+                backlog.forEach(entry => {
+                    listBacklog.appendChild(
+                        RenderController._buildProjectCard(entry.proyecto, entry.originalIndex)
+                    );
+                });
+            } else {
+                sectionBacklog.style.display = 'none';
+            }
+
+            // Archivados
+            if (archivados.length > 0) {
+                sectionArchivados.style.display = '';
+                document.getElementById('countArchivados').textContent = archivados.length;
+                archivados.forEach(entry => {
+                    listArchivados.appendChild(
+                        RenderController._buildProjectCard(entry.proyecto, entry.originalIndex)
+                    );
+                });
+            } else {
+                sectionArchivados.style.display = 'none';
+            }
         }
 
-        // Sección Activos
-        if (activos.length > 0) {
-            RenderController._insertSectionRow(tbody, 'Activos', activos.length, 'success');
-            activos.forEach(entry => {
-                RenderController._renderProject(entry.proyecto, entry.originalIndex, tbody);
-            });
-        }
-
-        // Sección Backlog
-        if (backlog.length > 0) {
-            RenderController._insertSectionRow(tbody, 'Backlog', backlog.length, 'warning');
-            backlog.forEach(entry => {
-                RenderController._renderProject(entry.proyecto, entry.originalIndex, tbody);
-            });
-        }
-
-        // Sección Archivados
-        if (archivados.length > 0) {
-            RenderController._insertSectionRow(tbody, 'Archivados', archivados.length, 'muted');
-            archivados.forEach(entry => {
-                RenderController._renderProject(entry.proyecto, entry.originalIndex, tbody);
-            });
+        // Badge total en panel header
+        const badge = document.getElementById('badgeProyectos');
+        if (badge) {
+            const total = activos.length + backlog.length + archivados.length;
+            badge.textContent = total + ' proyecto' + (total !== 1 ? 's' : '');
         }
 
         // Contadores en toolbar (si existen)
@@ -73,146 +105,187 @@ const RenderController = {
     },
 
     // --------------------------------------------------
-    // Fila de encabezado de sección (no es un <thead>, es un <tr> especial)
+    // Construye una tarjeta de proyecto (.projRow)
     // --------------------------------------------------
-    _insertSectionRow: function(tbody, label, count, colorKey) {
-        const tr = document.createElement('tr');
-        tr.className = 'section-row section-' + colorKey;
-        tr.innerHTML = `<td colspan="8">
-            <span class="section-label">${label}</span>
-            <span class="section-count">${count}</span>
-        </td>`;
-        tbody.appendChild(tr);
-    },
-
-    // --------------------------------------------------
-    // Renderiza un proyecto como fila compacta + sus hijos
-    // --------------------------------------------------
-    _renderProject: function(proyecto, originalIndex, tbody) {
-        const pathString = String(originalIndex);
+    _buildProjectCard: function(proyecto, originalIndex) {
         const avance = window.reglasNegocio.calcularAvanceGeneral(proyecto);
         const totalHijos = window.reglasNegocio.contarElementosRecursivo(proyecto) - 1;
         const estadoProyecto = proyecto.estadoProyecto || 'Activo';
-        const proximoDeadline = RenderController._getNextDeadline(proyecto);
         const esfuerzoTotal = RenderController._calcTotalEsfuerzo(proyecto);
+        const esc = RenderController.escapeHtml;
 
-        const dragHandle = estadoProyecto === 'Activo'
-            ? '<span class="drag-handle" title="Arrastra para reordenar"><i class="bi bi-grip-vertical"></i></span>'
-            : '';
+        const chipClass = estadoProyecto === 'Activo' ? 'statusChip--activo'
+            : estadoProyecto === 'Backlog' ? 'statusChip--backlog'
+            : 'statusChip--archivado';
 
-        const tr = document.createElement('tr');
-        tr.className = 'proyecto-row';
-        tr.dataset.elementPath = pathString;
-        tr.dataset.projectIndex = originalIndex;
-        tr.dataset.level = '0';
+        const card = document.createElement('div');
+        card.className = 'projRow';
+        card.dataset.projectIndex = originalIndex;
+        card.dataset.elementPath = String(originalIndex);
 
-        tr.innerHTML = `
-            <td class="proyecto-nombre" data-field="nombre">
-                <div class="project-controls">
-                    ${dragHandle}
-                    <button class="collapse-btn" onclick="ProjectController.toggle(${originalIndex})" id="btn-${originalIndex}" title="Contraer/Expandir">
-                        <span class="collapse-icon"><i class="bi bi-chevron-down"></i></span>
-                    </button>
-                </div>
-                <select class="proyecto-estado-select"
-                        data-current="${estadoProyecto}"
-                        onchange="ProjectController.cambiarEstado(${originalIndex}, this.value)">
-                    <option value="Activo" ${estadoProyecto === 'Activo' ? 'selected' : ''}>Activo</option>
-                    <option value="Backlog" ${estadoProyecto === 'Backlog' ? 'selected' : ''}>Backlog</option>
-                    <option value="Archivado" ${estadoProyecto === 'Archivado' ? 'selected' : ''}>Archivado</option>
-                </select>
-                <span class="proyecto-name-text">${RenderController.escapeHtml(proyecto.nombre)}</span>
-            </td>
-            <td class="proyecto-meta" data-field="descripcion">
-                ${RenderController.escapeHtml(proyecto.descripcion || '')}
-            </td>
-            <td></td>
-            <td class="avance">
-                <div class="progress-mini" title="${avance}%">
-                    <div class="progress-mini-bar" style="width:${avance}%"></div>
-                </div>
-                <span class="progress-label">${avance}%</span>
-            </td>
-            <td class="esfuerzo">${esfuerzoTotal ? RenderController.escapeHtml(esfuerzoTotal) : ''}</td>
-            <td class="deadline-hint">${proximoDeadline ? RenderController.escapeHtml(proximoDeadline) : ''}</td>
-            <td>
-                <span class="task-count">${totalHijos} elem.</span>
-            </td>
-            <td class="actions-cell">
-                <div class="dropdown">
-                    <button class="btn action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" onclick="StorageController.editRow([${originalIndex}])"><i class="bi bi-pencil me-2"></i>Editar</a></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([${originalIndex}])"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
-                    </ul>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(tr);
+        // ---- Main row (always visible) ----
+        const main = document.createElement('div');
+        main.className = 'projMain';
 
-        // Hijos recursivos
-        if (Array.isArray(proyecto.elementos)) {
-            proyecto.elementos.forEach((hijo, hijoIdx) => {
-                RenderController._renderChild(hijo, [originalIndex, hijoIdx], 1, tbody);
-            });
+        // 1. Collapse button
+        const colBtn = document.createElement('button');
+        colBtn.className = 'iconBtn';
+        colBtn.id = 'btn-' + originalIndex;
+        colBtn.title = 'Expandir';
+        colBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        colBtn.addEventListener('click', () => ProjectController.toggle(originalIndex));
+
+        // 2. Status chip (with hidden select inside for changing state)
+        const chipWrap = document.createElement('div');
+        chipWrap.className = 'statusChip ' + chipClass;
+        chipWrap.innerHTML = '<select class="proyecto-estado-select" data-current="' + esc(estadoProyecto) + '" onchange="ProjectController.cambiarEstado(' + originalIndex + ', this.value)">'
+            + '<option value="Activo"' + (estadoProyecto === 'Activo' ? ' selected' : '') + '>Activo</option>'
+            + '<option value="Backlog"' + (estadoProyecto === 'Backlog' ? ' selected' : '') + '>Backlog</option>'
+            + '<option value="Archivado"' + (estadoProyecto === 'Archivado' ? ' selected' : '') + '>Archivado</option>'
+            + '</select>';
+
+        // 3. Title block
+        const titleBlock = document.createElement('div');
+        titleBlock.className = 'projTitle';
+        titleBlock.innerHTML = '<p class="name">' + esc(proyecto.nombre) + '</p>'
+            + '<p class="desc">' + esc(proyecto.descripcion || '—') + '</p>';
+
+        // 4. Meta KPIs
+        const meta = document.createElement('div');
+        meta.className = 'projMeta';
+        meta.innerHTML = '<div class="kpiLine"><span class="label">Tareas</span><span class="value">' + totalHijos + '</span></div>'
+            + '<div class="kpiLine"><span class="label">Esfuerzo</span><span class="value">' + (esfuerzoTotal || '—') + '</span></div>';
+
+        // 5. Progress
+        const progressWrap = document.createElement('div');
+        progressWrap.innerHTML = '<div class="proj-progress" title="Avance ' + avance + '%"><span class="proj-progress-bar" style="width:' + Math.max(avance, 2) + '%"></span></div>'
+            + '<div class="proj-progress-label">' + avance + '%</div>';
+
+        // 6. Effort total
+        const effortEl = document.createElement('div');
+        effortEl.className = 'proj-effort';
+        effortEl.textContent = esfuerzoTotal || '—';
+
+        // 7. Actions (more menu)
+        const moreWrap = document.createElement('div');
+        moreWrap.className = 'proj-more';
+        if (estadoProyecto === 'Activo') {
+            moreWrap.innerHTML = '<span class="drag-handle" title="Arrastra para reordenar"><i class="bi bi-grip-vertical"></i></span>';
         }
+        moreWrap.innerHTML += '<div class="dropdown">'
+            + '<button class="btn action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots-vertical"></i></button>'
+            + '<ul class="dropdown-menu dropdown-menu-end">'
+            + '<li><a class="dropdown-item" href="#" onclick="StorageController.editRow([' + originalIndex + '])"><i class="bi bi-pencil me-2"></i>Editar</a></li>'
+            + '<li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([' + originalIndex + '])"><i class="bi bi-trash me-2"></i>Eliminar</a></li>'
+            + '</ul></div>';
+
+        main.appendChild(colBtn);
+        main.appendChild(chipWrap);
+        main.appendChild(titleBlock);
+        main.appendChild(meta);
+        main.appendChild(progressWrap);
+        main.appendChild(effortEl);
+        main.appendChild(moreWrap);
+        card.appendChild(main);
+
+        // ---- Detail (collapsed by default) ----
+        if (Array.isArray(proyecto.elementos) && proyecto.elementos.length > 0) {
+            const detail = document.createElement('div');
+            detail.className = 'projDetail';
+            detail.id = 'detail-' + originalIndex;
+            detail.style.display = 'none';
+
+            const table = document.createElement('table');
+            table.innerHTML = '<thead><tr>'
+                + '<th style="width:180px">Nombre</th>'
+                + '<th>Descripción</th>'
+                + '<th style="width:60px">Prior.</th>'
+                + '<th style="width:100px">Avance</th>'
+                + '<th style="width:90px">Esfuerzo</th>'
+                + '<th style="width:100px">Deadline</th>'
+                + '<th style="width:120px">Estado</th>'
+                + '<th style="width:80px;text-align:right">Acciones</th>'
+                + '</tr></thead>';
+
+            const tbody = document.createElement('tbody');
+            proyecto.elementos.forEach((hijo, hijoIdx) => {
+                RenderController._buildDetailRows(hijo, [originalIndex, hijoIdx], 1, tbody, proyecto.nombre);
+            });
+            table.appendChild(tbody);
+            detail.appendChild(table);
+            card.appendChild(detail);
+        }
+
+        return card;
     },
 
     // --------------------------------------------------
-    // Renderiza un hijo (tarea / subtarea) recursivamente
+    // Construye filas recursivas dentro de la tabla de detalle
     // --------------------------------------------------
-    _renderChild: function(elemento, elementPath, level, tbody) {
-        const pathString = elementPath.join('-');
+    _buildDetailRows: function(elemento, elementPath, level, tbody, projectName) {
+        const esc = RenderController.escapeHtml;
         const hasChildren = Array.isArray(elemento.elementos) && elemento.elementos.length > 0;
-        const indent = level * 20;
-        const icon = level === 1 ? '<i class="bi bi-file-text"></i>' : '<i class="bi bi-file-earmark"></i>';
+        const pathString = elementPath.join('-');
 
         const tr = document.createElement('tr');
-        tr.className = level === 1 ? 'tarea-row' : 'subtarea-row';
-        if (hasChildren) tr.classList.add('tarea-con-subtareas');
+        tr.className = level === 1 ? 'task-row' : 'subtask-row';
+        if (hasChildren) tr.classList.add('task-row-parent');
         tr.dataset.elementPath = pathString;
         tr.dataset.projectIndex = elementPath[0];
         tr.dataset.level = level;
         tr.dataset.parentPath = elementPath.slice(0, -1).join('-');
 
-        tr.innerHTML = `
-            <td data-field="nombre" style="padding-left:${indent + 14}px">
-                ${icon} <strong>${RenderController.escapeHtml(elemento.nombre)}</strong>
-            </td>
-            <td data-field="descripcion">${RenderController.escapeHtml(elemento.descripcion || '')}</td>
-            <td data-field="prioridad" class="prioridad">${RenderController.escapeHtml(elemento.prioridad || '')}</td>
-            <td data-field="avance" class="avance">${RenderController.escapeHtml(elemento.avance || '')}</td>
-            <td data-field="esfuerzo" class="esfuerzo">${RenderController.escapeHtml(elemento.esfuerzo || '')}</td>
-            <td data-field="deadline">${RenderController.escapeHtml(elemento.deadline || '')}</td>
-            <td>
-                <select class="estado estado-select" data-current="${elemento.estado || 'Pendiente'}"
-                        onchange="StorageController.updateElementEstado([${elementPath.join(',')}], this.value)">
-                    <option value="Pendiente" ${(elemento.estado || 'Pendiente') === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                    <option value="En progreso" ${elemento.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
-                    <option value="Completado" ${elemento.estado === 'Completado' ? 'selected' : ''}>Completado</option>
-                    <option value="Bloqueado" ${elemento.estado === 'Bloqueado' ? 'selected' : ''}>Bloqueado</option>
-                    <option value="Backlog" ${elemento.estado === 'Backlog' ? 'selected' : ''}>Backlog</option>
-                </select>
-            </td>
-            <td class="actions-cell">
-                <div class="dropdown">
-                    <button class="btn action-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-three-dots-vertical"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" onclick="StorageController.editRow([${elementPath.join(',')}])"><i class="bi bi-pencil me-2"></i>Editar</a></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="StorageController.deleteElement([${elementPath.join(',')}])"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
-                    </ul>
-                </div>
-            </td>
-        `;
+        // Priority class
+        const prioVal = elemento.prioridad ? elemento.prioridad.toString() : '';
+        const prioClass = prioVal === '1' ? 'prio-1' : prioVal === '2' ? 'prio-2' : prioVal === '3' ? 'prio-3' : '';
+
+        // Estado class for inline display
+        const estado = elemento.estado || 'Pendiente';
+
+        // Avance for elements with children
+        let avanceDisplay = esc(elemento.avance || '');
+        if (hasChildren) {
+            const calc = window.reglasNegocio.calcularAvanceRecursivo(elemento);
+            avanceDisplay = '<div class="proj-progress" style="height:6px;"><span class="proj-progress-bar" style="width:' + Math.max(calc, 2) + '%"></span></div>'
+                + '<div style="margin-top:4px;color:var(--text-muted);font-size:11px;text-align:right;">' + calc + '%</div>';
+        } else if (estado === 'Completado' && !avanceDisplay) {
+            avanceDisplay = '100%';
+        }
+
+        const indent = level > 1 ? 'style="padding-left:' + ((level - 1) * 20 + 10) + 'px"' : '';
+
+        tr.innerHTML = ''
+            + '<td ' + indent + ' data-field="nombre">'
+            + '<div class="itemName">' + esc(elemento.nombre) + '</div>'
+            + (hasChildren ? '<div class="itemSub">Agrupador</div>' : (level > 1 ? '<div class="itemSub">Subtarea</div>' : '<div class="itemSub">Tarea</div>'))
+            + '</td>'
+            + '<td data-field="descripcion"><span class="itemSub">' + esc(elemento.descripcion || '—') + '</span></td>'
+            + '<td data-field="prioridad">' + (prioVal ? '<span class="prio ' + prioClass + '">' + esc(prioVal) + '</span>' : '') + '</td>'
+            + '<td data-field="avance">' + avanceDisplay + '</td>'
+            + '<td data-field="esfuerzo"><b>' + esc(elemento.esfuerzo || '') + '</b></td>'
+            + '<td data-field="deadline">' + esc(elemento.deadline || '—') + '</td>'
+            + '<td>'
+            + '<select class="estado estado-select" data-current="' + esc(estado) + '" onchange="StorageController.updateElementEstado([' + elementPath.join(',') + '], this.value)">'
+            + '<option value="Pendiente"' + (estado === 'Pendiente' ? ' selected' : '') + '>Pendiente</option>'
+            + '<option value="En progreso"' + (estado === 'En progreso' ? ' selected' : '') + '>En progreso</option>'
+            + '<option value="Completado"' + (estado === 'Completado' ? ' selected' : '') + '>Completado</option>'
+            + '<option value="Bloqueado"' + (estado === 'Bloqueado' ? ' selected' : '') + '>Bloqueado</option>'
+            + '<option value="Backlog"' + (estado === 'Backlog' ? ' selected' : '') + '>Backlog</option>'
+            + '</select>'
+            + '</td>'
+            + '<td style="text-align:right">'
+            + '<div class="tblActions">'
+            + '<span class="action-icon" title="Editar" onclick="StorageController.editRow([' + elementPath.join(',') + '])"><i class="bi bi-pencil"></i></span>'
+            + '<span class="action-icon danger" title="Eliminar" onclick="StorageController.deleteElement([' + elementPath.join(',') + '])"><i class="bi bi-trash"></i></span>'
+            + '</div>'
+            + '</td>';
+
         tbody.appendChild(tr);
 
+        // Recurse children
         if (hasChildren) {
             elemento.elementos.forEach((hijo, idx) => {
-                RenderController._renderChild(hijo, [...elementPath, idx], level + 1, tbody);
+                RenderController._buildDetailRows(hijo, [...elementPath, idx], level + 1, tbody, projectName);
             });
         }
     },

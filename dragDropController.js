@@ -6,30 +6,28 @@ const DragDropController = {
     sortableInstance: null,
 
     /**
-     * Inicializa Drag & Drop en la tabla de proyectos activos.
-     * Usa forceFallback para evitar bugs del HTML5 DnD nativo en tablas.
+     * Inicializa Drag & Drop en la lista de proyectos activos.
+     * Ahora opera sobre el contenedor div #projListActivos con .projRow items.
      */
     initialize: function() {
-        const tbody = document.getElementById('boardTableBody');
-        if (!tbody) return;
+        const container = document.getElementById('projListActivos');
+        if (!container) return;
         
         // Destruir instancia anterior si existe
         DragDropController.destroy();
         
         // Crear nueva instancia de Sortable
-        DragDropController.sortableInstance = new Sortable(tbody, {
+        DragDropController.sortableInstance = new Sortable(container, {
             animation: 200,
             handle: '.drag-handle',
-            draggable: '.proyecto-row',
-            filter: '.section-row, .tarea-row, .subtarea-row',
-            preventOnFilter: true,
+            draggable: '.projRow',
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
             forceFallback: true,
             fallbackTolerance: 3,
             
             onStart: function(evt) {
-                DragDropController._onDragStart(evt, tbody);
+                DragDropController._onDragStart(evt);
             },
             
             onEnd: function(evt) {
@@ -54,36 +52,19 @@ const DragDropController = {
 
     /**
      * Handler para inicio del arrastre.
-     * Guarda contexto y oculta filas no-proyecto para cálculo correcto de posiciones.
+     * Guarda contexto.
      */
-    _onDragStart: function(evt, tbody) {
-        // Guardar contexto ANTES de ocultar filas
+    _onDragStart: function(evt) {
         window._dragContext = {
             collapsedStates: DragDropController.getCollapsedStatesByName(),
             scrollPosition: window.scrollY,
-            draggedProjectName: evt.item.querySelector('.proyecto-nombre')?.textContent?.trim() || ''
+            draggedProjectName: evt.item.querySelector('.projTitle .name')?.textContent?.trim() || ''
         };
-        
-        // CLAVE: Ocultar TODAS las filas no-proyecto del tbody
-        // Permite que SortableJS calcule posiciones correctamente
-        const nonProjectRows = tbody.querySelectorAll('tr:not(.proyecto-row)');
-        nonProjectRows.forEach(row => {
-            row.style.display = 'none';
-        });
-
-        // También ocultar proyecto-rows que NO son activos (backlog/archivados)
-        tbody.querySelectorAll('tr.proyecto-row').forEach(row => {
-            const idx = parseInt(row.dataset.projectIndex);
-            const p = window.proyectosData[idx];
-            if (p && (p.estadoProyecto || 'Activo') !== 'Activo') {
-                row.style.display = 'none';
-            }
-        });
     },
 
     /**
      * Handler para fin del arrastre.
-     * Usa oldDraggableIndex/newDraggableIndex que cuentan solo filas .proyecto-row.
+     * Usa oldDraggableIndex/newDraggableIndex.
      */
     _onDragEnd: function(evt) {
         try {
@@ -153,39 +134,37 @@ const DragDropController = {
     // =============================================
 
     /**
-     * Captura estados colapsados usando NOMBRE del proyecto como clave.
-     * Esto es resistente a cambios de índice al reordenar.
-     * @returns {Object} { "Nombre Proyecto": true, ... }
+     * Captura estados colapsados (expandidos) usando NOMBRE del proyecto como clave.
+     * En el nuevo layout, un proyecto está "expandido" si su detail div está visible.
+     * @returns {Object} { "Nombre Proyecto": true, ... }  (true = expandido)
      */
     getCollapsedStatesByName: function() {
         const states = {};
-        document.querySelectorAll('tr.proyecto-row.proyecto-collapsed').forEach(row => {
-            const index = parseInt(row.dataset.projectIndex);
+        document.querySelectorAll('.projRow').forEach(card => {
+            const index = parseInt(card.dataset.projectIndex);
             const project = window.proyectosData[index];
-            if (project && project.nombre) {
-                states[project.nombre] = true;
+            const detail = document.getElementById('detail-' + index);
+            if (project && project.nombre && detail && detail.style.display !== 'none') {
+                states[project.nombre] = true; // expanded
             }
         });
         return states;
     },
 
     /**
-     * Restaura estados colapsados buscando proyectos por nombre.
-     * @param {Object} collapsedStates - Objeto con nombres de proyectos colapsados
+     * Restaura estados expandidos buscando proyectos por nombre.
+     * @param {Object} expandedStates - Objeto con nombres de proyectos expandidos
      */
-    restoreCollapsedStatesByName: function(collapsedStates) {
-        if (!collapsedStates) return;
+    restoreCollapsedStatesByName: function(expandedStates) {
+        if (!expandedStates) return;
         
-        Object.keys(collapsedStates).forEach(projectName => {
+        Object.keys(expandedStates).forEach(projectName => {
             const currentIndex = window.proyectosData.findIndex(p => p && p.nombre === projectName);
             
-            if (currentIndex !== -1 && collapsedStates[projectName]) {
-                const projectRow = document.querySelector(
-                    `tr.proyecto-row[data-project-index="${currentIndex}"]`
-                );
-                
-                // Solo toggle si NO está ya colapsado
-                if (projectRow && !projectRow.classList.contains('proyecto-collapsed')) {
+            if (currentIndex !== -1 && expandedStates[projectName]) {
+                const detail = document.getElementById('detail-' + currentIndex);
+                // Expand if not already expanded
+                if (detail && detail.style.display === 'none') {
                     ProjectController.toggle(currentIndex);
                 }
             }
@@ -203,13 +182,13 @@ const DragDropController = {
     highlightMovedProject: function(projectName) {
         const projectIndex = window.proyectosData.findIndex(p => p && p.nombre === projectName);
         if (projectIndex !== -1) {
-            const movedRow = document.querySelector(
-                `tr.proyecto-row[data-project-index="${projectIndex}"]`
+            const movedCard = document.querySelector(
+                `.projRow[data-project-index="${projectIndex}"]`
             );
-            if (movedRow) {
-                movedRow.classList.add('project-moved-highlight');
+            if (movedCard) {
+                movedCard.classList.add('project-moved-highlight');
                 setTimeout(() => {
-                    movedRow.classList.remove('project-moved-highlight');
+                    movedCard.classList.remove('project-moved-highlight');
                 }, 1500);
             }
         }

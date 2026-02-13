@@ -59,36 +59,52 @@
 
     <!-- VISTA COMPLETA -->
     <div id="vistaCompletaContainer">
-        <div class="board-table-wrap">
-            <table id="boardTable">
-                <colgroup>
-                    <col style="width:260px"><!-- Nombre -->
-                    <col><!-- Descripción -->
-                    <col style="width:70px"><!-- Prioridad -->
-                    <col style="width:90px"><!-- Avance -->
-                    <col style="width:110px"><!-- Esfuerzo -->
-                    <col style="width:100px"><!-- Deadline -->
-                    <col style="width:120px"><!-- Estado -->
-                    <col style="width:50px"><!-- Acciones -->
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                        <th>Prior.</th>
-                        <th>Avance</th>
-                        <th>Esfuerzo</th>
-                        <th>Deadline</th>
-                        <th>Estado</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody id="boardTableBody"></tbody>
-            </table>
+        <div class="panel" id="boardPanel">
+            <div class="panelHeader">
+                <h2><i class="bi bi-kanban"></i> Board <span class="panelBadge" id="badgeProyectos">Proyectos</span></h2>
+            </div>
+
+            <!-- Sección Activos -->
+            <div class="board-section" id="sectionActivos" style="display:none;">
+                <div class="sectionTitle sectionTitle--ok">
+                    <div class="sectionTitle-left">
+                        <span class="sectionDot sectionDot--ok"></span>
+                        <span>Activos</span>
+                        <span class="sectionCount" id="countActivos">0</span>
+                    </div>
+                </div>
+                <div class="projList" id="projListActivos"></div>
+            </div>
+
+            <!-- Sección Backlog -->
+            <div class="board-section" id="sectionBacklog" style="display:none;">
+                <div class="sectionTitle sectionTitle--warn">
+                    <div class="sectionTitle-left">
+                        <span class="sectionDot sectionDot--warn"></span>
+                        <span>Backlog</span>
+                        <span class="sectionCount" id="countBacklog">0</span>
+                    </div>
+                </div>
+                <div class="projList" id="projListBacklog"></div>
+            </div>
+
+            <!-- Sección Archivados -->
+            <div class="board-section" id="sectionArchivados" style="display:none;">
+                <div class="sectionTitle sectionTitle--muted">
+                    <div class="sectionTitle-left">
+                        <span class="sectionDot sectionDot--muted"></span>
+                        <span>Archivados</span>
+                        <span class="sectionCount" id="countArchivados">0</span>
+                    </div>
+                </div>
+                <div class="projList" id="projListArchivados"></div>
+            </div>
+
+            <!-- Estado vacío -->
             <div id="emptyStateActive" style="display: none; text-align: center; padding: 40px; color: var(--text-muted);">
                 <div style="font-size: 48px; margin-bottom: 16px;"><i class="bi bi-bullseye"></i></div>
-                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No hay proyectos activos</div>
-                <div style="font-size: 14px;">Crea un nuevo proyecto o activa alguno desde Backlog</div>
+                <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No hay proyectos</div>
+                <div style="font-size: 14px;">Crea un nuevo proyecto para empezar</div>
             </div>
         </div>
     </div>

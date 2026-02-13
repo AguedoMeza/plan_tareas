@@ -4,37 +4,28 @@
 const ProjectController = {
     
     /**
-     * Colapsa o expande un proyecto mostrando/ocultando sus elementos hijos.
+     * Colapsa o expande un proyecto mostrando/ocultando su detalle.
      * @param {number} index - Índice del proyecto en proyectosData
      */
     toggle: function(index) {
-        const projectRow = document.querySelector(`tr.proyecto-row[data-project-index="${index}"]`);
-        if (!projectRow) return;
+        const card = document.querySelector(`.projRow[data-project-index="${index}"]`);
+        if (!card) return;
         
         const button = document.getElementById(`btn-${index}`);
         if (!button) return;
         
-        const icon = button.querySelector('.collapse-icon');
-        const allRelatedRows = document.querySelectorAll(`tr[data-project-index="${index}"]:not(.proyecto-row)`);
+        const detail = document.getElementById(`detail-${index}`);
         
-        if (projectRow.classList.contains('proyecto-collapsed')) {
-            // Expandir
-            projectRow.classList.remove('proyecto-collapsed');
-            icon.innerHTML = '<i class="bi bi-chevron-down"></i>';
-            button.title = 'Contraer proyecto';
-            
-            allRelatedRows.forEach(row => {
-                row.style.display = '';
-            });
-        } else {
+        if (detail && detail.style.display !== 'none') {
             // Colapsar
-            projectRow.classList.add('proyecto-collapsed');
-            icon.innerHTML = '<i class="bi bi-chevron-right"></i>';
-            button.title = 'Expandir proyecto';
-            
-            allRelatedRows.forEach(row => {
-                row.style.display = 'none';
-            });
+            detail.style.display = 'none';
+            button.innerHTML = '<i class="bi bi-chevron-right"></i>';
+            button.title = 'Expandir';
+        } else if (detail) {
+            // Expandir
+            detail.style.display = '';
+            button.innerHTML = '<i class="bi bi-chevron-down"></i>';
+            button.title = 'Contraer';
         }
         
         StorageController.toggleProjectPersistent(index);
@@ -94,7 +85,7 @@ const ProjectController = {
         setTimeout(() => {
             const newIndex = window.proyectosData.findIndex(p => p.nombre === proyecto.nombre);
             const selectElement = document.querySelector(
-                `tr[data-project-index="${newIndex}"] .proyecto-estado-select`
+                `.projRow[data-project-index="${newIndex}"] .proyecto-estado-select`
             );
             if (selectElement) {
                 selectElement.setAttribute('data-current', nuevoEstado);

@@ -32,8 +32,13 @@ const App = {
     initializeTooltips: function() {
         if (typeof bootstrap === 'undefined' || !document) return;
 
-        // Asegurar atributos necesarios para tooltip en elementos con title
-        document.querySelectorAll('[title]').forEach(el => {
+        // Convertir title -> data-bs-title para evitar tooltip nativo del navegador
+        document.querySelectorAll('[title], [data-bs-title]').forEach(el => {
+            const titleText = el.getAttribute('title');
+            if (titleText) {
+                el.setAttribute('data-bs-title', titleText);
+                el.removeAttribute('title');
+            }
             if (!el.getAttribute('data-bs-toggle')) {
                 el.setAttribute('data-bs-toggle', 'tooltip');
             }
@@ -44,7 +49,45 @@ const App = {
 
         // Instanciar tooltips
         document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
-            new bootstrap.Tooltip(el);
+            const existing = bootstrap.Tooltip.getInstance(el);
+            if (existing) {
+                existing.dispose();
+            }
+
+            const tooltip = new bootstrap.Tooltip(el, {
+                trigger: 'hover',
+                container: 'body'
+            });
+
+            // Evitar que el tooltip quede visible por foco tras click
+            if (!el.dataset.tooltipClickBound) {
+                el.addEventListener('click', () => {
+                    tooltip.hide();
+                    if (typeof el.blur === 'function') {
+                        el.blur();
+                    }
+                });
+                el.dataset.tooltipClickBound = '1';
+            }
+        });
+    },
+
+    updateTooltipText: function(element, newText) {
+        if (!element || typeof bootstrap === 'undefined') return;
+
+        if (newText) {
+            element.setAttribute('data-bs-title', newText);
+        }
+        element.removeAttribute('title');
+
+        const instance = bootstrap.Tooltip.getInstance(element);
+        if (instance) {
+            instance.dispose();
+        }
+
+        new bootstrap.Tooltip(element, {
+            trigger: 'hover',
+            container: 'body'
         });
     },
 

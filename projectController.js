@@ -20,12 +20,20 @@ const ProjectController = {
             // Colapsar
             detail.style.display = 'none';
             button.innerHTML = '<i class="bi bi-chevron-right"></i>';
-            button.title = 'Expandir';
+            if (window.App && typeof App.updateTooltipText === 'function') {
+                App.updateTooltipText(button, 'Expandir');
+            } else {
+                button.title = 'Expandir';
+            }
         } else if (detail) {
             // Expandir
             detail.style.display = '';
             button.innerHTML = '<i class="bi bi-chevron-down"></i>';
-            button.title = 'Contraer';
+            if (window.App && typeof App.updateTooltipText === 'function') {
+                App.updateTooltipText(button, 'Contraer');
+            } else {
+                button.title = 'Contraer';
+            }
         }
         
         StorageController.toggleProjectPersistent(index);

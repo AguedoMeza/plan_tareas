@@ -151,6 +151,10 @@ const RenderController = {
             }, 20);
         }
 
+        if (window.App && typeof App.initializeTooltips === 'function') {
+            App.initializeTooltips();
+        }
+
         DragDropController.initialize();
     },
 

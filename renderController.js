@@ -10,7 +10,7 @@ const RenderController = {
     renderTable: function() {
         DataController.cleanupCorruptedData();
 
-        // ── Capturar estados antes de destruir el DOM ──
+        // Capturar estados antes de destruir el DOM
         const prevProjectStates = {};
         const prevGrouperStates = {};
         document.querySelectorAll('.projRow').forEach(card => {
@@ -27,6 +27,9 @@ const RenderController = {
                 prevGrouperStates[gp] = true; // collapsed
             }
         });
+        // Guardar en memoria temporal
+        window._lastProjectStates = prevProjectStates;
+        window._lastGrouperStates = prevGrouperStates;
         const hadPreviousDOM = Object.keys(prevProjectStates).length > 0 ||
             document.querySelectorAll('.projRow').length > 0;
 
@@ -124,18 +127,18 @@ const RenderController = {
         if (cb) cb.textContent = backlog.length;
         if (cr) cr.textContent = archivados.length;
 
-        // ── Restaurar estados colapsados si había DOM previo ──
-        if (hadPreviousDOM) {
-            // Restaurar proyectos expandidos
-            Object.keys(prevProjectStates).forEach(idx => {
+        // Restaurar estados colapsados si había DOM previo
+        if (window._lastProjectStates && Object.keys(window._lastProjectStates).length > 0) {
+            Object.keys(window._lastProjectStates).forEach(idx => {
                 const detail = document.getElementById('detail-' + idx);
                 if (detail && detail.style.display === 'none') {
                     ProjectController.toggle(parseInt(idx));
                 }
             });
-            // Restaurar agrupadores colapsados
+        }
+        if (window._lastGrouperStates && Object.keys(window._lastGrouperStates).length > 0) {
             setTimeout(() => {
-                Object.keys(prevGrouperStates).forEach(gp => {
+                Object.keys(window._lastGrouperStates).forEach(gp => {
                     const btn = document.querySelector(`.grouper-toggle[data-group-path="${gp}"]`);
                     if (btn) {
                         const icon = btn.querySelector('i');

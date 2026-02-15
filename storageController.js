@@ -473,7 +473,7 @@ const StorageController = {
 
             if (window.renderTable) {
                 window.renderTable();
-                StorageController.loadCollapsedStates();
+                setTimeout(() => StorageController.saveCollapsedStates(), 50);
             }
             StorageController.currentlyEditing = null;
         } catch (error) {
@@ -488,6 +488,7 @@ const StorageController = {
         // Re-renderizar para restaurar estado original
         if (window.renderTable) {
             window.renderTable();
+            setTimeout(() => StorageController.saveCollapsedStates(), 50);
         }
         StorageController.currentlyEditing = null;
     },
@@ -628,7 +629,7 @@ const StorageController = {
             // Re-renderizar para actualizar avances generales y estilos
             if (window.renderTable) {
                 window.renderTable();
-                StorageController.loadCollapsedStates();
+                setTimeout(() => StorageController.saveCollapsedStates(), 50);
             }
 
             

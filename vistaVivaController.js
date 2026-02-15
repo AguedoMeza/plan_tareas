@@ -272,6 +272,7 @@ const VistaVivaController = {
     // 8. FUNCIÓN PARA CAMBIAR ENTRE VISTAS
     // ============================================
     cambiarVista: function(vista) {
+        const vistaAnterior = VistaVivaController.vistaActual;
         VistaVivaController.vistaActual = vista;
         
         // Actualizar botones/tabs
@@ -285,6 +286,11 @@ const VistaVivaController = {
         const vistaVivaContainer = document.getElementById('vistaVivaContainer');
         
         if (vista === 'viva') {
+            // Persistir colapsos actuales antes de ocultar la vista completa
+            if (vistaAnterior === 'completa' && window.StorageController) {
+                StorageController.saveCollapsedStates();
+            }
+
             // Ocultar vista completa, mostrar vista viva
             if (vistaCompletaContainer) vistaCompletaContainer.style.display = 'none';
             if (vistaVivaContainer) vistaVivaContainer.style.display = 'block';
@@ -293,10 +299,15 @@ const VistaVivaController = {
             // Ocultar vista viva, mostrar vista completa
             if (vistaVivaContainer) vistaVivaContainer.style.display = 'none';
             if (vistaCompletaContainer) vistaCompletaContainer.style.display = 'block';
-            if (window.renderTable) {
+
+            // No re-renderizar al volver para mantener exactamente el estado visual
+            // (expandido/colapsado) tal como estaba.
+            // Solo re-renderizar si por alguna razón no hay tarjetas en el DOM.
+            const hasRenderedCards = !!document.querySelector('.projRow');
+            if (!hasRenderedCards && window.renderTable) {
                 window.renderTable();
+                StorageController.loadCollapsedStates();
             }
-            StorageController.loadCollapsedStates(); // Restaurar estados de colapso
         }
         
         // Guardar preferencia

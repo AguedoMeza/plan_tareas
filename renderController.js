@@ -354,6 +354,10 @@ const RenderController = {
             ? '<span class="grouper-toggle" data-group-path="' + pathString + '" onclick="RenderController.toggleGroup(\'' + pathString + '\', this)" title="Contraer/Expandir"><i class="bi bi-chevron-down"></i></span> '
             : '';
 
+        const avanceAttrs = (!hasChildren && currentProgress === 100)
+            ? ' data-avance="100"'
+            : '';
+
         tr.innerHTML = ''
             + '<td ' + indent + ' data-field="nombre">'
             + '<div class="itemName">' + toggleBtn + esc(elemento.nombre) + '</div>'
@@ -361,7 +365,7 @@ const RenderController = {
             + '</td>'
             + '<td data-field="descripcion"><span class="itemSub">' + esc(elemento.descripcion || '—') + '</span></td>'
             + '<td data-field="prioridad">' + (prioVal ? '<span class="prio ' + prioClass + '">' + esc(prioVal) + '</span>' : '') + '</td>'
-            + '<td class="cell-avance" data-field="avance">' + avanceDisplay + '</td>'
+            + '<td class="cell-avance" data-field="avance"' + avanceAttrs + '>' + avanceDisplay + '</td>'
             + '<td data-field="esfuerzo"><b>' + esc(elemento.esfuerzo || '') + '</b></td>'
             + '<td data-field="deadline" style="text-align:center;">'
             + (elemento.deadline

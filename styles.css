@@ -408,6 +408,13 @@ body {
     font-weight: 700;
 }
 
+/* Reduce visual weight for 100% in tasks */
+.projDetail tbody td.cell-avance[data-avance="100"] {
+    color: var(--text-muted);
+    opacity: 0.6;
+    font-weight: 400;
+}
+
 .projDetail tbody td.cell-avance .proj-progress {
     height: 8px;
 }

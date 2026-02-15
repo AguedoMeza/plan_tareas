@@ -351,7 +351,7 @@ const RenderController = {
         const indent = level > 1 ? 'style="padding-left:' + ((level - 1) * 20 + 10) + 'px"' : '';
 
         const toggleBtn = hasChildren
-            ? '<span class="grouper-toggle" data-group-path="' + pathString + '" onclick="RenderController.toggleGroup(\'' + pathString + '\', this)" title="Contraer/Expandir"><i class="bi bi-chevron-down"></i></span> '
+            ? '<span class="grouper-toggle" data-group-path="' + pathString + '" onclick="RenderController.toggleGroup(\'' + pathString + '\', this)" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Contraer"><i class="bi bi-chevron-down"></i></span> '
             : '';
 
         const avanceAttrs = (!hasChildren && currentProgress === 100)
@@ -450,10 +450,18 @@ const RenderController = {
         // Toggle icon
         if (isCollapsed) {
             icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
-            btnElement.title = 'Contraer';
+            if (window.App && typeof App.updateTooltipText === 'function') {
+                App.updateTooltipText(btnElement, 'Contraer');
+            } else {
+                btnElement.setAttribute('data-bs-title', 'Contraer');
+            }
         } else {
             icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
-            btnElement.title = 'Expandir';
+            if (window.App && typeof App.updateTooltipText === 'function') {
+                App.updateTooltipText(btnElement, 'Expandir');
+            } else {
+                btnElement.setAttribute('data-bs-title', 'Expandir');
+            }
         }
 
         // Persistir estado

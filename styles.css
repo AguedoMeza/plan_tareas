@@ -196,10 +196,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 10px;
+    padding: 5px 9px; /* -8% aprox */
     border-radius: 999px;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 11.2px; /* -7% aprox */
+    font-weight: 600;
+    opacity: 0.92; /* reduce peso visual */
+    letter-spacing: 0.01em;
     white-space: nowrap;
     cursor: pointer;
     transition: all .15s;
@@ -294,10 +296,13 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 11px;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--text-primary);
     pointer-events: none;
     text-shadow: 0 1px 3px rgba(0,0,0,.6);
+    font-family: 'JetBrains Mono', 'Fira Mono', 'Menlo', 'Consolas', monospace;
+    letter-spacing: 0.01em;
+    opacity: 0.92;
 }
 
 /* More / actions */
@@ -453,6 +458,8 @@ body {
 }
 .projDetail .subtask-row td {
     color: var(--text-muted);
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 .projDetail .subtask-row td:first-child {
     padding-left: 30px;

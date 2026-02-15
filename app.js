@@ -27,6 +27,11 @@ const App = {
 
         // Inicializar tooltips de Bootstrap
         App.initializeTooltips();
+
+        // Inicializar asistente IA si está disponible
+        if (window.AIController && typeof AIController.initialize === 'function') {
+            AIController.initialize();
+        }
     },
 
     initializeTooltips: function() {

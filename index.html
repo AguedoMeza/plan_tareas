@@ -137,6 +137,48 @@
         </div>
     </div>
 
+    <!-- Asistente IA -->
+    <div id="aiAssistant" class="ai-assistant">
+        <button id="aiToggle" class="ai-toggle" title="Asistente IA">
+            <i class="bi bi-robot"></i>
+            <span>Asistente</span>
+        </button>
+
+        <div id="aiPanel" class="ai-panel" style="display:none;">
+            <div class="ai-panel-header">
+                <div class="ai-title"><i class="bi bi-stars"></i> Asistente IA</div>
+                <div class="ai-actions">
+                    <button id="aiSettingsBtn" class="ai-icon-btn" title="Configurar API Key">
+                        <i class="bi bi-key"></i>
+                    </button>
+                    <button id="aiCloseBtn" class="ai-icon-btn" title="Cerrar">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="ai-panel-body">
+                <div id="aiMessages" class="ai-messages"></div>
+            </div>
+            <div class="ai-panel-footer">
+                <div id="aiKeyPanel" class="ai-key-panel" style="display:none;">
+                    <div class="ai-key-title">API Key de OpenAI</div>
+                    <input id="aiApiKeyInput" type="password" placeholder="sk-..." autocomplete="off" />
+                    <div class="ai-key-actions">
+                        <button id="aiSaveKeyBtn" class="ai-key-btn">Guardar</button>
+                        <button id="aiClearKeyBtn" class="ai-key-btn ai-key-btn--ghost">Borrar</button>
+                    </div>
+                    <div class="ai-key-note">Se guarda localmente en este navegador.</div>
+                </div>
+                <div class="ai-input-row">
+                    <textarea id="aiInput" rows="2" placeholder="Escribe un comando... (ej. Crear proyecto Ventas)"></textarea>
+                    <button id="aiSendBtn" class="ai-send" title="Enviar">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -156,6 +198,7 @@
     <script src="renderController.js"></script>
     <script src="dragDropController.js"></script>
     <script src="projectController.js"></script>
+    <script src="aiController.js"></script>
     
     <!-- Punto de entrada de la aplicación (debe ser el último) -->
     <script src="app.js"></script>

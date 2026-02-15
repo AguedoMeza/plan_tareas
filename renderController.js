@@ -325,14 +325,17 @@ const RenderController = {
         const estado = elemento.estado || 'Pendiente';
 
         // Avance for elements with children
-        const hideNumericPct = parentProgress === 100;
+        const parentPercent = parentProgress == null
+            ? null
+            : (typeof parentProgress === 'string' ? parseFloat(parentProgress) : parentProgress);
+        const hideNumericPct = !hasChildren && estado === 'Completado' && parentPercent >= 100;
         let avanceDisplay = esc(elemento.avance || '');
         let currentProgress = null;
         if (hasChildren) {
             const calc = window.reglasNegocio.calcularAvanceRecursivo(elemento);
             currentProgress = calc;
             avanceDisplay = '<div class="proj-progress" style="height:6px;"><span class="proj-progress-bar" style="width:' + Math.max(calc, 2) + '%"></span></div>'
-                + (hideNumericPct ? '' : '<div style="margin-top:4px;color:var(--text-muted);font-size:11px;text-align:right;">' + calc + '%</div>');
+                + '<div style="margin-top:4px;color:var(--text-muted);font-size:11px;text-align:right;">' + calc + '%</div>';
         } else if (estado === 'Completado' && !avanceDisplay) {
             currentProgress = 100;
             avanceDisplay = hideNumericPct ? '' : '100%';

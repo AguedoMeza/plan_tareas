@@ -22,9 +22,9 @@ const RenderController = {
         });
         document.querySelectorAll('.grouper-toggle').forEach(btn => {
             const icon = btn.querySelector('i');
-            const gp = btn.dataset.groupPath;
-            if (icon && gp && icon.classList.contains('bi-chevron-right')) {
-                prevGrouperStates[gp] = true; // collapsed
+            const grouperKey = RenderController.getGrouperStableKey(btn);
+            if (icon && grouperKey && icon.classList.contains('bi-chevron-right')) {
+                prevGrouperStates[grouperKey] = true; // collapsed
             }
         });
         // Guardar en memoria temporal
@@ -138,12 +138,13 @@ const RenderController = {
         }
         if (window._lastGrouperStates && Object.keys(window._lastGrouperStates).length > 0) {
             setTimeout(() => {
-                Object.keys(window._lastGrouperStates).forEach(gp => {
-                    const btn = document.querySelector(`.grouper-toggle[data-group-path="${gp}"]`);
-                    if (btn) {
+                document.querySelectorAll('.grouper-toggle').forEach(btn => {
+                    const grouperKey = RenderController.getGrouperStableKey(btn);
+                    if (grouperKey && window._lastGrouperStates[grouperKey]) {
                         const icon = btn.querySelector('i');
-                        if (icon && icon.classList.contains('bi-chevron-down')) {
-                            RenderController.toggleGroup(gp, btn);
+                        const groupPath = btn.dataset.groupPath;
+                        if (icon && groupPath && icon.classList.contains('bi-chevron-down')) {
+                            RenderController.toggleGroup(groupPath, btn);
                         }
                     }
                 });
@@ -276,7 +277,14 @@ const RenderController = {
 
             const tbody = document.createElement('tbody');
             proyecto.elementos.forEach((hijo, hijoIdx) => {
-                RenderController._buildDetailRows(hijo, [originalIndex, hijoIdx], 1, tbody, proyecto.nombre);
+                RenderController._buildDetailRows(
+                    hijo,
+                    [originalIndex, hijoIdx],
+                    1,
+                    tbody,
+                    proyecto.nombre,
+                    [proyecto.nombre, hijo.nombre]
+                );
             });
             table.appendChild(tbody);
             detail.appendChild(table);
@@ -289,15 +297,17 @@ const RenderController = {
     // --------------------------------------------------
     // Construye filas recursivas dentro de la tabla de detalle
     // --------------------------------------------------
-    _buildDetailRows: function(elemento, elementPath, level, tbody, projectName) {
+    _buildDetailRows: function(elemento, elementPath, level, tbody, projectName, stablePathParts = []) {
         const esc = RenderController.escapeHtml;
         const hasChildren = Array.isArray(elemento.elementos) && elemento.elementos.length > 0;
         const pathString = elementPath.join('-');
+        const stableKey = stablePathParts.map(p => String(p || '').trim()).join(' > ');
 
         const tr = document.createElement('tr');
         tr.className = level === 1 ? 'task-row' : 'subtask-row';
         if (hasChildren) tr.classList.add('task-row-parent');
         tr.dataset.elementPath = pathString;
+        tr.dataset.stableKey = stableKey;
         tr.dataset.projectIndex = elementPath[0];
         tr.dataset.level = level;
         tr.dataset.parentPath = elementPath.slice(0, -1).join('-');
@@ -364,7 +374,14 @@ const RenderController = {
         // Recurse children
         if (hasChildren) {
             elemento.elementos.forEach((hijo, idx) => {
-                RenderController._buildDetailRows(hijo, [...elementPath, idx], level + 1, tbody, projectName);
+                RenderController._buildDetailRows(
+                    hijo,
+                    [...elementPath, idx],
+                    level + 1,
+                    tbody,
+                    projectName,
+                    [...stablePathParts, hijo.nombre]
+                );
             });
         }
     },
@@ -460,6 +477,17 @@ const RenderController = {
         if (totalSemanas) parts.push(totalSemanas + 's');
         if (totalDias) parts.push(totalDias + 'd');
         return parts.join(' ') || '';
+    },
+
+    /**
+     * Genera una clave estable para un agrupador a partir del path de nombres.
+     * Esto evita desalineación cuando cambian índices por reordenamiento.
+     */
+    getGrouperStableKey: function(btnElement) {
+        if (!btnElement) return null;
+        const row = btnElement.closest('tr[data-stable-key]');
+        if (!row) return null;
+        return row.dataset.stableKey || null;
     },
 
     // --------------------------------------------------

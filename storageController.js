@@ -692,9 +692,11 @@ const StorageController = {
         const grouperStates = {};
         document.querySelectorAll('.grouper-toggle').forEach(btn => {
             const icon = btn.querySelector('i');
-            const groupPath = btn.dataset.groupPath;
-            if (icon && groupPath && icon.classList.contains('bi-chevron-right')) {
-                grouperStates[groupPath] = true; // collapsed
+            const grouperKey = window.RenderController?.getGrouperStableKey
+                ? RenderController.getGrouperStableKey(btn)
+                : null;
+            if (icon && grouperKey && icon.classList.contains('bi-chevron-right')) {
+                grouperStates[grouperKey] = true; // collapsed
             }
         });
         
@@ -732,12 +734,15 @@ const StorageController = {
                 const grouperStates = JSON.parse(savedGroupers);
                 // Aplicar con delay para que el DOM ya esté listo tras expandir proyectos
                 setTimeout(() => {
-                    Object.keys(grouperStates).forEach(groupPath => {
-                        const btn = document.querySelector(`.grouper-toggle[data-group-path="${groupPath}"]`);
-                        if (btn && grouperStates[groupPath]) {
+                    document.querySelectorAll('.grouper-toggle').forEach(btn => {
+                        const grouperKey = window.RenderController?.getGrouperStableKey
+                            ? RenderController.getGrouperStableKey(btn)
+                            : null;
+                        if (grouperKey && grouperStates[grouperKey]) {
                             const icon = btn.querySelector('i');
+                            const groupPath = btn.dataset.groupPath;
                             // Solo colapsar si actualmente está expandido
-                            if (icon && icon.classList.contains('bi-chevron-down')) {
+                            if (icon && groupPath && icon.classList.contains('bi-chevron-down')) {
                                 RenderController.toggleGroup(groupPath, btn);
                             }
                         }

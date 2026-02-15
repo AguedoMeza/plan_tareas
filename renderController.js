@@ -331,7 +331,12 @@ const RenderController = {
             + '<td data-field="prioridad">' + (prioVal ? '<span class="prio ' + prioClass + '">' + esc(prioVal) + '</span>' : '') + '</td>'
             + '<td class="cell-avance" data-field="avance">' + avanceDisplay + '</td>'
             + '<td data-field="esfuerzo"><b>' + esc(elemento.esfuerzo || '') + '</b></td>'
-            + '<td data-field="deadline">' + esc(elemento.deadline || '—') + '</td>'
+            + '<td data-field="deadline" style="text-align:center;">'
+            + (elemento.deadline
+                ? '<span>' + esc(elemento.deadline) + '</span>'
+                : '<span class="deadline-empty">Sin fecha</span>'
+            )
+            + '</td>'
             + (hasChildren
                 ? '<td class="cell-estado cell-estado-empty" aria-hidden="true">&nbsp;</td>'
                 : '<td class="cell-estado" style="text-align:center;vertical-align:middle;">'

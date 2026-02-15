@@ -220,6 +220,14 @@ body {
     color: rgba(255,255,255,.72);
 }
 
+/* Spacer cuando se oculta el estado en proyectos padre */
+.statusSpacer {
+    min-height: 28px;
+    min-width: 90px;
+    pointer-events: none;
+    opacity: 0;
+}
+
 /* Project title block */
 .projTitle {
     min-width: 0;
@@ -399,6 +407,10 @@ body {
 .projDetail tbody td.cell-estado .badge {
     opacity: .75;
 }
+.projDetail tbody td.cell-estado-empty {
+    opacity: 0;
+    pointer-events: none;
+}
 .projDetail tbody tr:last-child td { border-bottom: 0; }
 
 .projDetail .route {
@@ -423,10 +435,21 @@ body {
 .projDetail .task-row { background: transparent; }
 .projDetail .task-row:hover { background: rgba(255,255,255,.03); }
 .projDetail .task-row-parent {
-    background: rgba(255,255,255,.02);
+    background: rgba(255,255,255,.01);
 }
 .projDetail .task-row-parent:hover {
-    background: rgba(255,255,255,.04);
+    background: rgba(255,255,255,.025);
+}
+.projDetail .task-row-parent td {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+.projDetail .task-row-parent .itemName {
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+.projDetail .task-row-parent .itemSub {
+    color: var(--text-muted);
 }
 .projDetail .subtask-row td {
     color: var(--text-muted);

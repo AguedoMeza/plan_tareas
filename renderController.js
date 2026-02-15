@@ -36,7 +36,10 @@ const RenderController = {
 
         window.proyectosData.forEach((proyecto, index) => {
             const estado = proyecto.estadoProyecto || 'Activo';
-            const proyectoOrdenado = window.reglasNegocio.aplicarOrdenamientoRecursivo({...proyecto, elementos: proyecto.elementos ? JSON.parse(JSON.stringify(proyecto.elementos)) : []});
+            const proyectoOrdenado = window.reglasNegocio.aplicarOrdenamientoRecursivo({
+                ...proyecto,
+                elementos: proyecto.elementos ? JSON.parse(JSON.stringify(proyecto.elementos)) : []
+            });
             const entry = { proyecto: proyectoOrdenado, originalIndex: index };
             if (estado === 'Activo') activos.push(entry);
             else if (estado === 'Backlog') backlog.push(entry);
@@ -155,6 +158,7 @@ const RenderController = {
         const totalHijos = window.reglasNegocio.contarElementosRecursivo(proyecto) - 1;
         const estadoProyecto = proyecto.estadoProyecto || 'Activo';
         const esfuerzoTotal = RenderController._calcTotalEsfuerzo(proyecto);
+        const hasChildrenProject = Array.isArray(proyecto.elementos) && proyecto.elementos.length > 0;
         const esc = RenderController.escapeHtml;
 
         const chipClass = estadoProyecto === 'Activo' ? 'statusChip--activo'
@@ -178,22 +182,25 @@ const RenderController = {
         colBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
         colBtn.addEventListener('click', () => ProjectController.toggle(originalIndex));
 
-        // 2. Status chip (with select or lock icon for archived)
-        const chipWrap = document.createElement('div');
-        chipWrap.className = 'statusChip ' + chipClass;
-        if (estadoProyecto === 'Archivado') {
-            chipWrap.innerHTML = '<i class="bi bi-lock-fill" style="font-size:11px;margin-right:4px"></i>'
-                + '<select class="proyecto-estado-select" data-current="' + esc(estadoProyecto) + '" onchange="ProjectController.cambiarEstado(' + originalIndex + ', this.value)">'
-                + '<option value="Activo">Activo</option>'
-                + '<option value="Backlog">Backlog</option>'
-                + '<option value="Archivado" selected>Archivado</option>'
-                + '</select>';
-        } else {
-            chipWrap.innerHTML = '<select class="proyecto-estado-select" data-current="' + esc(estadoProyecto) + '" onchange="ProjectController.cambiarEstado(' + originalIndex + ', this.value)">'
-                + '<option value="Activo"' + (estadoProyecto === 'Activo' ? ' selected' : '') + '>Activo</option>'
-                + '<option value="Backlog"' + (estadoProyecto === 'Backlog' ? ' selected' : '') + '>Backlog</option>'
-                + '<option value="Archivado"' + (estadoProyecto === 'Archivado' ? ' selected' : '') + '>Archivado</option>'
-                + '</select>';
+        // 2. Status chip (oculto en proyectos padre con barra de avance)
+        let chipWrap = null;
+        if (!hasChildrenProject) {
+            chipWrap = document.createElement('div');
+            chipWrap.className = 'statusChip ' + chipClass;
+            if (estadoProyecto === 'Archivado') {
+                chipWrap.innerHTML = '<i class="bi bi-lock-fill" style="font-size:11px;margin-right:4px"></i>'
+                    + '<select class="proyecto-estado-select" data-current="' + esc(estadoProyecto) + '" onchange="ProjectController.cambiarEstado(' + originalIndex + ', this.value)">'
+                    + '<option value="Activo">Activo</option>'
+                    + '<option value="Backlog">Backlog</option>'
+                    + '<option value="Archivado" selected>Archivado</option>'
+                    + '</select>';
+            } else {
+                chipWrap.innerHTML = '<select class="proyecto-estado-select" data-current="' + esc(estadoProyecto) + '" onchange="ProjectController.cambiarEstado(' + originalIndex + ', this.value)">'
+                    + '<option value="Activo"' + (estadoProyecto === 'Activo' ? ' selected' : '') + '>Activo</option>'
+                    + '<option value="Backlog"' + (estadoProyecto === 'Backlog' ? ' selected' : '') + '>Backlog</option>'
+                    + '<option value="Archivado"' + (estadoProyecto === 'Archivado' ? ' selected' : '') + '>Archivado</option>'
+                    + '</select>';
+            }
         }
 
         // 3. Title block
@@ -231,7 +238,14 @@ const RenderController = {
             + '</ul></div>';
 
         main.appendChild(colBtn);
-        main.appendChild(chipWrap);
+        if (chipWrap) {
+            main.appendChild(chipWrap);
+        } else {
+            const chipSpacer = document.createElement('div');
+            chipSpacer.className = 'statusSpacer';
+            chipSpacer.setAttribute('aria-hidden', 'true');
+            main.appendChild(chipSpacer);
+        }
         main.appendChild(titleBlock);
         main.appendChild(meta);
         main.appendChild(progressWrap);
@@ -318,15 +332,18 @@ const RenderController = {
             + '<td class="cell-avance" data-field="avance">' + avanceDisplay + '</td>'
             + '<td data-field="esfuerzo"><b>' + esc(elemento.esfuerzo || '') + '</b></td>'
             + '<td data-field="deadline">' + esc(elemento.deadline || '—') + '</td>'
-            + '<td class="cell-estado" style="text-align:center;vertical-align:middle;">'
-            + '<select class="estado estado-select" data-current="' + esc(estado) + '" onchange="StorageController.updateElementEstado([' + elementPath.join(',') + '], this.value)">'
-            + '<option value="Pendiente"' + (estado === 'Pendiente' ? ' selected' : '') + '>Pendiente</option>'
-            + '<option value="En progreso"' + (estado === 'En progreso' ? ' selected' : '') + '>En progreso</option>'
-            + '<option value="Completado"' + (estado === 'Completado' ? ' selected' : '') + '>Completado</option>'
-            + '<option value="Bloqueado"' + (estado === 'Bloqueado' ? ' selected' : '') + '>Bloqueado</option>'
-            + '<option value="Backlog"' + (estado === 'Backlog' ? ' selected' : '') + '>Backlog</option>'
-            + '</select>'
-            + '</td>'
+            + (hasChildren
+                ? '<td class="cell-estado cell-estado-empty" aria-hidden="true">&nbsp;</td>'
+                : '<td class="cell-estado" style="text-align:center;vertical-align:middle;">'
+                    + '<select class="estado estado-select" data-current="' + esc(estado) + '" onchange="StorageController.updateElementEstado([' + elementPath.join(',') + '], this.value)">'
+                    + '<option value="Pendiente"' + (estado === 'Pendiente' ? ' selected' : '') + '>Pendiente</option>'
+                    + '<option value="En progreso"' + (estado === 'En progreso' ? ' selected' : '') + '>En progreso</option>'
+                    + '<option value="Completado"' + (estado === 'Completado' ? ' selected' : '') + '>Completado</option>'
+                    + '<option value="Bloqueado"' + (estado === 'Bloqueado' ? ' selected' : '') + '>Bloqueado</option>'
+                    + '<option value="Backlog"' + (estado === 'Backlog' ? ' selected' : '') + '>Backlog</option>'
+                    + '</select>'
+                + '</td>'
+            )
             + '<td style="text-align:right">'
             + '<div class="tblActions">'
             + '<span class="action-icon" title="Editar" onclick="StorageController.editRow([' + elementPath.join(',') + '])"><i class="bi bi-pencil"></i></span>'

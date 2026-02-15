@@ -1098,6 +1098,36 @@ table {
 }
 
 /* ======================================
+   TOOLTIP (Bootstrap)
+   ====================================== */
+.tooltip {
+    --bs-tooltip-bg: rgba(17, 28, 39, 0.98);
+    --bs-tooltip-color: var(--text-primary);
+    --bs-tooltip-opacity: 1;
+    --bs-tooltip-padding-x: 10px;
+    --bs-tooltip-padding-y: 6px;
+    --bs-tooltip-border-radius: 10px;
+    --bs-tooltip-font-size: 12px;
+    --bs-tooltip-max-width: 280px;
+}
+
+.tooltip-inner {
+    border: 1px solid var(--border-color);
+    box-shadow: 0 10px 26px rgba(0,0,0,.45);
+    letter-spacing: 0.01em;
+}
+
+.tooltip.bs-tooltip-top .tooltip-arrow::before,
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before,
+.tooltip.bs-tooltip-start .tooltip-arrow::before,
+.tooltip.bs-tooltip-end .tooltip-arrow::before {
+    border-top-color: rgba(17, 28, 39, 0.98);
+    border-bottom-color: rgba(17, 28, 39, 0.98);
+    border-left-color: rgba(17, 28, 39, 0.98);
+    border-right-color: rgba(17, 28, 39, 0.98);
+}
+
+/* ======================================
    RESPONSIVE
    ====================================== */
 @media (max-width: 1020px) {

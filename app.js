@@ -24,6 +24,28 @@ const App = {
         // Renderizar y restaurar estado visual
         RenderController.renderTable();
         StorageController.loadCollapsedStates();
+
+        // Inicializar tooltips de Bootstrap
+        App.initializeTooltips();
+    },
+
+    initializeTooltips: function() {
+        if (typeof bootstrap === 'undefined' || !document) return;
+
+        // Asegurar atributos necesarios para tooltip en elementos con title
+        document.querySelectorAll('[title]').forEach(el => {
+            if (!el.getAttribute('data-bs-toggle')) {
+                el.setAttribute('data-bs-toggle', 'tooltip');
+            }
+            if (!el.getAttribute('data-bs-placement')) {
+                el.setAttribute('data-bs-placement', 'top');
+            }
+        });
+
+        // Instanciar tooltips
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            new bootstrap.Tooltip(el);
+        });
     },
 
     /**

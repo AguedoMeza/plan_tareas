@@ -165,8 +165,8 @@ const VistaVivaController = {
                     ${item.deadline !== '9999-99-99' ? VistaVivaController.escapeHtml(item.deadline) : ''}
                 </td>
                 <td class="estado-column">
-                    <select class="estado estado-select" data-current="${item.estado}" 
-                            onchange="VistaVivaController.cambiarEstadoDesdeVistaViva(${index}, this.value)">
+                        <select class="estado estado-select" data-current="${item.estado}" 
+                            onchange="VistaVivaController.cambiarEstadoDesdeVistaViva(${index}, this.value, this)">
                         <option value="Pendiente" ${item.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                         <option value="En progreso" ${item.estado === 'En progreso' ? 'selected' : ''}>En progreso</option>
                         <option value="Completado">Completado</option>
@@ -194,7 +194,7 @@ const VistaVivaController = {
     // ============================================
     // 5. FUNCIÓN PARA CAMBIAR ESTADO DESDE VISTA VIVA
     // ============================================
-    cambiarEstadoDesdeVistaViva: function(index, nuevoEstado) {
+    cambiarEstadoDesdeVistaViva: function(index, nuevoEstado, selectElement) {
         const elementosVivos = VistaVivaController.obtenerElementosVivos();
         const item = elementosVivos[index];
         
@@ -205,7 +205,7 @@ const VistaVivaController = {
         
         // Actualizar el estado del elemento original
         const elementoPath = VistaVivaController.obtenerPathNumerico(item.rutaOriginal);
-        StorageController.updateElementEstado(elementoPath, nuevoEstado);
+        StorageController.updateElementEstado(elementoPath, nuevoEstado, selectElement);
         
         // Re-renderizar vista viva
         VistaVivaController.renderVistaViva();

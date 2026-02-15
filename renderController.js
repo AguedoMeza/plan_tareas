@@ -369,7 +369,7 @@ const RenderController = {
             + (hasChildren
                 ? '<td class="cell-estado cell-estado-empty" aria-hidden="true">&nbsp;</td>'
                 : '<td class="cell-estado" style="text-align:center;vertical-align:middle;">'
-                    + '<select class="estado estado-select" data-current="' + esc(estado) + '" onchange="StorageController.updateElementEstado([' + elementPath.join(',') + '], this.value)">'
+                    + '<select class="estado estado-select" data-current="' + esc(estado) + '" onchange="StorageController.updateElementEstado([' + elementPath.join(',') + '], this.value, this)">'
                     + '<option value="Pendiente"' + (estado === 'Pendiente' ? ' selected' : '') + '>Pendiente</option>'
                     + '<option value="En progreso"' + (estado === 'En progreso' ? ' selected' : '') + '>En progreso</option>'
                     + '<option value="Completado"' + (estado === 'Completado' ? ' selected' : '') + '>Completado</option>'

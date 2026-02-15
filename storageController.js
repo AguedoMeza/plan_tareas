@@ -585,7 +585,7 @@ const StorageController = {
     },
 
     // Función recursiva para actualizar estado de elementos
-    updateElementEstado: function(elementPath, newEstado) {
+    updateElementEstado: function(elementPath, newEstado, selectElement = null) {
         try {
             const element = StorageController.findElementByPath(elementPath);
             if (!element) {
@@ -607,6 +607,15 @@ const StorageController = {
             } else if (String(element.avance || '').trim() === '100%') {
                 // Si cambia a otro estado, limpiar el avance auto-asignado
                 element.avance = '';
+            }
+
+            // Actualizar el color del select inmediatamente si se dispone
+            if (selectElement) {
+                selectElement.setAttribute('data-current', newEstado);
+                selectElement.classList.add('estado-changed');
+                setTimeout(() => {
+                    selectElement.classList.remove('estado-changed');
+                }, 500);
             }
 
             // Recalcular estados de padres (agrupadores y proyecto) en cascada

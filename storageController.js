@@ -604,7 +604,13 @@ const StorageController = {
             // Si se marca como completado, asignar 100% avance
             if (newEstado === 'Completado') {
                 element.avance = '100%';
+            } else if (String(element.avance || '').trim() === '100%') {
+                // Si cambia a otro estado, limpiar el avance auto-asignado
+                element.avance = '';
             }
+
+            // Recalcular estados de padres (agrupadores y proyecto) en cascada
+            StorageController.recalculateParentEstados(elementPath);
             
             // Aplicar ordenamiento automático SOLO a elementos hijo (NO a proyectos)
             if (elementPath.length > 1) {
@@ -659,6 +665,68 @@ const StorageController = {
                 window.renderTable();
             }
         }
+    },
+
+    // Recalcula el estado de los padres según sus hijos (recursivo hacia arriba)
+    recalculateParentEstados: function(elementPath) {
+        if (!Array.isArray(elementPath) || elementPath.length < 2) return;
+
+        let currentPath = elementPath.slice(0, -1);
+        while (currentPath.length > 0) {
+            const parentElement = StorageController.findElementByPath(currentPath);
+            if (!parentElement || !Array.isArray(parentElement.elementos) || parentElement.elementos.length === 0) {
+                currentPath = currentPath.slice(0, -1);
+                continue;
+            }
+
+            const nextEstado = StorageController.computeEstadoFromChildren(parentElement.elementos);
+            if (nextEstado && parentElement.estado !== nextEstado) {
+                parentElement.estado = nextEstado;
+                if (nextEstado === 'Completado') {
+                    parentElement.avance = '100%';
+                } else if (parentElement.avance === '100%') {
+                    parentElement.avance = '';
+                }
+            }
+
+            // Reordenar el contenedor del padre si corresponde (no aplica para proyectos)
+            if (currentPath.length > 1) {
+                const containerPath = currentPath.slice(0, -1);
+                const container = StorageController.findElementByPath(containerPath);
+                if (container && Array.isArray(container.elementos) && container.elementos.length > 1) {
+                    container.elementos = window.reglasNegocio.ordenarElementosPorEstado(container.elementos);
+                }
+            }
+
+            currentPath = currentPath.slice(0, -1);
+        }
+    },
+
+    // Determina el estado agregado de un conjunto de hijos
+    computeEstadoFromChildren: function(children) {
+        if (!Array.isArray(children) || children.length === 0) return null;
+
+        const prioridadEstado = {
+            'Pendiente': 1,
+            'En progreso': 2,
+            'Bloqueado': 3,
+            'Backlog': 4,
+            'Completado': 5
+        };
+
+        let best = null;
+        let bestPriority = Infinity;
+
+        children.forEach(child => {
+            const estado = child.estado || 'Pendiente';
+            const priority = prioridadEstado[estado] || 6;
+            if (priority < bestPriority) {
+                bestPriority = priority;
+                best = estado;
+            }
+        });
+
+        return best || 'Pendiente';
     },
 
     // Mantener compatibilidad con función anterior

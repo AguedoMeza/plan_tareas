@@ -287,7 +287,8 @@ const RenderController = {
                     1,
                     tbody,
                     proyecto.nombre,
-                    [proyecto.nombre, hijo.nombre]
+                    [proyecto.nombre, hijo.nombre],
+                    avance
                 );
             });
             table.appendChild(tbody);
@@ -301,7 +302,7 @@ const RenderController = {
     // --------------------------------------------------
     // Construye filas recursivas dentro de la tabla de detalle
     // --------------------------------------------------
-    _buildDetailRows: function(elemento, elementPath, level, tbody, projectName, stablePathParts = []) {
+    _buildDetailRows: function(elemento, elementPath, level, tbody, projectName, stablePathParts = [], parentProgress = null) {
         const esc = RenderController.escapeHtml;
         const hasChildren = Array.isArray(elemento.elementos) && elemento.elementos.length > 0;
         const pathString = elementPath.join('-');
@@ -324,13 +325,24 @@ const RenderController = {
         const estado = elemento.estado || 'Pendiente';
 
         // Avance for elements with children
+        const hideNumericPct = parentProgress === 100;
         let avanceDisplay = esc(elemento.avance || '');
+        let currentProgress = null;
         if (hasChildren) {
             const calc = window.reglasNegocio.calcularAvanceRecursivo(elemento);
+            currentProgress = calc;
             avanceDisplay = '<div class="proj-progress" style="height:6px;"><span class="proj-progress-bar" style="width:' + Math.max(calc, 2) + '%"></span></div>'
-                + '<div style="margin-top:4px;color:var(--text-muted);font-size:11px;text-align:right;">' + calc + '%</div>';
+                + (hideNumericPct ? '' : '<div style="margin-top:4px;color:var(--text-muted);font-size:11px;text-align:right;">' + calc + '%</div>');
         } else if (estado === 'Completado' && !avanceDisplay) {
-            avanceDisplay = '100%';
+            currentProgress = 100;
+            avanceDisplay = hideNumericPct ? '' : '100%';
+        } else if (!isNaN(parseFloat(elemento.avance))) {
+            currentProgress = parseFloat(elemento.avance);
+            if (hideNumericPct) {
+                avanceDisplay = '';
+            }
+        } else if (hideNumericPct) {
+            avanceDisplay = '';
         }
 
         const indent = level > 1 ? 'style="padding-left:' + ((level - 1) * 20 + 10) + 'px"' : '';
@@ -384,7 +396,8 @@ const RenderController = {
                     level + 1,
                     tbody,
                     projectName,
-                    [...stablePathParts, hijo.nombre]
+                    [...stablePathParts, hijo.nombre],
+                    currentProgress
                 );
             });
         }

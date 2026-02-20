@@ -258,7 +258,7 @@ const StorageController = {
     },
     
     // Funciones para editar y eliminar elementos
-    editRow: function(elementPath) {
+    editRow: function(elementPath, focusField = null) {
         // Cancelar edición actual si existe
         if (StorageController.currentlyEditing) {
             StorageController.cancelEdit();
@@ -297,21 +297,22 @@ const StorageController = {
             // Reemplazar .projTitle con inputs de nombre y descripción
             const titleBlock = row.querySelector('.projTitle');
             if (titleBlock) {
+                titleBlock.classList.add('edit-cell', 'edit-title');
                 titleBlock.innerHTML = `
-                    <input type="text" class="form-control form-control-sm edit-input mb-1" value="${StorageController.escapeHtml(element.nombre || '')}" data-field="nombre" placeholder="Nombre">
-                    <textarea class="form-control form-control-sm edit-input" rows="1" data-field="descripcion" placeholder="Descripción">${StorageController.escapeHtml(element.descripcion || '')}</textarea>
+                    <div class="edit-input edit-input-nombre" contenteditable="true" data-field="nombre" spellcheck="false">${StorageController.escapeHtml(element.nombre || '')}</div>
+                    <div class="edit-input" contenteditable="true" data-field="descripcion" spellcheck="false">${StorageController.escapeHtml(element.descripcion || '')}</div>
                 `;
             }
             // Reemplazar .proj-more con botones guardar/cancelar
             const moreWrap = row.querySelector('.proj-more');
             if (moreWrap) {
                 moreWrap.innerHTML = `
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-success btn-sm" onclick="StorageController.saveEdit()" title="Guardar">
-                            <i class="bi bi-check-lg"></i>
+                    <div class="edit-actions">
+                        <button class="btn-edit-save" onclick="StorageController.saveEdit()" title="Guardar (Enter)">
+                            <i class="bi bi-check-lg"></i> ↵
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="StorageController.cancelEdit()" title="Cancelar">
-                            <i class="bi bi-x-lg"></i>
+                        <button class="btn-edit-cancel" onclick="StorageController.cancelEdit()" title="Cancelar (Esc)">
+                            esc
                         </button>
                     </div>
                 `;
@@ -322,6 +323,7 @@ const StorageController = {
             const editableCells = row.querySelectorAll('[data-field]');
             editableCells.forEach(cell => {
                 const field = cell.getAttribute('data-field');
+                cell.classList.add('edit-cell');
                 let currentValue = '';
                 
                 // Obtener valor actual según el campo
@@ -341,71 +343,95 @@ const StorageController = {
                     currentValue = element.estado || 'Pendiente';
                 }
                 
-                // Crear inputs específicos según el campo
-                if (field === 'nombre') {
-                    const level = elementPath.length - 1;
-                    const icon = level === 1 ? '<i class="bi bi-file-text"></i>' : '<i class="bi bi-file-earmark"></i>';
-                    cell.innerHTML = `${icon} <input type="text" class="form-control form-control-sm edit-input d-inline" style="width: calc(100% - 30px); margin-left: ${level * 20}px;" value="${StorageController.escapeHtml(currentValue)}" data-field="nombre">`;
-                    return;
-                }
-                
-                if (field === 'prioridad') {
-                    cell.innerHTML = `
-                        <select class="form-select form-select-sm edit-input" data-field="prioridad">
-                            <option value="">Sin prioridad</option>
-                            <option value="1" ${currentValue == '1' ? 'selected' : ''}>1 - Alta</option>
-                            <option value="2" ${currentValue == '2' ? 'selected' : ''}>2 - Media</option>
-                            <option value="3" ${currentValue == '3' ? 'selected' : ''}>3 - Baja</option>
-                        </select>
-                    `;
-                    return;
-                }
-                
-                if (field === 'deadline') {
-                    cell.innerHTML = `<input type="date" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="deadline">`;
-                    return;
-                }
-                
+                // Todos los campos → contenteditable div.
+                // Sin elementos form nativos = sin min-height ni padding impuesto por el navegador.
                 if (field === 'estado') {
-                    // Para estado, mantener el select directo (no crear uno nuevo en modo edición)
+                    return; // El select de estado se mantiene sin cambios
+                }
+
+                if (field === 'nombre') {
+                    cell.innerHTML = `<div class="edit-input edit-input-nombre" contenteditable="true" data-field="nombre" spellcheck="false">${StorageController.escapeHtml(currentValue)}</div>`;
                     return;
                 }
-                
-                // Input de texto por defecto para otros campos
-                if (field === 'descripcion') {
-                    cell.innerHTML = `<textarea class="form-control form-control-sm edit-input" rows="1" data-field="${field}">${StorageController.escapeHtml(currentValue)}</textarea>`;
-                } else {
-                    cell.innerHTML = `<input type="text" class="form-control form-control-sm edit-input" value="${StorageController.escapeHtml(currentValue)}" data-field="${field}">`;
+
+                if (field === 'prioridad') {
+                    // Cycling div: clic para rotar entre opciones sin select nativo
+                    const prioMap = {
+                        '':  { label: '—',    cls: '' },
+                        '1': { label: 'Alta',  cls: 'prio-alta' },
+                        '2': { label: 'Media', cls: 'prio-media' },
+                        '3': { label: 'Baja',  cls: 'prio-baja' },
+                    };
+                    const prioOrder = ['', '1', '2', '3'];
+                    const cur = prioMap[currentValue] || prioMap[''];
+                    const badgeHtml = currentValue
+                        ? `<span class="prio ${cur.cls}">${cur.label}</span>`
+                        : `<span class="prio-cycle-empty">—</span>`;
+                    cell.innerHTML = `<div class="edit-input edit-input-cycle" data-field="prioridad" data-edit-type="cycle" data-value="${StorageController.escapeHtml(currentValue)}" title="Clic para cambiar prioridad">${badgeHtml}<i class="bi bi-arrow-repeat edit-cycle-icon"></i></div>`;
+                    cell.querySelector('.edit-input-cycle').addEventListener('click', function () {
+                        const idx = prioOrder.indexOf(this.dataset.value);
+                        const next = prioOrder[(idx + 1) % prioOrder.length];
+                        const p = prioMap[next];
+                        this.dataset.value = next;
+                        this.innerHTML = (next
+                            ? `<span class="prio ${p.cls}">${p.label}</span>`
+                            : `<span class="prio-cycle-empty">—</span>`)
+                            + '<i class="bi bi-arrow-repeat edit-cycle-icon"></i>';
+                    });
+                    return;
                 }
+
+                // Todos los demás campos (descripcion, avance, esfuerzo, deadline) → contenteditable
+                cell.innerHTML = `<div class="edit-input" contenteditable="true" data-field="${field}" spellcheck="false">${StorageController.escapeHtml(currentValue)}</div>`;
             });
             
             // Cambiar el área de acciones por botones de guardar/cancelar
             const actionsArea = row.querySelector('.tblActions');
             if (actionsArea) {
                 actionsArea.innerHTML = `
-                    <button class="btn btn-success btn-sm" onclick="StorageController.saveEdit()" title="Guardar">
-                        <i class="bi bi-check-lg"></i>
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="StorageController.cancelEdit()" title="Cancelar">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
+                    <div class="edit-actions">
+                        <button class="btn-edit-save" onclick="StorageController.saveEdit()" title="Guardar (Enter)">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button class="btn-edit-cancel" onclick="StorageController.cancelEdit()" title="Cancelar (Esc)">
+                            esc
+                        </button>
+                    </div>
                 `;
             }
         } // end else (child-level)
         
-        // Enfocar primer input
-        const firstInput = row.querySelector('.edit-input');
+        // Enfocar el campo objetivo (o el primero) y seleccionar su contenido
+        const targetInput = focusField
+            ? row.querySelector('.edit-input[data-field="' + focusField + '"]')
+            : null;
+        const firstInput = targetInput || row.querySelector('[contenteditable="true"]') || row.querySelector('.edit-input');
         if (firstInput) {
             firstInput.focus();
-            if (firstInput.type === 'text' || firstInput.tagName === 'TEXTAREA') {
+            if (firstInput.getAttribute('contenteditable') === 'true') {
+                // Seleccionar todo el texto del div contenteditable
+                const range = document.createRange();
+                range.selectNodeContents(firstInput);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } else if (firstInput.tagName === 'INPUT') {
                 firstInput.select();
             }
         }
-        
-        // Agregar event listeners para Enter y Escape
-        const inputs = row.querySelectorAll('.edit-input');
-        inputs.forEach(input => {
+
+        // Enter guarda, Escape cancela — también en contenteditable
+        row.querySelectorAll('.edit-input').forEach(input => {
             input.addEventListener('keydown', StorageController.handleEditKeydown);
+        });
+
+        // Pegar solo texto plano en contenteditable (evita pegar HTML)
+        row.querySelectorAll('[contenteditable="true"]').forEach(el => {
+            el.addEventListener('paste', function (e) {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+                document.execCommand('insertText', false, text);
+            });
         });
     },
 
@@ -426,36 +452,44 @@ const StorageController = {
         // Recopilar nuevos valores
         inputs.forEach(input => {
             const field = input.getAttribute('data-field');
-            let value = input.value.trim();
-            
-            // Saltar el campo estado ya que se maneja por separado
-            if (field === 'estado') {
-                return;
+            if (field === 'estado') return;
+
+            let value;
+            if (input.dataset.editType === 'cycle') {
+                // Cycling div (prioridad): el valor vive en data-value
+                value = input.dataset.value || '';
+            } else if (input.getAttribute('contenteditable') === 'true') {
+                // contenteditable div: innerText da el texto plano real
+                value = (input.innerText || '').trim();
+            } else {
+                // Inputs nativos residuales
+                value = (input.value || '').trim();
             }
-            if (field === 'prioridad' && value === '') {
-                value = ''; // Permitir prioridad vacía
-            }
-            
+
             newData[field] = value;
         });
         
         // Validar solo campos realmente requeridos
         if (!newData.nombre || newData.nombre.trim() === '') {
             StorageController.notify('El nombre es requerido', 'error');
-            // Enfocar el campo nombre
-            const nombreInput = row.querySelector('input[data-field="nombre"], textarea[data-field="nombre"]');
+            const nombreInput = row.querySelector('[data-field="nombre"]');
             if (nombreInput) {
                 nombreInput.focus();
-                nombreInput.style.borderColor = '#dc3545';
+                // Animación shake + estado error visual
+                nombreInput.classList.remove('input-error');
+                void nombreInput.offsetWidth; // forzar reflow para reiniciar animación
+                nombreInput.classList.add('input-error');
+                const cell = nombreInput.closest('.edit-cell');
+                if (cell) {
+                    cell.classList.add('cell-error');
+                }
+                setTimeout(() => {
+                    nombreInput.classList.remove('input-error');
+                    if (cell) cell.classList.remove('cell-error');
+                }, 600);
             }
             return;
         }
-        
-        // Limpiar estilos de error previos
-        const allInputs = row.querySelectorAll('.edit-input');
-        allInputs.forEach(input => {
-            input.style.borderColor = '';
-        });
 
             // Actualizar datos del elemento
         try {

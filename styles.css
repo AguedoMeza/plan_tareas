@@ -1123,50 +1123,205 @@ body {
 /* ======================================
    INLINE EDITING
    ====================================== */
-.editing-mode {
-    background-color: rgba(79,143,247,.08) !important;
-    border: 1px solid var(--accent) !important;
-    box-shadow: 0 0 0 2px rgba(79,143,247,.15);
+
+/* Hover hint: revela que la celda es editable */
+tr[data-element-path]:not(.editing-mode) td[data-field]:not([data-field="estado"]) {
+    transition: background 0.1s ease;
 }
+tr[data-element-path]:not(.editing-mode) td[data-field]:not([data-field="estado"]):hover {
+    background: rgba(79,143,247,.04);
+    border-radius: 3px;
+    cursor: text;
+}
+
+/* === FILA EN MODO EDICIÓN === */
+/* Gradiente horizontal: énfasis en el borde izquierdo, se desvanece */
+.editing-mode {
+    background: linear-gradient(90deg,
+        rgba(79,143,247,.08) 0%,
+        rgba(79,143,247,.02) 60%,
+        transparent 100%) !important;
+    border-top: 1px solid rgba(79,143,247,.2) !important;
+    border-bottom: 1px solid rgba(79,143,247,.2) !important;
+    border-left: 2px solid var(--accent) !important;
+    border-right: none !important;
+    box-shadow:
+        -6px 0 24px rgba(79,143,247,.1),
+        0 4px 20px rgba(0,0,0,.25);
+}
+
 .editing-mode td {
     background-color: transparent;
-    border-color: rgba(79,143,247,.2);
+    border-color: rgba(79,143,247,.08);
+    vertical-align: middle;
 }
 
-.edit-input {
-    font-size: 12px !important;
-    padding: 6px 10px !important;
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    width: 100%;
-    background-color: var(--bg-body);
-    color: var(--text-primary);
-    transition: all 0.15s ease;
+/* === CELDA EDITABLE (= el propio td) ===
+   Indicador: línea inferior sutil en reposo,
+   línea accent al recibir foco. Sin caja anidada. */
+.editing-mode .edit-cell {
+    background: transparent;
+    padding: 8px 10px;
+    transition: background 0.12s ease, box-shadow 0.12s ease;
+    /* Línea inferior de reposo */
+    box-shadow: inset 0 -1px 0 rgba(79,143,247,.18);
 }
-.edit-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(79,143,247,.15);
+
+/* Celda activa: línea inferior accent + fondo suave */
+.editing-mode td.edit-cell:focus-within {
+    background: rgba(79,143,247,.06);
+    box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* Project-level edit-title: columna con gap */
+.editing-mode .edit-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 6px;
+    border-radius: 6px;
+}
+
+/* === CONTENTEDITABLE INPUTS ===
+   Divs editables: el navegador no les impone ninguna altura ni padding.
+   La celda queda exactamente igual que en modo lectura. */
+.edit-input {
+    font-size: 12px;
+    font-family: inherit;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background: transparent;
+    outline: none;
+    min-height: 0;
+    /* El cursor parpadea en accent — detalle premium */
+    caret-color: var(--accent);
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+[contenteditable="true"]:focus {
     outline: none;
 }
-.edit-input.d-inline { display: inline-block !important; }
-.edit-input[rows="1"] {
-    resize: vertical;
-    min-height: 32px;
+
+[contenteditable="true"]:empty::before {
+    content: attr(data-placeholder);
+    color: rgba(255,255,255,.2);
+    font-style: italic;
+    pointer-events: none;
 }
 
-.editing-mode .btn-group { display: flex; gap: 2px; }
-.editing-mode .btn-sm {
-    padding: 4px 8px;
-    font-size: 12px;
-    line-height: 1.2;
-    border-radius: 6px;
+/* Nombre: peso visual idéntico al .itemName original */
+.edit-input-nombre {
+    font-weight: 800;
 }
 
+/* Cycling div (prioridad): aspecto clickeable */
+.edit-input-cycle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.prio-cycle-empty {
+    color: var(--text-muted);
+}
+
+.edit-cycle-icon {
+    font-size: 10px;
+    color: var(--text-muted);
+    opacity: 0.5;
+    transition: opacity 0.12s ease;
+}
+
+.edit-input-cycle:hover .edit-cycle-icon {
+    opacity: 1;
+    color: var(--accent);
+}
+
+/* Campos numéricos/compactos */
+.editing-mode td[data-field="prioridad"] .edit-input,
+.editing-mode td[data-field="deadline"] .edit-input,
+.editing-mode td[data-field="avance"] .edit-input,
+.editing-mode td[data-field="esfuerzo"] .edit-input {
+    text-align: center;
+}
+
+/* === ERROR DE VALIDACIÓN ===
+   La línea inferior se vuelve roja, consistente con el patrón de foco. */
+@keyframes editInputShake {
+    0%, 100% { transform: translateX(0); }
+    20%  { transform: translateX(-4px); }
+    40%  { transform: translateX(4px); }
+    60%  { transform: translateX(-2px); }
+    80%  { transform: translateX(2px); }
+}
+.edit-input.input-error {
+    animation: editInputShake 0.3s ease;
+}
+.edit-cell.cell-error {
+    box-shadow: inset 0 -2px 0 var(--danger) !important;
+    background: rgba(255,93,115,.05) !important;
+}
+
+/* === BOTONES DE ACCIÓN ===
+   Estilo keyboard-shortcut: monospace, compactos, técnicos. */
+.edit-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: stretch;
+}
+
+.btn-edit-save,
+.btn-edit-cancel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    border: none;
+    white-space: nowrap;
+}
+
+.btn-edit-save {
+    background: var(--accent);
+    color: #fff;
+}
+.btn-edit-save:hover {
+    background: var(--accent-hover);
+    /* Glow: el botón "ilumina" al hacer hover */
+    box-shadow: 0 0 16px rgba(79,143,247,.5), 0 2px 6px rgba(79,143,247,.3);
+    transform: translateY(-1px);
+}
+
+/* Ghost: casi invisible en reposo, sólo visible en hover */
+.btn-edit-cancel {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,.1) !important;
+    color: rgba(255,255,255,.28);
+}
+.btn-edit-cancel:hover {
+    background: rgba(255,93,115,.08);
+    border-color: rgba(255,93,115,.45) !important;
+    color: var(--danger);
+}
+
+/* Save flash */
 @keyframes editSaved {
-    0% { background-color: rgba(41,208,154,.15); }
+    0% { background-color: rgba(41,208,154,.12); }
     100% { background-color: transparent; }
 }
-.edit-saved { animation: editSaved 1s ease-out; }
+.edit-saved { animation: editSaved 0.8s ease-out; }
 
 /* ======================================
    DROPDOWN (bootstrap override)

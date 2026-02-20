@@ -359,15 +359,15 @@ const RenderController = {
             : '';
 
         tr.innerHTML = ''
-            + '<td ' + indent + ' data-field="nombre">'
+            + '<td ' + indent + ' data-field="nombre" ondblclick="StorageController.editRow([' + elementPath.join(',') + '], \'nombre\')">'
             + '<div class="itemName">' + toggleBtn + esc(elemento.nombre) + '</div>'
             + (hasChildren ? '<div class="itemSub">Agrupador · ' + elemento.elementos.length + ' items</div>' : (level > 1 ? '<div class="itemSub">Subtarea</div>' : '<div class="itemSub">Tarea</div>'))
             + '</td>'
-            + '<td data-field="descripcion"><span class="itemSub">' + esc(elemento.descripcion || '—') + '</span></td>'
-            + '<td data-field="prioridad">' + (prioVal ? '<span class="prio ' + prioClass + '">' + esc(prioVal) + '</span>' : '') + '</td>'
-            + '<td class="cell-avance" data-field="avance"' + avanceAttrs + '>' + avanceDisplay + '</td>'
-            + '<td data-field="esfuerzo"><b>' + esc(elemento.esfuerzo || '') + '</b></td>'
-            + '<td data-field="deadline" style="text-align:center;">'
+            + '<td data-field="descripcion" ondblclick="StorageController.editRow([' + elementPath.join(',') + '], \'descripcion\')"><span class="itemSub">' + esc(elemento.descripcion || '—') + '</span></td>'
+            + '<td data-field="prioridad" ondblclick="StorageController.editRow([' + elementPath.join(',') + '], \'prioridad\')">' + (prioVal ? '<span class="prio ' + prioClass + '">' + esc(prioVal) + '</span>' : '') + '</td>'
+            + '<td class="cell-avance" data-field="avance" ondblclick="StorageController.editRow([' + elementPath.join(',') + '], \'avance\')"' + avanceAttrs + '>' + avanceDisplay + '</td>'
+            + '<td data-field="esfuerzo" ondblclick="StorageController.editRow([' + elementPath.join(',') + '], \'esfuerzo\')"><b>' + esc(elemento.esfuerzo || '') + '</b></td>'
+            + '<td data-field="deadline" ondblclick="StorageController.editRow([' + elementPath.join(',') + '], \'deadline\')" style="text-align:center;">'
             + (elemento.deadline
                 ? '<span>' + esc(elemento.deadline) + '</span>'
                 : '<span class="deadline-empty">Sin fecha</span>'

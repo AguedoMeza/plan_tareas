@@ -1,12 +1,18 @@
 // src/components/ai/AIAssistant.tsx
-// Floating AI assistant panel - migrated from aiController.js
+// AI assistant side drawer - uses Sheet component for full-height right panel
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Bot, X, Settings, Send, Key, Trash2 } from 'lucide-react';
+import { Bot, Send, Key, Trash2, X } from 'lucide-react';
 import { useAppStore } from '@/store/appStore';
 import { flattenTree } from '@/lib/dataUtils';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import type { AIResponse, AIAction, EstadoElemento } from '@/types';
 
 const API_KEY_STORAGE = 'openai_api_key';
@@ -35,7 +41,6 @@ function buildSystemPrompt(): string {
 }
 
 export function AIAssistant() {
-  const [open, setOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -45,6 +50,8 @@ export function AIAssistant() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const aiOpen = useAppStore(s => s.aiOpen);
+  const toggleAI = useAppStore(s => s.toggleAI);
   const proyectos = useAppStore(s => s.proyectos);
   const boards = useAppStore(s => s.boards);
   const activeBoardId = useAppStore(s => s.activeBoardId);
@@ -75,7 +82,6 @@ export function AIAssistant() {
     setMessages(prev => prev.map(m => m.id === id ? { ...m, text } : m));
   }
 
-  // Build context snapshot
   function buildContext() {
     const board = boards[activeBoardId];
     const elements = flattenTree(proyectos, true).map(({ element, path, level }) => ({
@@ -302,104 +308,108 @@ export function AIAssistant() {
   };
 
   return (
-    <>
-      {/* Toggle button */}
-      <button
-        className={cn(
-          'fixed bottom-5 right-5 z-30 h-12 w-12 rounded-full shadow-lg flex items-center justify-center transition-all',
-          open ? 'bg-muted' : 'bg-primary text-primary-foreground hover:bg-primary/90'
-        )}
-        onClick={() => setOpen(v => !v)}
-        title="Asistente IA"
-      >
-        <Bot className="h-5 w-5" />
-      </button>
-
-      {/* Panel */}
-      {open && (
-        <div className="fixed bottom-20 right-5 z-30 w-80 sm:w-96 rounded-lg border border-border bg-card shadow-2xl flex flex-col overflow-hidden"
-          style={{ maxHeight: 'calc(100vh - 120px)' }}
-        >
-          {/* Header */}
-          <div className="flex items-center gap-2 px-3 py-2.5 border-b border-border bg-muted/20">
-            <Bot className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium flex-1">Asistente IA</span>
+    <Sheet open={aiOpen} onOpenChange={(open) => { if (!open) toggleAI(); }}>
+      <SheetContent side="right" className="p-0 w-[420px] sm:w-[460px]">
+        {/* Header */}
+        <SheetHeader className="flex-shrink-0 px-4 py-3 border-b border-border bg-muted/20">
+          <div className="flex items-center gap-2">
+            <Bot className="h-4 w-4 text-primary flex-shrink-0" />
+            <SheetTitle className="flex-1">Asistente IA</SheetTitle>
             <button
               onClick={() => setSettingsOpen(v => !v)}
-              className="text-muted-foreground hover:text-foreground p-1"
+              className={cn(
+                'p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors',
+                settingsOpen && 'text-primary bg-primary/10'
+              )}
               title="Configurar API Key"
             >
               <Key className="h-3.5 w-3.5" />
             </button>
             <button
-              onClick={() => setOpen(false)}
-              className="text-muted-foreground hover:text-foreground p-1"
+              onClick={toggleAI}
+              className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
+        </SheetHeader>
 
-          {/* API Key settings */}
-          {settingsOpen && (
-            <div className="px-3 py-2 border-b border-border bg-muted/10 space-y-2">
-              <p className="text-xs text-muted-foreground">OpenAI API Key (guardada en localStorage)</p>
-              <input
-                type="password"
-                value={apiKeyInput}
-                onChange={e => setApiKeyInput(e.target.value)}
-                placeholder={apiKey ? '••••••••••••••••' : 'sk-...'}
-                className="flex h-8 w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                onKeyDown={e => e.key === 'Enter' && saveApiKey()}
-              />
-              <div className="flex gap-1">
-                <button onClick={saveApiKey} className="flex-1 text-xs bg-primary text-primary-foreground rounded px-2 py-1">Guardar</button>
-                <button onClick={clearApiKey} className="text-xs text-muted-foreground hover:text-destructive px-2 py-1">
-                  <Trash2 className="h-3 w-3" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ minHeight: 200 }}>
-            {messages.map(msg => (
-              <div
-                key={msg.id}
-                className={cn(
-                  'text-xs rounded-lg px-3 py-2 max-w-[85%] whitespace-pre-wrap',
-                  msg.role === 'user'
-                    ? 'bg-primary text-primary-foreground ml-auto'
-                    : msg.role === 'system'
-                    ? 'bg-muted text-muted-foreground text-center mx-auto text-[10px]'
-                    : 'bg-muted text-foreground'
-                )}
-              >
-                {msg.text}
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="flex items-center gap-2 px-3 py-2 border-t border-border">
+        {/* API Key settings */}
+        {settingsOpen && (
+          <div className="flex-shrink-0 px-4 py-3 border-b border-border bg-muted/10 space-y-2">
+            <p className="text-xs text-muted-foreground">OpenAI API Key (guardada en localStorage)</p>
             <input
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder="Escribe un comando..."
-              className="flex-1 h-8 bg-transparent text-xs focus:outline-none placeholder:text-muted-foreground"
-              disabled={isSending}
+              type="password"
+              value={apiKeyInput}
+              onChange={e => setApiKeyInput(e.target.value)}
+              placeholder={apiKey ? '••••••••••••••••' : 'sk-...'}
+              className="flex h-8 w-full rounded border border-input bg-transparent px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+              onKeyDown={e => e.key === 'Enter' && saveApiKey()}
             />
-            <button
-              onClick={handleSend}
-              disabled={isSending || !input.trim()}
-              className="text-primary hover:text-primary/80 disabled:opacity-40 p-1 transition-colors"
-            >
-              <Send className="h-4 w-4" />
-            </button>
+            <div className="flex gap-1">
+              <button
+                onClick={saveApiKey}
+                className="flex-1 text-xs bg-primary text-primary-foreground rounded px-2 py-1 hover:bg-primary/90 transition-colors"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={clearApiKey}
+                className="text-xs text-muted-foreground hover:text-destructive px-2 py-1 transition-colors"
+                title="Eliminar API Key"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
           </div>
+        )}
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {messages.map(msg => (
+            <div
+              key={msg.id}
+              className={cn(
+                'text-sm rounded-xl px-3.5 py-2.5 max-w-[88%] whitespace-pre-wrap leading-relaxed',
+                msg.role === 'user'
+                  ? 'bg-primary text-primary-foreground ml-auto'
+                  : msg.role === 'system'
+                  ? 'bg-muted text-muted-foreground text-center mx-auto text-xs py-1.5 px-3 rounded-full max-w-full'
+                  : 'bg-muted text-foreground'
+              )}
+            >
+              {msg.text}
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
         </div>
-      )}
-    </>
+
+        {/* Input */}
+        <div className="flex-shrink-0 flex items-end gap-2 px-4 py-3 border-t border-border bg-card">
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="Escribe un comando… (Enter para enviar)"
+            rows={2}
+            className="flex-1 resize-none bg-muted/40 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"
+            disabled={isSending}
+          />
+          <Button
+            size="icon"
+            onClick={handleSend}
+            disabled={isSending || !input.trim()}
+            className="flex-shrink-0 mb-0.5"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }

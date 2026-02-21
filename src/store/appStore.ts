@@ -92,6 +92,7 @@ interface AppState {
   activeBoardId: string;
   vista: Vista;
   collapsed: Record<string, boolean>; // key: projectIndex stringified or groupPath
+  aiOpen: boolean;
 
   // ── Board actions ──
   setActiveBoard: (boardId: string) => void;
@@ -101,6 +102,9 @@ interface AppState {
 
   // ── Vista ──
   setVista: (vista: Vista) => void;
+
+  // ── AI Panel ──
+  toggleAI: () => void;
 
   // ── Collapse ──
   toggleCollapsed: (key: string) => void;
@@ -149,12 +153,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   activeBoardId: initBoardId,
   vista: 'completa',
   collapsed: loadCollapsedStates(initBoardId),
+  aiOpen: false,
 
   // ── Internal save ──
   _save: () => {
     const { activeBoardId, proyectos } = get();
     saveBoardData(activeBoardId, proyectos);
   },
+
+  // ─── AI Panel ────────────────────────────────────────────────────────────
+  toggleAI: () => set(state => ({ aiOpen: !state.aiOpen })),
 
   // ─── Vista ───────────────────────────────────────────────────────────────
   setVista: (vista) => set({ vista }),

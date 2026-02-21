@@ -2,7 +2,7 @@
 // Top toolbar with board selector, view toggle, and action buttons
 
 import { useRef } from 'react';
-import { Plus, Download, Upload, Pencil, Trash2, ChevronDown, LayoutList, Eye } from 'lucide-react';
+import { Plus, Download, Upload, Pencil, Trash2, ChevronDown, LayoutList, Eye, Bot } from 'lucide-react';
 import { useAppStore } from '@/store/appStore';
 import { Button } from '@/components/ui/button';
 import { CreateModal } from '@/components/modals/CreateModal';
@@ -28,6 +28,8 @@ export function Toolbar() {
   const exportBoard = useAppStore(s => s.exportBoard);
   const importBoard = useAppStore(s => s.importBoard);
   const proyectos = useAppStore(s => s.proyectos);
+  const aiOpen = useAppStore(s => s.aiOpen);
+  const toggleAI = useAppStore(s => s.toggleAI);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createBoardOpen, setCreateBoardOpen] = useState(false);
@@ -161,6 +163,15 @@ export function Toolbar() {
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4 mr-1" />
           Nuevo
+        </Button>
+
+        <Button
+          variant={aiOpen ? 'default' : 'outline'}
+          size="icon"
+          onClick={toggleAI}
+          title="Asistente IA"
+        >
+          <Bot className="h-4 w-4" />
         </Button>
       </div>
 

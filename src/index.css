@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Design System Tokens ─── */
+@layer base {
+  :root {
+    --background: 215 20% 97%;
+    --foreground: 215 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 30% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 30% 12%;
+    --primary: 151 77% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 15% 92%;
+    --secondary-foreground: 215 30% 12%;
+    --muted: 215 15% 92%;
+    --muted-foreground: 215 15% 45%;
+    --accent: 215 15% 88%;
+    --accent-foreground: 215 30% 12%;
+    --destructive: 354 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 15% 86%;
+    --input: 215 15% 86%;
+    --ring: 151 77% 38%;
+    --radius: 0.5rem;
+  }
+
+  /* BG:#0B0F14  Surface:#111822  Elevated:#121A24  Text:#E7EEF8  Accent:#1BD27A */
+  .dark {
+    --background: 213 29% 6%;
+    --foreground: 216 54% 94%;
+    --card: 215 33% 10%;
+    --card-foreground: 216 54% 94%;
+    --popover: 215 36% 12%;
+    --popover-foreground: 216 54% 94%;
+    --primary: 151 77% 47%;
+    --primary-foreground: 213 29% 6%;
+    --secondary: 213 22% 16%;
+    --secondary-foreground: 216 54% 94%;
+    --muted: 213 22% 16%;
+    --muted-foreground: 215 12% 62%;
+    --accent: 213 22% 21%;
+    --accent-foreground: 216 54% 94%;
+    --destructive: 354 85% 62%;
+    --destructive-foreground: 216 54% 94%;
+    --border: 213 18% 17%;
+    --input: 213 18% 17%;
+    --ring: 151 77% 47%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 13px;
+  }
+}
+
+/* ─── App layout ─── */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+/* ─── Progress bar (8px, accent gradient) ─── */
+.progress-bar-wrap {
+  position: relative;
+  height: 8px;
+  width: 100%;
+  border-radius: 9999px;
+  background: hsl(var(--secondary));
+  overflow: hidden;
+}
+.progress-bar-fill {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+  background: linear-gradient(to right, #1BD27A, #14A861);
+}
+
+/* ─── Drag handle ─── */
+.drag-handle { @apply cursor-grab opacity-25 hover:opacity-60 transition-opacity; }
+.drag-handle:active { cursor: grabbing; }
+
+/* ─── Sortable ghost ─── */
+.sortable-ghost { opacity: 0.25; }
+
+/* ─── Card shadow (design system: 0 12px 30px rgba(0,0,0,.35)) ─── */
+.shadow-card {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ─── Table header: uppercase 11px muted ─── */
+.th-ds {
+  @apply py-1.5 px-2 text-left font-semibold text-muted-foreground uppercase tracking-wide;
+  font-size: 11px;
+}
+.th-ds-center {
+  @apply py-1.5 px-2 text-center font-semibold text-muted-foreground uppercase tracking-wide;
+  font-size: 11px;
+}
+.th-ds-right {
+  @apply py-1.5 px-2 text-right font-semibold text-muted-foreground uppercase tracking-wide;
+  font-size: 11px;
+}
+
+/* ─── Zebra rows ─── */
+table tbody tr:nth-child(even) {
+  background-color: hsl(var(--muted) / 0.35);
+}
+
+/* ─── Mono para fechas ─── */
+.font-mono-date {
+  font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+}

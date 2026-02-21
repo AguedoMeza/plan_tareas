@@ -1,0 +1,6 @@
+/* App-level overrides - most styles are in index.css with Tailwind */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

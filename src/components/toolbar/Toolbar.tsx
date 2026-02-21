@@ -2,7 +2,7 @@
 // Top toolbar with board selector, view toggle, and action buttons
 
 import { useRef } from 'react';
-import { Plus, Download, Upload, Pencil, Trash2, ChevronDown, LayoutList, Eye, Bot } from 'lucide-react';
+import { Plus, Download, Upload, Pencil, Trash2, ChevronDown, LayoutList, Eye, Bot, LayoutGrid } from 'lucide-react';
 import { useAppStore } from '@/store/appStore';
 import { Button } from '@/components/ui/button';
 import { CreateModal } from '@/components/modals/CreateModal';
@@ -30,6 +30,8 @@ export function Toolbar() {
   const proyectos = useAppStore(s => s.proyectos);
   const aiOpen = useAppStore(s => s.aiOpen);
   const toggleAI = useAppStore(s => s.toggleAI);
+  const boardSelectorOpen = useAppStore(s => s.boardSelectorOpen);
+  const toggleBoardSelector = useAppStore(s => s.toggleBoardSelector);
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createBoardOpen, setCreateBoardOpen] = useState(false);
@@ -64,6 +66,17 @@ export function Toolbar() {
 
   return (
     <header className="sticky top-0 z-20 bg-card border-b border-border px-4 py-2 flex items-center gap-3 flex-wrap">
+      {/* Board grid toggle */}
+      <Button
+        variant={boardSelectorOpen ? 'default' : 'ghost'}
+        size="icon"
+        onClick={toggleBoardSelector}
+        title="Ver todos los tableros"
+        className="h-7 w-7"
+      >
+        <LayoutGrid className="h-3.5 w-3.5" />
+      </Button>
+
       {/* Board selector */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

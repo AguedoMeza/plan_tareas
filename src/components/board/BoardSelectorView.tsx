@@ -91,19 +91,29 @@ function BoardCard({ boardId, board, stats, isActive, onSelect, onRename, onDele
       className={cn(
         'group relative flex flex-col rounded-[10px] border cursor-pointer overflow-hidden',
         'transition-all duration-200',
-        isActive
-          ? 'border-[#1BD27A] bg-[#0e1c17]'
-          : 'border-[rgba(255,255,255,.08)] bg-[#111822] hover:border-[#1BD27A]/40 hover:bg-[#121f19]'
+        isActive ? 'bg-[#0e1c17]' : 'bg-[#111822]'
       )}
-      style={{ animationDelay: `${animIndex * 60}ms` }}
+      style={{
+        animationDelay: `${animIndex * 60}ms`,
+        borderColor: isActive
+          ? (board.color || '#1BD27A')
+          : hovered
+          ? `${board.color || '#1BD27A'}55`
+          : 'rgba(255,255,255,.08)',
+      }}
       onClick={onSelect}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Top glow accent for active board */}
-      {isActive && (
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#1BD27A]" />
-      )}
+      {/* Top color stripe — uses board color */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[2px]"
+        style={{
+          background: board.color || '#1BD27A',
+          opacity: isActive ? 1 : hovered ? 0.5 : 0.25,
+          transition: 'opacity 0.2s',
+        }}
+      />
 
       <div className="flex flex-col gap-3 p-4 flex-1">
         {/* Header */}

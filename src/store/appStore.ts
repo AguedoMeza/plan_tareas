@@ -15,6 +15,29 @@ import {
   computeEstadoFromChildren,
 } from '@/lib/businessRules';
 
+// ─── Board color palette ──────────────────────────────────────────────────────
+
+export const BOARD_COLORS = [
+  '#1BD27A', // emerald (default accent)
+  '#3B82F6', // blue
+  '#F59E0B', // amber
+  '#EF4444', // red
+  '#8B5CF6', // violet
+  '#EC4899', // pink
+  '#06B6D4', // cyan
+  '#F97316', // orange
+  '#A3E635', // lime
+  '#64748B', // slate
+] as const;
+
+function pickBoardColor(boards: BoardsRegistry): string {
+  const used = new Set(Object.values(boards).map(b => b.color).filter(Boolean));
+  const available = BOARD_COLORS.filter(c => !used.has(c));
+  if (available.length > 0) return available[0];
+  // All used: cycle by index
+  return BOARD_COLORS[Object.keys(boards).length % BOARD_COLORS.length];
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function loadBoardsRegistry(): BoardsRegistry {
@@ -225,6 +248,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         name: cleanName,
         createdAt: new Date().toISOString(),
         lastModified: new Date().toISOString(),
+        color: pickBoardColor(boards),
       },
     };
 

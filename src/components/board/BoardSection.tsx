@@ -58,22 +58,22 @@ export function BoardSection({
   };
 
   return (
-    <div className="mb-8">
+    <div className="mb-10">
       {/* Section header */}
       <button
-        className="flex items-center gap-2.5 mb-3 w-full text-left"
+        className="flex items-center gap-3 mb-4 w-full text-left"
         onClick={() => setSectionCollapsed(v => !v)}
       >
-        <span className={cn('w-2 h-2 rounded-full flex-shrink-0', DOT_COLOR[title] ?? 'bg-muted-foreground/40')} />
-        <span className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">
+        <span className={cn('w-2.5 h-2.5 rounded-full flex-shrink-0', DOT_COLOR[title] ?? 'bg-muted-foreground/40')} />
+        <span className="text-[11px] font-bold tracking-[0.1em] uppercase text-muted-foreground">
           {title}
         </span>
-        <span className="text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5 leading-none">
+        <span className="text-[11px] text-muted-foreground bg-muted rounded-full px-2.5 py-1 leading-none font-semibold">
           {proyectos.length}
         </span>
         <ChevronDown
           className={cn(
-            'h-3 w-3 text-muted-foreground/40 ml-auto transition-transform duration-200',
+            'h-3.5 w-3.5 text-muted-foreground/40 ml-auto transition-transform duration-200',
             sectionCollapsed && '-rotate-90'
           )}
         />

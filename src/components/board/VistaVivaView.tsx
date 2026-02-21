@@ -4,7 +4,7 @@
 import { useAppStore } from '@/store/appStore';
 import { useVistaViva } from '@/hooks/useVistaViva';
 import { EstadoBadge, PrioridadBadge } from '@/components/board/EstadoBadge';
-import { Eye } from 'lucide-react';
+import { Eye, CheckCircle2 } from 'lucide-react';
 import type { EstadoElemento } from '@/types';
 
 export function VistaVivaView() {
@@ -14,10 +14,23 @@ export function VistaVivaView() {
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
-        <Eye className="h-12 w-12 mb-4 opacity-20" />
-        <p className="text-base font-semibold">Todo bajo control</p>
-        <p className="text-sm mt-1 text-muted-foreground/70">No hay elementos pendientes o en progreso</p>
+      <div className="flex flex-col items-center justify-center flex-1 py-16 select-none">
+        <div className="relative mb-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[rgba(27,210,122,.08)] border border-[rgba(27,210,122,.15)]">
+            <CheckCircle2 className="h-7 w-7 text-[#1BD27A] opacity-70" />
+          </div>
+          <div className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(27,210,122,.15)] border border-[rgba(27,210,122,.25)]">
+            <Eye className="h-3 w-3 text-[#1BD27A]" />
+          </div>
+        </div>
+        <h3 className="text-[15px] font-semibold text-foreground mb-1">Todo bajo control</h3>
+        <p className="text-[13px] text-muted-foreground text-center max-w-xs">
+          No hay tareas pendientes ni en progreso. Buen trabajo.
+        </p>
+        <div className="mt-5 flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground/40">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#1BD27A] opacity-60" />
+          <span>0 tareas vivas</span>
+        </div>
       </div>
     );
   }

@@ -4,12 +4,16 @@
 import { useAppStore } from '@/store/appStore';
 import { BoardSection } from './BoardSection';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { LayoutGrid, Archive } from 'lucide-react';
+import { CreateModal } from '@/components/modals/CreateModal';
+import { LayoutGrid, Archive, Plus, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 import type { Proyecto } from '@/types';
 
 export function BoardView() {
   const proyectos = useAppStore(s => s.proyectos);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const activos: { proyecto: Proyecto; originalIndex: number }[] = [];
   const backlog: { proyecto: Proyecto; originalIndex: number }[] = [];
@@ -27,11 +31,36 @@ export function BoardView() {
 
   if (totalEmpty) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
-        <LayoutGrid className="h-12 w-12 mb-4 opacity-20" />
-        <p className="text-base font-semibold">Sin proyectos</p>
-        <p className="text-sm mt-1 opacity-60">Crea tu primer proyecto con el botón «+ Nuevo»</p>
-      </div>
+      <>
+        <div className="flex flex-col items-center justify-center flex-1 py-16 select-none">
+          {/* Icon cluster */}
+          <div className="relative mb-6">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[rgba(27,210,122,.08)] border border-[rgba(27,210,122,.15)]">
+              <LayoutGrid className="h-7 w-7 text-[#1BD27A] opacity-60" />
+            </div>
+            <div className="absolute -top-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(27,210,122,.12)] border border-[rgba(27,210,122,.2)]">
+              <Sparkles className="h-3 w-3 text-[#1BD27A]" />
+            </div>
+          </div>
+
+          <h3 className="text-[15px] font-semibold text-foreground mb-1">
+            Tablero vacío
+          </h3>
+          <p className="text-[13px] text-muted-foreground mb-6 text-center max-w-xs">
+            Crea tu primer proyecto para empezar a organizar tareas y hacer seguimiento del progreso.
+          </p>
+
+          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Crear primer proyecto
+          </Button>
+
+          <p className="mt-4 text-[11px] text-muted-foreground/50 font-mono">
+            también puedes importar un tablero con el botón ↑ del toolbar
+          </p>
+        </div>
+        <CreateModal open={createOpen} onOpenChange={setCreateOpen} />
+      </>
     );
   }
 
@@ -81,7 +110,7 @@ export function BoardView() {
             <p className="text-xs mt-1 opacity-60">Crea uno con «+ Nuevo» o revisa los archivados</p>
           </div>
         ) : (
-          <div className="p-6 w-full max-w-5xl mx-auto">
+          <div className="px-6 py-8 w-full max-w-5xl mx-auto">
             <BoardSection
               title="Activos"
               proyectos={activos}
@@ -106,7 +135,7 @@ export function BoardView() {
             <p className="text-sm font-semibold">Sin proyectos archivados</p>
           </div>
         ) : (
-          <div className="p-6 w-full max-w-5xl mx-auto">
+          <div className="px-6 py-8 w-full max-w-5xl mx-auto">
             <BoardSection
               title="Archivados"
               proyectos={archivados}

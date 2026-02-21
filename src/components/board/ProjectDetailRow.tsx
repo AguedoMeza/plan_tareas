@@ -1,13 +1,19 @@
 // src/components/board/ProjectDetailRow.tsx
 // Recursive row in the detail table — inline editing, status, delete
 
-import { useState, useCallback } from 'react';
-import { ChevronRight, ChevronDown, Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, Trash2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/appStore';
 import { useInlineEdit, usePriorityCycle } from '@/hooks/useInlineEdit';
 import { calcularAvanceRecursivo } from '@/lib/businessRules';
 import { EstadoBadge, PrioridadBadge } from '@/components/board/EstadoBadge';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,7 +67,7 @@ function EditCell({
           onKeyDown={handleKeyDown}
           onBlur={save}
           className={cn(
-            'w-full bg-background border border-ring rounded px-1 py-0.5 text-xs resize-none',
+            'w-full bg-background border border-ring rounded px-2 py-1 text-[13px] resize-none',
             className
           )}
           rows={2}
@@ -76,7 +82,7 @@ function EditCell({
         onKeyDown={handleKeyDown}
         onBlur={save}
         className={cn(
-          'w-full bg-background border border-ring rounded px-1 py-0.5 text-xs',
+          'w-full bg-background border border-ring rounded px-2 py-1 text-[13px]',
           field === 'nombre' && 'font-medium',
           className
         )}
@@ -94,14 +100,6 @@ function EditCell({
     </span>
   );
 }
-
-const NEXT_ESTADO: Record<EstadoElemento, EstadoElemento> = {
-  'Pendiente':   'En progreso',
-  'En progreso': 'Completado',
-  'Completado':  'Pendiente',
-  'Bloqueado':   'Pendiente',
-  'Backlog':     'Pendiente',
-};
 
 const ESTADOS: EstadoElemento[] = ['Pendiente', 'En progreso', 'Completado', 'Bloqueado', 'Backlog'];
 
@@ -130,17 +128,7 @@ export function ProjectDetailRow({
     (v) => updateElement(path, { prioridad: v as Elemento['prioridad'] })
   );
 
-  // Estado select inline
-  const [estadoOpen, setEstadoOpen] = useState(false);
-
-  const handleEstadoChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setElementEstado(path, e.target.value as EstadoElemento);
-    },
-    [path, setElementEstado]
-  );
-
-  const indentPx = (level - 1) * 20 + 8;
+  const indentPx = (level - 1) * 20 + 12;
 
   return (
     <>
@@ -155,7 +143,7 @@ export function ProjectDetailRow({
         data-level={level}
       >
         {/* Nombre */}
-        <td className="py-1.5 px-2" style={{ paddingLeft: `${indentPx}px` }}>
+        <td className="py-2.5 px-3" style={{ paddingLeft: `${indentPx}px` }}>
           <div className="flex items-center gap-1">
             {hasChildren && (
               <button
@@ -168,8 +156,8 @@ export function ProjectDetailRow({
               </button>
             )}
             <div className="min-w-0">
-              <EditCell value={elemento.nombre} field="nombre" path={path} className="font-medium text-sm" />
-              <div className="text-xs text-muted-foreground">
+              <EditCell value={elemento.nombre} field="nombre" path={path} className="font-semibold text-[14px] leading-snug" />
+              <div className="text-[11px] text-muted-foreground/60 mt-0.5">
                 {hasChildren ? `Agrupador · ${elemento.elementos!.length} items` : level > 1 ? 'Subtarea' : 'Tarea'}
               </div>
             </div>
@@ -177,18 +165,18 @@ export function ProjectDetailRow({
         </td>
 
         {/* Descripción */}
-        <td className="py-1.5 px-2 max-w-[200px]">
+        <td className="py-2.5 px-3 max-w-[200px]">
           <EditCell
             value={elemento.descripcion || ''}
             field="descripcion"
             path={path}
             multiline
-            className="text-xs text-muted-foreground"
+            className="text-[13px] text-muted-foreground"
           />
         </td>
 
         {/* Prioridad */}
-        <td className="py-1.5 px-2 text-center">
+        <td className="py-2.5 px-3 text-center">
           <span
             onClick={cyclePrio}
             className="cursor-pointer"
@@ -201,7 +189,7 @@ export function ProjectDetailRow({
         </td>
 
         {/* Avance */}
-        <td className="py-1.5 px-2">
+        <td className="py-2.5 px-3">
           {hasChildren ? (
             <div>
               <div className="progress-bar-wrap">
@@ -210,52 +198,64 @@ export function ProjectDetailRow({
                   style={{ width: `${Math.max(avance, 2)}%` }}
                 />
               </div>
-              <div className="text-right text-xs text-muted-foreground mt-0.5">{avance}%</div>
+              <div className="text-right text-[12px] text-muted-foreground mt-1">{avance}%</div>
             </div>
           ) : (
-            <EditCell value={elemento.avance || ''} field="avance" path={path} className="text-xs text-center" />
+            <EditCell value={elemento.avance || ''} field="avance" path={path} className="text-[13px] text-center" />
           )}
         </td>
 
         {/* Esfuerzo */}
-        <td className="py-1.5 px-2">
-          <EditCell value={elemento.esfuerzo || ''} field="esfuerzo" path={path} className="text-xs font-medium" />
+        <td className="py-2.5 px-3">
+          <EditCell value={elemento.esfuerzo || ''} field="esfuerzo" path={path} className="text-[13px] font-medium" />
         </td>
 
         {/* Deadline */}
-        <td className="py-1.5 px-2 text-center">
+        <td className="py-2.5 px-3 text-center">
           <EditCell value={elemento.deadline || ''} field="deadline" path={path} className="font-mono-date" />
         </td>
 
         {/* Estado */}
-        <td className="py-1.5 px-2 text-center">
+        <td className="py-2.5 px-3 text-center">
           {hasChildren ? (
             <span className="text-muted-foreground/30">—</span>
           ) : (
-            <select
-              value={elemento.estado}
-              onChange={handleEstadoChange}
-              className="text-xs rounded border border-input bg-background cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring px-1 py-0.5"
-            >
-              {ESTADOS.map(e => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-full">
+                  <EstadoBadge estado={elemento.estado} className="cursor-pointer hover:opacity-80 transition-opacity" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="min-w-[148px]">
+                {ESTADOS.map(e => (
+                  <DropdownMenuItem
+                    key={e}
+                    onClick={() => setElementEstado(path, e)}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <EstadoBadge estado={e} />
+                    {e === elemento.estado && <Check className="h-3 w-3 text-primary shrink-0" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </td>
 
         {/* Acciones */}
-        <td className="py-1.5 px-2 text-right">
+        <td className="py-2.5 px-3 text-right">
           <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button
-                  className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
-                  title="Eliminar"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </AlertDialogTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <AlertDialogTrigger asChild>
+                    <button className="text-muted-foreground hover:text-destructive transition-colors p-0.5">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </AlertDialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Eliminar</TooltipContent>
+              </Tooltip>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>¿Eliminar elemento?</AlertDialogTitle>

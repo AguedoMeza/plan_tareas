@@ -1,47 +1,41 @@
 // src/components/toolbar/Toolbar.tsx
-// Top toolbar with board selector, view toggle, and action buttons
+// Toolbar: breadcrumb + actions. Board navigation lives in LeftSidebar.
 
-import { useRef } from 'react';
-import { Plus, Download, Upload, Pencil, Trash2, ChevronDown, LayoutList, Eye, Bot, LayoutGrid } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { Plus, Download, Upload, Bot, ChevronRight } from 'lucide-react';
 import { useAppStore } from '@/store/appStore';
 import { Button } from '@/components/ui/button';
 import { CreateModal } from '@/components/modals/CreateModal';
-import { CreateBoardDialog, RenameBoardDialog, DeleteBoardDialog } from '@/components/modals/BoardDialogs';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { CommandPalette } from '@/components/CommandPalette';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import { useState } from 'react';
-import type { Vista } from '@/types';
 
 export function Toolbar() {
   const boards = useAppStore(s => s.boards);
   const activeBoardId = useAppStore(s => s.activeBoardId);
-  const setActiveBoard = useAppStore(s => s.setActiveBoard);
-  const vista = useAppStore(s => s.vista);
-  const setVista = useAppStore(s => s.setVista);
   const exportBoard = useAppStore(s => s.exportBoard);
   const importBoard = useAppStore(s => s.importBoard);
-  const proyectos = useAppStore(s => s.proyectos);
   const aiOpen = useAppStore(s => s.aiOpen);
   const toggleAI = useAppStore(s => s.toggleAI);
   const boardSelectorOpen = useAppStore(s => s.boardSelectorOpen);
-  const toggleBoardSelector = useAppStore(s => s.toggleBoardSelector);
+  const vista = useAppStore(s => s.vista);
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [createBoardOpen, setCreateBoardOpen] = useState(false);
-  const [renameBoardOpen, setRenameBoardOpen] = useState(false);
-  const [deleteBoardOpen, setDeleteBoardOpen] = useState(false);
-
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const importRef = useRef<HTMLInputElement>(null);
   const activeBoard = boards[activeBoardId];
 
-  const vivoCount = countVivos(proyectos);
+  // Global Cmd+K / Ctrl+K shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setPaletteOpen(p => !p);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -64,169 +58,88 @@ export function Toolbar() {
     e.target.value = '';
   };
 
+  // Breadcrumb segments
+  const boardName = activeBoard?.name || '—';
+  const viewLabel = boardSelectorOpen ? null : vista === 'viva' ? 'Vista Viva' : 'Tablero';
+
   return (
-    <header className="sticky top-0 z-20 bg-card border-b border-border px-4 py-2 flex items-center gap-3 flex-wrap">
-      {/* Board grid toggle */}
-      <Button
-        variant={boardSelectorOpen ? 'default' : 'ghost'}
-        size="icon"
-        onClick={toggleBoardSelector}
-        title="Ver todos los tableros"
-        className="h-7 w-7"
-      >
-        <LayoutGrid className="h-3.5 w-3.5" />
-      </Button>
+    <>
+      <header className="sticky top-0 z-20 bg-card border-b border-border px-5 h-[52px] flex items-center gap-4">
 
-      {/* Board selector */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="gap-1.5 font-semibold px-2">
-            {activeBoard?.name || 'Sin tablero'}
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-[200px]">
-          {Object.entries(boards).map(([id, board]) => (
-            <DropdownMenuItem
-              key={id}
-              className={cn(id === activeBoardId && 'font-medium text-primary')}
-              onClick={() => setActiveBoard(id)}
-            >
-              {board.name}
-            </DropdownMenuItem>
-          ))}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setCreateBoardOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Nuevo tablero
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setRenameBoardOpen(true)}>
-            <Pencil className="h-4 w-4" />
-            Renombrar
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="text-destructive focus:text-destructive"
-            onClick={() => setDeleteBoardOpen(true)}
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          {boardSelectorOpen ? (
+            <span className="text-[14px] font-semibold text-foreground">Todos los tableros</span>
+          ) : (
+            <>
+              {/* Board color dot */}
+              {activeBoard?.color && (
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ background: activeBoard.color }}
+                />
+              )}
+              <span className="text-[14px] font-semibold text-foreground truncate">
+                {boardName}
+              </span>
+              {viewLabel && (
+                <>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+                  <span className="text-sm text-muted-foreground truncate">{viewLabel}</span>
+                </>
+              )}
+            </>
+          )}
+
+          {/* Cmd+K hint */}
+          <button
+            className="ml-2 hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded border border-border text-[10px] font-mono text-muted-foreground/50 hover:text-muted-foreground hover:border-border/80 transition-colors"
+            onClick={() => setPaletteOpen(true)}
+            title="Abrir buscador (Ctrl+K)"
           >
-            <Trash2 className="h-4 w-4" />
-            Eliminar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <span>⌘K</span>
+          </button>
+        </div>
 
-      {/* Separator */}
-      <div className="h-5 w-px bg-border hidden sm:block" />
+        {/* Actions */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={exportBoard}>
+                <Download className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Exportar tablero</TooltipContent>
+          </Tooltip>
 
-      {/* View toggle */}
-      <div className="flex items-center gap-1 bg-muted rounded-md p-0.5">
-        <button
-          className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 text-xs rounded transition-colors',
-            vista === 'completa'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-          onClick={() => setVista('completa')}
-        >
-          <LayoutList className="h-3.5 w-3.5" />
-          Completa
-        </button>
-        <button
-          className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 text-xs rounded transition-colors',
-            vista === 'viva'
-              ? 'bg-background text-foreground shadow-sm'
-              : 'text-muted-foreground hover:text-foreground'
-          )}
-          onClick={() => setVista('viva')}
-        >
-          <Eye className="h-3.5 w-3.5" />
-          Viva
-          {vivoCount > 0 && (
-            <span className="ml-1 bg-primary text-primary-foreground rounded-full px-1.5 py-0.5 text-xs leading-none">
-              {vivoCount}
-            </span>
-          )}
-        </button>
-      </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => importRef.current?.click()}>
+                <Upload className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Importar tablero</TooltipContent>
+          </Tooltip>
+          <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
 
-      {/* Spacer */}
-      <div className="flex-1" />
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
+            Nuevo
+          </Button>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1.5">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={exportBoard}
-          title="Exportar tablero JSON"
-        >
-          <Download className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => importRef.current?.click()}
-          title="Importar tablero JSON"
-        >
-          <Upload className="h-4 w-4" />
-        </Button>
-        <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant={aiOpen ? 'default' : 'outline'} size="icon" onClick={toggleAI}>
+                <Bot className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Asistente IA</TooltipContent>
+          </Tooltip>
+        </div>
+      </header>
 
-        <Button size="sm" onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-1" />
-          Nuevo
-        </Button>
-
-        <Button
-          variant={aiOpen ? 'default' : 'outline'}
-          size="icon"
-          onClick={toggleAI}
-          title="Asistente IA"
-        >
-          <Bot className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Dialogs */}
       <CreateModal open={createOpen} onOpenChange={setCreateOpen} />
-      <CreateBoardDialog open={createBoardOpen} onOpenChange={setCreateBoardOpen} />
-      {activeBoard && (
-        <>
-          <RenameBoardDialog
-            open={renameBoardOpen}
-            onOpenChange={setRenameBoardOpen}
-            boardId={activeBoardId}
-            currentName={activeBoard.name}
-          />
-          <DeleteBoardDialog
-            open={deleteBoardOpen}
-            onOpenChange={setDeleteBoardOpen}
-            boardId={activeBoardId}
-            boardName={activeBoard.name}
-          />
-        </>
-      )}
-    </header>
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+    </>
   );
-}
-
-// Count elements that are "vivos": Pendiente or En progreso
-import type { Proyecto, Elemento } from '@/types';
-
-function countVivos(proyectos: Proyecto[]): number {
-  let count = 0;
-  function walk(el: Elemento) {
-    if (!Array.isArray(el.elementos) || el.elementos.length === 0) {
-      if (el.estado === 'Pendiente' || el.estado === 'En progreso') count++;
-    } else {
-      el.elementos.forEach(walk);
-    }
-  }
-  proyectos.forEach(p => {
-    if (p.estadoProyecto !== 'Archivado' && Array.isArray(p.elementos)) {
-      p.elementos.forEach(walk);
-    }
-  });
-  return count;
 }

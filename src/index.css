@@ -61,7 +61,8 @@
     font-family: system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-size: 13px;
+    font-size: 14px;
+    line-height: 1.5;
   }
 }
 
@@ -110,16 +111,19 @@
 
 /* ─── Table header: uppercase 11px muted ─── */
 .th-ds {
-  @apply py-1.5 px-2 text-left font-semibold text-muted-foreground uppercase tracking-wide;
+  @apply py-3 px-3 text-left font-semibold text-muted-foreground uppercase tracking-wider;
   font-size: 11px;
+  letter-spacing: 0.07em;
 }
 .th-ds-center {
-  @apply py-1.5 px-2 text-center font-semibold text-muted-foreground uppercase tracking-wide;
+  @apply py-3 px-3 text-center font-semibold text-muted-foreground uppercase tracking-wider;
   font-size: 11px;
+  letter-spacing: 0.07em;
 }
 .th-ds-right {
-  @apply py-1.5 px-2 text-right font-semibold text-muted-foreground uppercase tracking-wide;
+  @apply py-3 px-3 text-right font-semibold text-muted-foreground uppercase tracking-wider;
   font-size: 11px;
+  letter-spacing: 0.07em;
 }
 
 /* ─── Zebra rows ─── */
@@ -130,6 +134,6 @@ table tbody tr:nth-child(even) {
 /* ─── Mono para fechas ─── */
 .font-mono-date {
   font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', monospace;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.01em;
 }

@@ -91,7 +91,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
       data-project-index={projectIndex}
     >
       {/* ── Main row ── */}
-      <div className="flex items-center gap-2 px-3 py-2.5 min-h-[52px]">
+      <div className="flex items-center gap-3 px-4 py-3 min-h-[56px]">
         {/* Drag handle */}
         <span className="drag-handle text-muted-foreground/40 flex-shrink-0">
           <GripVertical className="h-4 w-4" />
@@ -151,7 +151,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
             />
           ) : (
             <p
-              className="text-sm font-bold truncate cursor-text"
+              className="text-[15px] font-bold truncate cursor-text leading-tight"
               onDoubleClick={nombreEdit.startEdit}
               title="Doble clic para editar"
             >
@@ -169,7 +169,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
             />
           ) : (
             <p
-              className="text-xs text-muted-foreground truncate cursor-text mt-0.5"
+              className="text-[13px] text-muted-foreground truncate cursor-text mt-0.5"
               onDoubleClick={descEdit.startEdit}
               title="Doble clic para editar"
             >
@@ -179,7 +179,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
         </div>
 
         {/* Meta */}
-        <div className="flex-shrink-0 text-xs text-muted-foreground hidden sm:block">
+        <div className="flex-shrink-0 text-[13px] text-muted-foreground hidden sm:block">
           {totalHijos} tarea{totalHijos !== 1 ? 's' : ''}
           {esfuerzoTotal && ` · ${esfuerzoTotal}`}
         </div>
@@ -193,7 +193,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
                 style={{ width: `${Math.max(avance, 2)}%` }}
               />
             </div>
-            <div className="text-right text-xs text-muted-foreground mt-0.5">{avance}%</div>
+            <div className="text-right text-[13px] text-muted-foreground mt-1">{avance}%</div>
           </div>
         )}
 

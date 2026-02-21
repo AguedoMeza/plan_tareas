@@ -36,6 +36,7 @@ export interface BoardMeta {
   name: string;
   createdAt: string;
   lastModified: string;
+  color?: string;
 }
 
 export interface BoardsRegistry {

@@ -85,13 +85,13 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
   return (
     <div
       className={cn(
-        'rounded-lg border border-border bg-card mb-2 overflow-hidden shadow-card',
+        'rounded-lg border border-border bg-card mb-3 overflow-hidden shadow-card',
         proyecto.estadoProyecto === 'Archivado' && 'opacity-60'
       )}
       data-project-index={projectIndex}
     >
       {/* ── Main row ── */}
-      <div className="flex items-center gap-3 px-4 py-3 min-h-[56px]">
+      <div className="flex items-center gap-4 px-5 py-4 min-h-[72px]">
         {/* Drag handle */}
         <span className="drag-handle text-muted-foreground/40 flex-shrink-0">
           <GripVertical className="h-4 w-4" />
@@ -107,8 +107,8 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
           )}
         >
           {isExpanded && hasChildren
-            ? <ChevronDown className="h-4 w-4" />
-            : <ChevronRight className="h-4 w-4" />}
+            ? <ChevronDown className="h-[18px] w-[18px]" />
+            : <ChevronRight className="h-[18px] w-[18px]" />}
         </button>
 
         {/* Estado proyecto — badge compacto con dropdown */}
@@ -117,7 +117,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  'text-[11px] font-semibold border rounded-full px-2 py-0.5 cursor-pointer hover:opacity-80 transition-opacity',
+                  'text-[12px] font-semibold border rounded-full px-3 py-1 cursor-pointer hover:opacity-80 transition-opacity',
                   ESTADO_CHIP[proyecto.estadoProyecto]
                 )}
               >
@@ -151,7 +151,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
             />
           ) : (
             <p
-              className="text-[15px] font-bold truncate cursor-text leading-tight"
+              className="text-[16px] font-bold truncate cursor-text leading-tight"
               onDoubleClick={nombreEdit.startEdit}
               title="Doble clic para editar"
             >
@@ -169,7 +169,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
             />
           ) : (
             <p
-              className="text-[13px] text-muted-foreground truncate cursor-text mt-0.5"
+              className="text-[13px] text-muted-foreground truncate cursor-text mt-1"
               onDoubleClick={descEdit.startEdit}
               title="Doble clic para editar"
             >

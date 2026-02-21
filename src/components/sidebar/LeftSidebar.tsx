@@ -30,8 +30,8 @@ function NavItem({ label, icon, active, badge, onClick, onRename, onDelete }: Na
   return (
     <div
       className={cn(
-        // 40px target height: py-2.5 + text = ~40px
-        'group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer select-none',
+        // 48px target height: py-3 + text = ~48px (Platzi standard)
+        'group relative flex items-center gap-3.5 px-4 py-3 rounded-lg cursor-pointer select-none',
         'transition-colors duration-100',
         active
           ? 'bg-[rgba(27,210,122,.1)] text-[#E7EEF8]'
@@ -43,7 +43,7 @@ function NavItem({ label, icon, active, badge, onClick, onRename, onDelete }: Na
     >
       {/* Active left bar */}
       {active && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-[#1BD27A]" />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-[#1BD27A]" />
       )}
 
       {/* Icon — 16px, proper size */}
@@ -56,14 +56,14 @@ function NavItem({ label, icon, active, badge, onClick, onRename, onDelete }: Na
         </span>
       )}
 
-      {/* Label — 13px */}
-      <span className="flex-1 text-[13px] font-medium truncate leading-none">
+      {/* Label — 14px */}
+      <span className="flex-1 text-[14px] font-medium truncate leading-none">
         {label}
       </span>
 
       {/* Badge */}
       {badge !== undefined && badge > 0 && (
-        <span className="shrink-0 font-mono text-[11px] text-[#1BD27A] font-bold tabular-nums bg-[rgba(27,210,122,.12)] px-1.5 py-0.5 rounded-full leading-none">
+        <span className="shrink-0 font-mono text-[12px] text-[#1BD27A] font-bold tabular-nums bg-[rgba(27,210,122,.12)] px-2 py-0.5 rounded-full leading-none">
           {badge}
         </span>
       )}
@@ -76,20 +76,20 @@ function NavItem({ label, icon, active, badge, onClick, onRename, onDelete }: Na
         >
           {onRename && (
             <button
-              className="p-1.5 rounded-md hover:bg-[rgba(255,255,255,.1)] text-[rgba(231,238,248,.4)] hover:text-[rgba(231,238,248,.85)] transition-colors"
+              className="p-2 rounded-md hover:bg-[rgba(255,255,255,.1)] text-[rgba(231,238,248,.4)] hover:text-[rgba(231,238,248,.85)] transition-colors"
               onClick={onRename}
               title="Renombrar"
             >
-              <Pencil className="h-3 w-3" />
+              <Pencil className="h-3.5 w-3.5" />
             </button>
           )}
           {onDelete && (
             <button
-              className="p-1.5 rounded-md hover:bg-[rgba(255,90,106,.15)] text-[rgba(231,238,248,.4)] hover:text-[#FF5A6A] transition-colors"
+              className="p-2 rounded-md hover:bg-[rgba(255,90,106,.15)] text-[rgba(231,238,248,.4)] hover:text-[#FF5A6A] transition-colors"
               onClick={onDelete}
               title="Eliminar"
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -110,10 +110,10 @@ function SectionHeader({
 }) {
   return (
     <div
-      className={cn('flex items-center gap-1 px-3 pt-5 pb-1.5', collapsible && 'cursor-pointer')}
+      className={cn('flex items-center gap-1 px-4 pt-6 pb-2', collapsible && 'cursor-pointer')}
       onClick={collapsible ? onToggle : undefined}
     >
-      <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[rgba(231,238,248,.28)] flex-1 select-none">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[rgba(231,238,248,.28)] flex-1 select-none">
         {label}
       </span>
       {collapsible && (
@@ -154,8 +154,8 @@ export function LeftSidebar() {
 
   return (
     <>
-      {/* w-52 = 208px — professional sidebar width */}
-      <aside className="w-52 shrink-0 flex flex-col border-r border-[rgba(255,255,255,.06)] bg-[#09111a]">
+      {/* w-56 = 224px — professional sidebar width */}
+      <aside className="w-56 shrink-0 flex flex-col border-r border-[rgba(255,255,255,.06)] bg-[#09111a]">
 
         {/* App brand — 52px height matches toolbar */}
         <div className="flex items-center gap-3 px-5 h-[52px] shrink-0 border-b border-[rgba(255,255,255,.06)]">
@@ -174,19 +174,19 @@ export function LeftSidebar() {
             <SectionHeader label="Vistas" />
             <NavItem
               label="Tableros"
-              icon={<LayoutGrid className="h-4 w-4" />}
+              icon={<LayoutGrid className="h-5 w-5" />}
               active={boardSelectorOpen}
               onClick={toggleBoardSelector}
             />
             <NavItem
               label="Completa"
-              icon={<LayoutList className="h-4 w-4" />}
+              icon={<LayoutList className="h-5 w-5" />}
               active={!boardSelectorOpen && vista === 'completa'}
               onClick={() => handleSelectVista('completa')}
             />
             <NavItem
               label="Viva"
-              icon={<Eye className="h-4 w-4" />}
+              icon={<Eye className="h-5 w-5" />}
               active={!boardSelectorOpen && vista === 'viva'}
               badge={vivoCount}
               onClick={() => handleSelectVista('viva')}
@@ -194,7 +194,7 @@ export function LeftSidebar() {
           </div>
 
           {/* Divider */}
-          <div className="mx-4 mt-4 h-px bg-[rgba(255,255,255,.05)]" />
+          <div className="mx-4 mt-5 h-px bg-[rgba(255,255,255,.05)]" />
 
           {/* Boards section */}
           <div className="px-3">
@@ -213,7 +213,7 @@ export function LeftSidebar() {
                     label={board.name}
                     icon={
                       <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        className="w-3 h-3 rounded-full shrink-0"
                         style={{ background: board.color || '#1BD27A' }}
                       />
                     }
@@ -226,11 +226,11 @@ export function LeftSidebar() {
 
                 {/* Add board row */}
                 <button
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer text-[rgba(231,238,248,.35)] hover:text-[rgba(231,238,248,.65)] hover:bg-[rgba(255,255,255,.04)] transition-colors"
+                  className="w-full flex items-center gap-3.5 px-4 py-3 rounded-lg cursor-pointer text-[rgba(231,238,248,.35)] hover:text-[rgba(231,238,248,.65)] hover:bg-[rgba(255,255,255,.04)] transition-colors"
                   onClick={() => setCreateOpen(true)}
                 >
-                  <Plus className="h-4 w-4 shrink-0" />
-                  <span className="text-[13px] font-medium">Nuevo tablero</span>
+                  <Plus className="h-5 w-5 shrink-0" />
+                  <span className="text-[14px] font-medium">Nuevo tablero</span>
                 </button>
               </>
             )}

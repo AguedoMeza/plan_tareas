@@ -66,7 +66,7 @@ export function BoardView() {
 
   // Clases para tabs estilo underline (Gmail)
   const triggerCls = cn(
-    'relative rounded-none bg-transparent px-4 py-2.5 text-sm font-semibold shadow-none',
+    'relative rounded-none bg-transparent px-5 py-3.5 text-[14px] font-semibold shadow-none',
     'text-muted-foreground border-b-2 border-transparent -mb-px',
     'transition-colors hover:text-foreground',
     'data-[state=active]:text-foreground data-[state=active]:border-primary',
@@ -83,16 +83,16 @@ export function BoardView() {
           <TabsTrigger value="tablero" className={triggerCls}>
             Tablero
             {(activos.length + backlog.length) > 0 && (
-              <span className="ml-1.5 text-[11px] bg-muted text-muted-foreground rounded-full px-1.5 py-px leading-none">
+              <span className="ml-2 text-[12px] bg-muted text-muted-foreground rounded-full px-2 py-0.5 leading-none font-semibold">
                 {activos.length + backlog.length}
               </span>
             )}
           </TabsTrigger>
           <TabsTrigger value="archivados" className={triggerCls}>
-            <Archive className="h-3.5 w-3.5 mr-1.5 opacity-60" />
+            <Archive className="h-4 w-4 mr-1.5 opacity-60" />
             Archivados
             {archivados.length > 0 && (
-              <span className="ml-1.5 text-[11px] bg-muted text-muted-foreground rounded-full px-1.5 py-px leading-none">
+              <span className="ml-2 text-[12px] bg-muted text-muted-foreground rounded-full px-2 py-0.5 leading-none font-semibold">
                 {archivados.length}
               </span>
             )}
@@ -110,7 +110,7 @@ export function BoardView() {
             <p className="text-xs mt-1 opacity-60">Crea uno con «+ Nuevo» o revisa los archivados</p>
           </div>
         ) : (
-          <div className="px-6 py-8 w-full max-w-5xl mx-auto">
+          <div className="px-8 py-10 w-full max-w-5xl mx-auto">
             <BoardSection
               title="Activos"
               proyectos={activos}
@@ -135,7 +135,7 @@ export function BoardView() {
             <p className="text-sm font-semibold">Sin proyectos archivados</p>
           </div>
         ) : (
-          <div className="px-6 py-8 w-full max-w-5xl mx-auto">
+          <div className="px-8 py-10 w-full max-w-5xl mx-auto">
             <BoardSection
               title="Archivados"
               proyectos={archivados}

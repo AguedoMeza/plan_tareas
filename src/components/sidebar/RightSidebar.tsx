@@ -130,7 +130,7 @@ function deadlineColor(daysLeft: number): string {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[rgba(231,238,248,.28)] mb-3 select-none">
+    <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[rgba(231,238,248,.28)] mb-4 select-none">
       {children}
     </p>
   );
@@ -169,7 +169,7 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
     <aside
       className={cn(
         'relative shrink-0 border-l border-[rgba(255,255,255,.055)] bg-[#0d1520] flex flex-col transition-all duration-300 ease-in-out overflow-hidden',
-        collapsed ? 'w-9' : 'w-60'
+        collapsed ? 'w-9' : 'w-64'
       )}
     >
       {/* Toggle button */}
@@ -202,27 +202,27 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
           'flex flex-col flex-1 transition-opacity duration-200',
           collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
         )}
-        style={{ width: '240px' }} // fixed width to avoid reflow during transition
+        style={{ width: '256px' }} // fixed width to avoid reflow during transition
       >
         {/* Board header — 52px to match toolbar height */}
-        <div className="flex items-center gap-2 px-4 h-[52px] shrink-0 border-b border-[rgba(255,255,255,.06)]">
-          <TrendingUp className="h-3.5 w-3.5 text-[#1BD27A] shrink-0" />
-          <h2 className="text-[13px] font-semibold text-[rgba(231,238,248,.75)] truncate">
+        <div className="flex items-center gap-2.5 px-5 h-[52px] shrink-0 border-b border-[rgba(255,255,255,.06)]">
+          <TrendingUp className="h-4 w-4 text-[#1BD27A] shrink-0" />
+          <h2 className="text-[14px] font-semibold text-[rgba(231,238,248,.8)] truncate">
             {activeBoard?.name || '—'}
           </h2>
         </div>
 
         {/* Stats */}
-        <div className="px-4 py-4">
+        <div className="px-5 py-5">
           <SectionLabel>Resumen</SectionLabel>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {/* Projects active */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FolderOpen className="h-3.5 w-3.5 text-[rgba(231,238,248,.3)]" />
-                <span className="text-[12px] text-[rgba(231,238,248,.65)]">Activos</span>
+                <FolderOpen className="h-4 w-4 text-[rgba(231,238,248,.3)]" />
+                <span className="text-[13px] text-[rgba(231,238,248,.65)]">Activos</span>
               </div>
-              <span className="font-mono text-[12px] text-[#E7EEF8] font-semibold tabular-nums">
+              <span className="font-mono text-[14px] text-[#E7EEF8] font-bold tabular-nums">
                 {stats.totalActive}
               </span>
             </div>
@@ -230,10 +230,10 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
             {/* Vivas */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Zap className="h-3.5 w-3.5 text-[#1BD27A]" />
-                <span className="text-[12px] text-[rgba(231,238,248,.65)]">Vivas</span>
+                <Zap className="h-4 w-4 text-[#1BD27A]" />
+                <span className="text-[13px] text-[rgba(231,238,248,.65)]">Vivas</span>
               </div>
-              <span className="font-mono text-[12px] text-[#1BD27A] font-semibold tabular-nums">
+              <span className="font-mono text-[14px] text-[#1BD27A] font-bold tabular-nums">
                 {stats.vivos}
               </span>
             </div>
@@ -242,10 +242,10 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
             {stats.blocked > 0 && (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <AlertOctagon className="h-3.5 w-3.5 text-[#FF5A6A]" />
-                  <span className="text-[12px] text-[rgba(231,238,248,.65)]">Bloqueadas</span>
+                  <AlertOctagon className="h-4 w-4 text-[#FF5A6A]" />
+                  <span className="text-[13px] text-[rgba(231,238,248,.65)]">Bloqueadas</span>
                 </div>
-                <span className="font-mono text-[12px] text-[#FF5A6A] font-semibold tabular-nums">
+                <span className="font-mono text-[14px] text-[#FF5A6A] font-bold tabular-nums">
                   {stats.blocked}
                 </span>
               </div>
@@ -254,10 +254,10 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
             {/* Completed */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-3.5 w-3.5 text-[rgba(231,238,248,.25)]" />
-                <span className="text-[12px] text-[rgba(231,238,248,.65)]">Completas</span>
+                <CheckCircle2 className="h-4 w-4 text-[rgba(231,238,248,.25)]" />
+                <span className="text-[13px] text-[rgba(231,238,248,.65)]">Completas</span>
               </div>
-              <span className="font-mono text-[12px] text-[rgba(231,238,248,.4)] tabular-nums">
+              <span className="font-mono text-[13px] text-[rgba(231,238,248,.45)] tabular-nums">
                 {stats.completed}<span className="text-[rgba(231,238,248,.25)]">/{stats.total}</span>
               </span>
             </div>
@@ -270,7 +270,7 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
                 <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[rgba(231,238,248,.25)]">
                   Progreso global
                 </span>
-                <span className="font-mono text-[11px] text-[rgba(231,238,248,.45)] tabular-nums">
+                <span className="font-mono text-[13px] text-[rgba(231,238,248,.5)] font-semibold tabular-nums">
                   {stats.progress}%
                 </span>
               </div>
@@ -294,19 +294,19 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
         {/* Projects list */}
         {projectList.length > 0 && (
           <>
-            <div className="px-4 py-4">
+            <div className="px-5 py-5">
               <SectionLabel>Proyectos</SectionLabel>
-              <div className="flex flex-col gap-3.5">
+              <div className="flex flex-col gap-4">
                 {projectList.map((p, i) => (
                   <div key={i}>
-                    <div className="flex items-baseline justify-between mb-1.5">
+                    <div className="flex items-baseline justify-between mb-2">
                       <span
-                        className="text-[12px] text-[rgba(231,238,248,.75)] truncate flex-1 pr-2 leading-tight"
+                        className="text-[13px] text-[rgba(231,238,248,.8)] truncate flex-1 pr-2 leading-tight"
                         title={p.nombre}
                       >
                         {p.nombre}
                       </span>
-                      <span className="font-mono text-[10px] text-[rgba(231,238,248,.35)] shrink-0 tabular-nums">
+                      <span className="font-mono text-[11px] text-[rgba(231,238,248,.4)] shrink-0 tabular-nums">
                         {p.progress}%
                       </span>
                     </div>
@@ -334,25 +334,25 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
 
         {/* Upcoming deadlines */}
         {deadlines.length > 0 ? (
-          <div className="px-4 py-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar className="h-3.5 w-3.5 text-[rgba(231,238,248,.28)]" />
+          <div className="px-5 py-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <Calendar className="h-4 w-4 text-[rgba(231,238,248,.28)]" />
               <SectionLabel>Próximos vencimientos</SectionLabel>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
               {deadlines.map((d, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <span
-                    className="font-mono text-[11px] shrink-0 mt-0.5 w-11 text-right leading-tight tabular-nums"
+                    className="font-mono text-[12px] shrink-0 mt-0.5 w-12 text-right leading-tight tabular-nums"
                     style={{ color: deadlineColor(d.daysLeft) }}
                   >
                     {deadlineLabel(d.daysLeft)}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[12px] text-[rgba(231,238,248,.75)] truncate leading-tight">
+                    <p className="text-[13px] text-[rgba(231,238,248,.8)] truncate leading-tight">
                       {d.nombre}
                     </p>
-                    <p className="text-[10px] text-[rgba(231,238,248,.35)] truncate mt-0.5">
+                    <p className="text-[11px] text-[rgba(231,238,248,.38)] truncate mt-0.5">
                       {d.proyecto}
                     </p>
                   </div>
@@ -361,9 +361,9 @@ export function RightSidebar({ collapsed, onToggle }: RightSidebarProps) {
             </div>
           </div>
         ) : (
-          <div className="px-4 py-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Clock className="h-3.5 w-3.5 text-[rgba(231,238,248,.28)]" />
+          <div className="px-5 py-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <Clock className="h-4 w-4 text-[rgba(231,238,248,.28)]" />
               <SectionLabel>Próximos vencimientos</SectionLabel>
             </div>
             <p className="text-[10px] text-[rgba(231,238,248,.2)] italic">

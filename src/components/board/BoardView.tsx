@@ -47,8 +47,9 @@ export function BoardView() {
 
   return (
     <Tabs defaultValue="tablero" className="flex flex-col flex-1">
-      {/* Tab bar — underline style */}
-      <div className="border-b border-border px-6 flex-shrink-0">
+      {/* Tab bar — underline style, alineada con max-w-5xl */}
+      <div className="border-b border-border flex-shrink-0">
+        <div className="px-6 w-full max-w-5xl mx-auto">
         <TabsList className="h-auto bg-transparent p-0 gap-1">
           <TabsTrigger value="tablero" className={triggerCls}>
             Tablero
@@ -68,6 +69,7 @@ export function BoardView() {
             )}
           </TabsTrigger>
         </TabsList>
+        </div>
       </div>
 
       {/* Tablero: Activos + Backlog */}

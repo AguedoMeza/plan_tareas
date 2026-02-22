@@ -2,7 +2,7 @@
 // Project card with expandable detail table
 
 import { useState, useCallback } from 'react';
-import { ChevronRight, ChevronDown, MoreVertical, Trash2, GripVertical } from 'lucide-react';
+import { ChevronRight, ChevronDown, MoreVertical, Trash2, GripVertical, BarChart2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/appStore';
 import { useInlineEdit } from '@/hooks/useInlineEdit';
@@ -13,6 +13,8 @@ import {
   aplicarOrdenamientoRecursivo,
 } from '@/lib/businessRules';
 import { ProjectDetailRow } from '@/components/board/ProjectDetailRow';
+import { ProjectMetricsDrawer } from '@/components/board/ProjectMetricsDrawer';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +54,7 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
   const toggleCollapsed = useAppStore(s => s.toggleCollapsed);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [metricsOpen, setMetricsOpen] = useState(false);
 
   const collapseKey = `proj-${projectIndex}`;
   const isExpanded = !collapsed[collapseKey];
@@ -198,7 +201,20 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
         )}
 
         {/* Actions */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 flex items-center gap-1">
+          {/* Metrics trigger */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => setMetricsOpen(true)}
+                className="text-muted-foreground hover:text-foreground p-1 rounded-md transition-colors"
+              >
+                <BarChart2 className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Ver métricas del proyecto</TooltipContent>
+          </Tooltip>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="text-muted-foreground hover:text-foreground p-1 rounded transition-colors">
@@ -217,6 +233,13 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Metrics drawer */}
+      <ProjectMetricsDrawer
+        proyecto={proyecto}
+        open={metricsOpen}
+        onOpenChange={setMetricsOpen}
+      />
 
       {/* Delete confirm dialog */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>

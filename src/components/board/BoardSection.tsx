@@ -87,10 +87,12 @@ export function BoardSection({
             <ReactSortable
               list={sortableItems}
               setList={handleSortEnd}
-              handle=".drag-handle"
-              animation={150}
-              ghostClass="sortable-ghost"
               className="space-y-0"
+              handle=".drag-handle"
+              animation={200}
+              easing="cubic-bezier(0.2, 0, 0, 1)"
+              ghostClass="sortable-ghost"
+              chosenClass="sortable-chosen"
             >
               {sortableItems.map(item => (
                 <div key={item.id}>

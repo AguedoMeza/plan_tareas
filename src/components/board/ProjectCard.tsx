@@ -2,7 +2,7 @@
 // Project card with expandable detail table
 
 import { useState, useCallback } from 'react';
-import { ChevronRight, ChevronDown, MoreVertical, Trash2, GripVertical, BarChart2 } from 'lucide-react';
+import { ChevronRight, ChevronDown, MoreVertical, Trash2, BarChart2, GripVertical, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppStore } from '@/store/appStore';
 import { useInlineEdit } from '@/hooks/useInlineEdit';
@@ -10,8 +10,8 @@ import {
   calcularAvanceGeneral,
   contarElementosRecursivo,
   calcTotalEsfuerzo,
-  aplicarOrdenamientoRecursivo,
 } from '@/lib/businessRules';
+import { ReactSortable } from 'react-sortablejs';
 import { ProjectDetailRow } from '@/components/board/ProjectDetailRow';
 import { ProjectMetricsDrawer } from '@/components/board/ProjectMetricsDrawer';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import type { Proyecto, EstadoProyecto } from '@/types';
+import type { Proyecto, Elemento, EstadoProyecto } from '@/types';
 
 const ESTADO_CHIP: Record<EstadoProyecto, string> = {
   'Activo':    'bg-emerald-500/10 border-emerald-500/25 text-emerald-400',
@@ -40,6 +40,12 @@ const ESTADO_CHIP: Record<EstadoProyecto, string> = {
 };
 
 const ESTADOS_PROYECTO: EstadoProyecto[] = ['Activo', 'Backlog', 'Archivado'];
+
+interface SortableElementItem {
+  id: string;
+  elemento: Elemento;
+  originalIdx: number;
+}
 
 interface ProjectCardProps {
   proyecto: Proyecto;
@@ -50,20 +56,55 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
   const setProjectEstado = useAppStore(s => s.setProjectEstado);
   const updateProject = useAppStore(s => s.updateProject);
   const deleteProject = useAppStore(s => s.deleteProject);
+  const reorderElements = useAppStore(s => s.reorderElements);
   const collapsed = useAppStore(s => s.collapsed);
   const toggleCollapsed = useAppStore(s => s.toggleCollapsed);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [metricsOpen, setMetricsOpen] = useState(false);
 
+  type SortField = 'nombre' | 'prioridad' | 'avance' | 'esfuerzo' | 'deadline' | 'estado';
+  type SortDir = 'asc' | 'desc';
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const PRIORIDAD_W: Record<string, number> = { Alta: 1, Media: 2, Baja: 3 };
+  const ESTADO_W: Record<string, number> = { 'En progreso': 1, Bloqueado: 2, Pendiente: 3, Backlog: 4, Completado: 5 };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDir === 'asc') { setSortDir('desc'); }
+      else { setSortField(null); setSortDir('asc'); }
+    } else {
+      setSortField(field); setSortDir('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-3 w-3 opacity-30 shrink-0" />;
+    return sortDir === 'asc'
+      ? <ArrowUp className="h-3 w-3 text-primary shrink-0" />
+      : <ArrowDown className="h-3 w-3 text-primary shrink-0" />;
+  };
+
   const collapseKey = `proj-${projectIndex}`;
   const isExpanded = !collapsed[collapseKey];
 
-  const proyectoOrdenado = aplicarOrdenamientoRecursivo({ ...proyecto });
-  const avance = calcularAvanceGeneral(proyectoOrdenado);
-  const totalHijos = contarElementosRecursivo(proyectoOrdenado) - 1;
-  const esfuerzoTotal = calcTotalEsfuerzo(proyectoOrdenado);
+  const avance = calcularAvanceGeneral(proyecto);
+  const totalHijos = contarElementosRecursivo(proyecto) - 1;
+  const esfuerzoTotal = calcTotalEsfuerzo(proyecto);
   const hasChildren = Array.isArray(proyecto.elementos) && proyecto.elementos.length > 0;
+
+  // Stable id = element name (avoids key churn during drag → fixes glitch)
+  const sortableElementItems: SortableElementItem[] = (proyecto.elementos || []).map((el, idx) => ({
+    id: el.nombre || `${projectIndex}-${idx}`,
+    elemento: el,
+    originalIdx: idx,
+  }));
+
+  const handleElementSort = (newOrder: SortableElementItem[]) => {
+    reorderElements([projectIndex], newOrder.map(item => item.elemento));
+  };
 
   const nombreEdit = useInlineEdit({
     initialValue: proyecto.nombre,
@@ -88,18 +129,13 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
   return (
     <div
       className={cn(
-        'rounded-lg border border-border bg-card mb-3 overflow-hidden shadow-card',
+        'group rounded-lg border border-border bg-card mb-3 overflow-hidden shadow-card',
         proyecto.estadoProyecto === 'Archivado' && 'opacity-60'
       )}
       data-project-index={projectIndex}
     >
       {/* ── Main row ── */}
       <div className="flex items-center gap-4 px-5 py-4 min-h-[72px]">
-        {/* Drag handle */}
-        <span className="drag-handle text-muted-foreground/40 flex-shrink-0">
-          <GripVertical className="h-4 w-4" />
-        </span>
-
         {/* Collapse toggle */}
         <button
           onClick={toggleExpand}
@@ -231,6 +267,8 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <GripVertical className="drag-handle h-4 w-4 text-muted-foreground/30 opacity-0 group-hover:opacity-100 transition-opacity ml-1" />
         </div>
       </div>
 
@@ -262,36 +300,91 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ── Detail table ── */}
+      {/* ── Detail section ── */}
       {hasChildren && isExpanded && (
         <div className="border-t border-border/50">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50 bg-muted/40">
-                  <th className="th-ds" style={{ minWidth: 180 }}>Nombre</th>
-                  <th className="th-ds">Descripción</th>
-                  <th className="th-ds-center" style={{ width: 60 }}>Prior.</th>
-                  <th className="th-ds" style={{ width: 120 }}>Avance</th>
-                  <th className="th-ds" style={{ width: 80 }}>Esfuerzo</th>
-                  <th className="th-ds-center" style={{ width: 100 }}>Deadline</th>
-                  <th className="th-ds-center" style={{ width: 110 }}>Estado</th>
-                  <th className="th-ds-right" style={{ width: 60 }}>Acc.</th>
-                </tr>
-              </thead>
-              <tbody>
-                {proyectoOrdenado.elementos!.map((hijo, idx) => (
-                  <ProjectDetailRow
-                    key={`${projectIndex}-${idx}`}
-                    elemento={hijo}
-                    path={[projectIndex, idx]}
-                    level={1}
-                    collapsed={collapsed}
-                    onToggleCollapse={handleGrouperToggle}
-                  />
+
+            {/* Column headers with sort */}
+            {(() => {
+              const SortBtn = ({ field, label, className }: { field: SortField; label: string; className?: string }) => (
+                <button
+                  onClick={() => handleSort(field)}
+                  className={cn(
+                    'flex items-center gap-1 w-full transition-colors text-[11px] font-semibold uppercase tracking-[0.07em]',
+                    sortField === field ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    className
+                  )}
+                >
+                  {label}
+                  <SortIcon field={field} />
+                </button>
+              );
+              return (
+                <div className="element-row border-b border-border/50 bg-muted/40">
+                  <div className="py-3 px-3" style={{ paddingLeft: 12 }}><SortBtn field="nombre" label="Nombre" /></div>
+                  <div className="py-3 px-3 text-[11px] font-semibold uppercase tracking-[0.07em] text-muted-foreground">Descripción</div>
+                  <div className="py-3 px-3 flex justify-center"><SortBtn field="prioridad" label="Prior." className="justify-center" /></div>
+                  <div className="py-3 px-3"><SortBtn field="avance" label="Avance" /></div>
+                  <div className="py-3 px-3"><SortBtn field="esfuerzo" label="Esfuerzo" /></div>
+                  <div className="py-3 px-3 flex justify-center"><SortBtn field="deadline" label="Deadline" className="justify-center" /></div>
+                  <div className="py-3 px-3 flex justify-center"><SortBtn field="estado" label="Estado" className="justify-center" /></div>
+                  <div className="py-3 px-3" />
+                </div>
+              );
+            })()}
+
+            {/* Element list: sorted (static) or drag-enabled */}
+            {sortField ? (
+              <div>
+                {[...sortableElementItems]
+                  .sort((a, b) => {
+                    const av = a.elemento, bv = b.elemento;
+                    let va: string | number = '', vb: string | number = '';
+                    if (sortField === 'nombre')    { va = av.nombre.toLowerCase(); vb = bv.nombre.toLowerCase(); }
+                    if (sortField === 'prioridad') { va = PRIORIDAD_W[av.prioridad || ''] ?? 99; vb = PRIORIDAD_W[bv.prioridad || ''] ?? 99; }
+                    if (sortField === 'avance')    { va = parseInt(String(av.avance ?? 0)) || 0; vb = parseInt(String(bv.avance ?? 0)) || 0; }
+                    if (sortField === 'esfuerzo')  { va = (av.esfuerzo ?? '').toLowerCase(); vb = (bv.esfuerzo ?? '').toLowerCase(); }
+                    if (sortField === 'deadline')  { va = av.deadline ?? ''; vb = bv.deadline ?? ''; }
+                    if (sortField === 'estado')    { va = ESTADO_W[av.estado || ''] ?? 99; vb = ESTADO_W[bv.estado || ''] ?? 99; }
+                    const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+                    return sortDir === 'asc' ? cmp : -cmp;
+                  })
+                  .map(item => (
+                    <ProjectDetailRow
+                      key={item.id}
+                      elemento={item.elemento}
+                      path={[projectIndex, item.originalIdx]}
+                      level={1}
+                      collapsed={collapsed}
+                      onToggleCollapse={handleGrouperToggle}
+                    />
+                  ))}
+              </div>
+            ) : (
+              <ReactSortable
+                list={sortableElementItems}
+                setList={handleElementSort}
+                className="el-sortable"
+                handle=".drag-handle"
+                animation={200}
+                easing="cubic-bezier(0.2, 0, 0, 1)"
+                ghostClass="sortable-ghost"
+                chosenClass="sortable-chosen"
+              >
+                {sortableElementItems.map(item => (
+                  <div key={item.id}>
+                    <ProjectDetailRow
+                      elemento={item.elemento}
+                      path={[projectIndex, item.originalIdx]}
+                      level={1}
+                      collapsed={collapsed}
+                      onToggleCollapse={handleGrouperToggle}
+                    />
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </ReactSortable>
+            )}
           </div>
         </div>
       )}

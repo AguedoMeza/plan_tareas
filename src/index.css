@@ -98,11 +98,22 @@
 }
 
 /* ─── Drag handle ─── */
-.drag-handle { @apply cursor-grab opacity-25 hover:opacity-60 transition-opacity; }
+.drag-handle { cursor: grab; }
 .drag-handle:active { cursor: grabbing; }
 
-/* ─── Sortable ghost ─── */
-.sortable-ghost { opacity: 0.25; }
+/* ─── Sortable drag feedback ─── */
+
+/* Ghost = el hueco que queda mientras arrastras */
+.sortable-ghost { opacity: 0; }
+
+/* Chosen = la fila que se está arrastrando */
+.sortable-chosen > .element-row {
+  background: hsl(var(--card));
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.45);
+  outline: 1px solid hsl(var(--primary) / 0.2);
+  border-radius: 4px;
+  opacity: 0.96;
+}
 
 /* ─── Card shadow (design system: 0 12px 30px rgba(0,0,0,.35)) ─── */
 .shadow-card {
@@ -130,6 +141,15 @@
 table tbody tr:nth-child(even) {
   background-color: hsl(var(--muted) / 0.35);
 }
+
+/* ─── Element list grid (replaces <table> in ProjectCard detail) ─── */
+.element-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(0, 1fr) 60px 120px 80px 100px 110px 76px;
+  min-width: 672px;
+  align-items: center;
+}
+
 
 /* ─── Mono para fechas ─── */
 .font-mono-date {

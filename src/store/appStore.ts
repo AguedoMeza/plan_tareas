@@ -11,7 +11,6 @@ import {
   findByPath,
 } from '@/lib/dataUtils';
 import {
-  ordenarElementosPorEstado,
   computeEstadoFromChildren,
 } from '@/lib/businessRules';
 
@@ -424,15 +423,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       if (estado === 'Completado' && !el.avance) el.avance = '100%';
       else if (el.avance === '100%' && estado !== 'Completado') el.avance = '';
 
-      // Reorder siblings (not for project root)
-      if (path.length > 1) {
-        const parentPath = path.slice(0, -1);
-        const parent = findByPath(proyectos, parentPath) as Elemento | null;
-        if (parent && Array.isArray(parent.elementos) && parent.elementos.length > 1) {
-          parent.elementos = ordenarElementosPorEstado(parent.elementos);
-        }
-      }
-
       // Recalculate parent states up the tree
       let currentPath = path.slice(0, -1);
       while (currentPath.length > 0) {
@@ -443,13 +433,6 @@ export const useAppStore = create<AppState>((set, get) => ({
             parent.estado = nextEstado;
             if (nextEstado === 'Completado') parent.avance = '100%';
             else if (parent.avance === '100%') parent.avance = '';
-          }
-          if (currentPath.length > 1) {
-            const grandParentPath = currentPath.slice(0, -1);
-            const grandParent = findByPath(proyectos, grandParentPath) as Elemento | null;
-            if (grandParent && Array.isArray(grandParent.elementos) && grandParent.elementos.length > 1) {
-              grandParent.elementos = ordenarElementosPorEstado(grandParent.elementos);
-            }
           }
         }
         currentPath = currentPath.slice(0, -1);

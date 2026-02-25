@@ -218,10 +218,14 @@ export function ProjectDetailRow({
                   style={{ width: `${Math.max(avance, 2)}%` }}
                 />
               </div>
-              <div className="text-right text-[12px] text-muted-foreground mt-1">{avance}%</div>
+              {elemento.estado !== 'Completado' && (
+                <div className="text-right text-[12px] text-muted-foreground mt-1">{avance}%</div>
+              )}
             </div>
           ) : (
-            <EditCell value={elemento.avance || ''} field="avance" path={path} className="text-[13px] text-center" />
+            elemento.estado !== 'Completado'
+              ? <EditCell value={elemento.avance || ''} field="avance" path={path} className="text-[13px] text-center" />
+              : null
           )}
         </div>
 

@@ -232,7 +232,9 @@ export function ProjectCard({ proyecto, projectIndex }: ProjectCardProps) {
                 style={{ width: `${Math.max(avance, 2)}%` }}
               />
             </div>
-            <div className="text-right text-[13px] text-muted-foreground mt-1">{avance}%</div>
+            {proyecto.estadoProyecto !== 'Completado' && (
+              <div className="text-right text-[13px] text-muted-foreground mt-1">{avance}%</div>
+            )}
           </div>
         )}
 
